@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Home, FileText, Building2, Key, Settings, BarChart3, Users, CreditCard, Menu, X, Plus, Copy, Eye, EyeOff, Trash2, Download } from 'lucide-react';
+import { useCompanyInfo, useDashboardStats } from '../hooks/useApi';
+import { apiClient } from '../api/apiClient';
+import type { Invoice } from '../types/invoice';
 
 const InvoiceDashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -8,15 +11,50 @@ const InvoiceDashboard = () => {
     const [apiKeys, setApiKeys] = useState([
         { id: 1, name: 'Production Key', key: 'ik_prod_a1b2c3d4e5f6g7h8', created: '2025-01-15', lastUsed: '2025-11-13' }
     ]);
-    const [organizations, setOrganizations] = useState([
-        { id: 1, name: 'Công ty TNHH ABC', taxCode: '0123456789', status: 'active' }
-    ]);
-    const [invoiceStats, setInvoiceStats] = useState({
-        total: 1284,
-        thisMonth: 156,
-        pending: 23,
-        stored: 245.8
-    });
+    const [organizations, setOrganizations] = useState<{ id: string | number; name: string; taxCode: string; status?: string; }[]>([]);
+    const [recentInvoices, setRecentInvoices] = useState<Invoice[]>([]);
+
+    const { data: dashboardStats } = useDashboardStats();
+    const { data: companyInfo } = useCompanyInfo();
+
+    useEffect(() => {
+        if (companyInfo) {
+            setOrganizations([
+                { id: companyInfo.id, name: companyInfo.name, taxCode: companyInfo.tax_code, status: 'active' }
+            ]);
+        }
+    }, [companyInfo]);
+
+    useEffect(() => {
+        // Lấy 4 hóa đơn gần đây từ fake API
+        const fetchRecent = async () => {
+            const res = await apiClient.getInvoices(1, 4);
+            if (res.success && res.data) {
+                setRecentInvoices(res.data.data);
+            }
+        };
+        fetchRecent();
+    }, []);
+
+    const computedStats = useMemo(() => {
+        const total = dashboardStats?.totalInvoices ?? 0;
+        const pending = dashboardStats?.pendingInvoices ?? 0;
+
+        // Đếm số hóa đơn phát hành trong tháng hiện tại từ danh sách gần đây (best-effort)
+        const now = new Date();
+        const thisMonthCount = recentInvoices.filter(inv => {
+            if (!inv.issued_date) return false;
+            const d = new Date(inv.issued_date);
+            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        }).length;
+
+        return {
+            total,
+            thisMonth: thisMonthCount,
+            pending,
+            stored: 245.8 // chưa có chỉ số trong mock, tạm giữ nguyên
+        };
+    }, [dashboardStats, recentInvoices]);
 
     const menuItems = [
         { id: 'dashboard', icon: Home, label: 'Dashboard' },
@@ -66,7 +104,7 @@ const InvoiceDashboard = () => {
                         <span className="text-sm text-gray-500">24h</span>
                     </div>
                     <h3 className="text-gray-600 text-sm mb-1">Tổng hóa đơn</h3>
-                    <p className="text-3xl font-bold text-gray-900">{invoiceStats.total}</p>
+                    <p className="text-3xl font-bold text-gray-900">{computedStats.total}</p>
                 </div>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -77,7 +115,7 @@ const InvoiceDashboard = () => {
                         <span className="text-sm text-gray-500">Tháng này</span>
                     </div>
                     <h3 className="text-gray-600 text-sm mb-1">Hóa đơn mới</h3>
-                    <p className="text-3xl font-bold text-gray-900">{invoiceStats.thisMonth}</p>
+                    <p className="text-3xl font-bold text-gray-900">{computedStats.thisMonth}</p>
                 </div>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -88,7 +126,7 @@ const InvoiceDashboard = () => {
                         <span className="text-sm text-gray-500">Đang xử lý</span>
                     </div>
                     <h3 className="text-gray-600 text-sm mb-1">Chờ xác nhận</h3>
-                    <p className="text-3xl font-bold text-gray-900">{invoiceStats.pending}</p>
+                    <p className="text-3xl font-bold text-gray-900">{computedStats.pending}</p>
                 </div>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -99,7 +137,7 @@ const InvoiceDashboard = () => {
                         <span className="text-sm text-gray-500">Tổng dung lượng</span>
                     </div>
                     <h3 className="text-gray-600 text-sm mb-1">Đã sử dụng</h3>
-                    <p className="text-3xl font-bold text-gray-900">{invoiceStats.stored} MB</p>
+                    <p className="text-3xl font-bold text-gray-900">{computedStats.stored} MB</p>
                 </div>
             </div>
 
@@ -107,14 +145,14 @@ const InvoiceDashboard = () => {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 className="text-lg font-semibold mb-4">Hoạt động gần đây</h3>
                     <div className="space-y-4">
-                        {[1, 2, 3, 4].map((item) => (
-                            <div key={item} className="flex items-center gap-4 pb-4 border-b border-gray-100 last:border-0">
+                        {recentInvoices.map((inv, idx) => (
+                            <div key={(inv.invoice_number || inv.form_number || idx).toString()} className="flex items-center gap-4 pb-4 border-b border-gray-100 last:border-0">
                                 <div className="p-2 bg-blue-50 rounded-lg">
                                     <FileText className="text-blue-600" size={20} />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="font-medium text-gray-900">Hóa đơn #{1000 + item}</p>
-                                    <p className="text-sm text-gray-500">Tải lên {item} giờ trước</p>
+                                    <p className="font-medium text-gray-900">{inv.invoice_number || inv.form_number || 'Hóa đơn'}</p>
+                                    <p className="text-sm text-gray-500">Ngày phát hành: {inv.issued_date || '-'}</p>
                                 </div>
                                 <button className="text-blue-600 hover:text-blue-700">
                                     <Eye size={20} />
