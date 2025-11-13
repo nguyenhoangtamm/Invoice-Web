@@ -5,8 +5,6 @@ export default function Navbar() {
         <header className="bg-white shadow-sm">
             <div className="container mx-auto px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    
-
                     <img
                         src={logo}
                         alt="Company Logo"

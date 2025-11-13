@@ -1,21 +1,16 @@
 import type { RouteObject } from 'react-router-dom';
-import { Home, About, Contact } from '../pages';
+import { Navigate } from 'react-router-dom';
+import App from '../App';
+import Lookup from '../pages/Lookup';
 
 export const routes: RouteObject[] = [
     {
         path: '/',
-        element: <Home />,
-    },
-    {
-        path: '/about',
-        element: <About />,
-    },
-    {
-        path: '/contact',
-        element: <Contact />,
-    },
-    {
-        path: '*',
-        element: <Home />,
+        element: <App />,
+        children: [
+            { index: true, element: <Navigate to="/lookup" replace /> },
+            { path: 'lookup', element: <Lookup /> },
+            { path: '*', element: <Lookup /> },
+        ]
     }
 ];
