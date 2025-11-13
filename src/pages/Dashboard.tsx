@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Home, FileText, Building2, Key, Settings, BarChart3, Users, CreditCard, Menu, X, Plus, Copy, Eye, EyeOff, Trash2, Download } from 'lucide-react';
+import { Home, FileText, Building2, Key, Settings, BarChart3, Users, CreditCard, Menu, X, Plus, Copy, Eye, EyeOff, Trash2, Download, Search, Filter, ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle, Share2, FileJson, ArrowLeft } from 'lucide-react';
 import { useCompanyInfo, useDashboardStats } from '../hooks/useApi';
 import { apiClient } from '../api/apiClient';
 import type { Invoice } from '../types/invoice';
+import { mockInvoices } from '../data/mockInvoice';
 
 const InvoiceDashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -13,6 +14,19 @@ const InvoiceDashboard = () => {
     ]);
     const [organizations, setOrganizations] = useState<{ id: string | number; name: string; taxCode: string; status?: string; }[]>([]);
     const [recentInvoices, setRecentInvoices] = useState<Invoice[]>([]);
+    const [invoiceList, setInvoiceList] = useState<Invoice[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [invoicesPerPage] = useState(10);
+    const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+    const [blockchainStatus, setBlockchainStatus] = useState<'verified' | 'pending' | 'failed' | null>(null);
+    const [blockchainDetails, setBlockchainDetails] = useState<{
+        transactionHash: string;
+        blockNumber: string;
+        timestamp: string;
+        gasUsed: string;
+    } | null>(null);
 
     const { data: dashboardStats } = useDashboardStats();
     const { data: companyInfo } = useCompanyInfo();
@@ -34,6 +48,10 @@ const InvoiceDashboard = () => {
             }
         };
         fetchRecent();
+        
+        // Lấy danh sách tất cả hóa đơn cho trang Invoices
+        setInvoiceList(mockInvoices);
+        setCurrentPage(1);
     }, []);
 
     const computedStats = useMemo(() => {
@@ -79,6 +97,429 @@ const InvoiceDashboard = () => {
         };
         setApiKeys([...apiKeys, newKey]);
     };
+
+    const deleteInvoice = (invoiceNumber: string | undefined) => {
+        if (!invoiceNumber) return;
+        setInvoiceList(prev => prev.filter(inv => inv.invoice_number !== invoiceNumber));
+    };
+
+    const verifyBlockchain = async () => {
+        // Simulate blockchain verification
+        setBlockchainStatus('pending');
+        
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const isVerified = Math.random() > 0.1; // 90% success rate
+        
+        if (isVerified) {
+            setBlockchainStatus('verified');
+            setBlockchainDetails({
+                transactionHash: '0x' + Math.random().toString(16).substr(2, 64),
+                blockNumber: '19' + Math.floor(Math.random() * 1000000).toString(),
+                timestamp: new Date().toISOString(),
+                gasUsed: (Math.random() * 50000 + 21000).toFixed(0)
+            });
+        } else {
+            setBlockchainStatus('failed');
+        }
+    };
+
+    const filteredInvoices = useMemo(() => {
+        return invoiceList.filter(inv => {
+            const matchesSearch = (inv.invoice_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                (inv.CustomerName || '').toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === 'all' || (inv.status || '').includes(statusFilter);
+            return matchesSearch && matchesStatus;
+        });
+    }, [invoiceList, searchTerm, statusFilter]);
+
+    const paginatedInvoices = useMemo(() => {
+        const startIndex = (currentPage - 1) * invoicesPerPage;
+        const endIndex = startIndex + invoicesPerPage;
+        return filteredInvoices.slice(startIndex, endIndex);
+    }, [filteredInvoices, currentPage, invoicesPerPage]);
+
+    const totalPages = Math.ceil(filteredInvoices.length / invoicesPerPage);
+
+    const renderInvoiceDetail = () => {
+        if (!selectedInvoice) return null;
+
+        return (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    {/* Header */}
+                    <div className="sticky top-0 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200 p-6 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => {
+                                    setSelectedInvoice(null);
+                                    setBlockchainStatus(null);
+                                    setBlockchainDetails(null);
+                                }}
+                                className="p-2 hover:bg-white rounded-lg transition"
+                            >
+                                <ArrowLeft size={24} className="text-gray-700" />
+                            </button>
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-900">Chi tiết hóa đơn</h2>
+                                <p className="text-gray-600 text-sm mt-1">{selectedInvoice.invoice_number}</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setSelectedInvoice(null);
+                                setBlockchainStatus(null);
+                                setBlockchainDetails(null);
+                            }}
+                            className="p-2 hover:bg-white rounded-lg transition"
+                        >
+                            <X size={24} className="text-gray-700" />
+                        </button>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-6 space-y-6">
+                        {/* Company Info */}
+                        <div className="grid grid-cols-2 gap-6">
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-700 mb-3">Thông tin bán hàng</h3>
+                                <div className="space-y-2">
+                                    <p className="text-gray-900 font-medium">CÔNG TY TNHH CÔNG NGHỆ ABC</p>
+                                    <p className="text-sm text-gray-600">123 Nguyễn Trãi, Quận 1, TP.HCM</p>
+                                    <p className="text-sm text-gray-600">MST: 0123456789</p>
+                                    <p className="text-sm text-gray-600">Email: info@abc-tech.vn</p>
+                                    <p className="text-sm text-gray-600">Tel: 028-12345678</p>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-700 mb-3">Thông tin khách hàng</h3>
+                                <div className="space-y-2">
+                                    <p className="text-gray-900 font-medium">{selectedInvoice.CustomerName}</p>
+                                    <p className="text-sm text-gray-600">{selectedInvoice.CustomerAddress}</p>
+                                    <p className="text-sm text-gray-600">Email: {selectedInvoice.CustomerEmail}</p>
+                                    <p className="text-sm text-gray-600">Tel: {selectedInvoice.CustomerPhone}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr className="border-gray-200" />
+
+                        {/* Invoice Details */}
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="bg-blue-50 rounded-lg p-4">
+                                <p className="text-xs font-semibold text-gray-600 mb-1">Mẫu số hóa đơn</p>
+                                <p className="text-lg font-bold text-gray-900">{selectedInvoice.form_number}</p>
+                            </div>
+                            <div className="bg-purple-50 rounded-lg p-4">
+                                <p className="text-xs font-semibold text-gray-600 mb-1">Ký hiệu hóa đơn</p>
+                                <p className="text-lg font-bold text-gray-900">{selectedInvoice.serial}</p>
+                            </div>
+                            <div className="bg-green-50 rounded-lg p-4">
+                                <p className="text-xs font-semibold text-gray-600 mb-1">Ngày phát hành</p>
+                                <p className="text-lg font-bold text-gray-900">{selectedInvoice.issued_date}</p>
+                            </div>
+                        </div>
+
+                        {/* Line Items */}
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Chi tiết hóa đơn</h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-gray-50 border border-gray-200 rounded-lg">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left font-semibold text-gray-700">STT</th>
+                                            <th className="px-4 py-3 text-left font-semibold text-gray-700">Nội dung</th>
+                                            <th className="px-4 py-3 text-center font-semibold text-gray-700">ĐVT</th>
+                                            <th className="px-4 py-3 text-right font-semibold text-gray-700">SL</th>
+                                            <th className="px-4 py-3 text-right font-semibold text-gray-700">Đơn giá</th>
+                                            <th className="px-4 py-3 text-right font-semibold text-gray-700">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {selectedInvoice.lines?.map((line) => (
+                                            <tr key={line.line_number} className="border-b border-gray-200 hover:bg-gray-50">
+                                                <td className="px-4 py-3 text-gray-900">{line.line_number}</td>
+                                                <td className="px-4 py-3 text-gray-900">{line.description}</td>
+                                                <td className="px-4 py-3 text-center text-gray-600">{line.unit}</td>
+                                                <td className="px-4 py-3 text-right text-gray-900 font-medium">{line.quantity}</td>
+                                                <td className="px-4 py-3 text-right text-gray-900">{line.unit_price?.toLocaleString('vi-VN')}</td>
+                                                <td className="px-4 py-3 text-right text-gray-900 font-semibold">{line.line_total?.toLocaleString('vi-VN')}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Summary */}
+                        <div className="flex justify-end">
+                            <div className="w-80 space-y-2 bg-gray-50 rounded-lg p-6">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-600">Cộng tiền hàng:</span>
+                                    <span className="text-gray-900 font-medium">{selectedInvoice.subtotal?.toLocaleString('vi-VN')}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-600">Chiết khấu:</span>
+                                    <span className="text-gray-900 font-medium">{selectedInvoice.discount_amount?.toLocaleString('vi-VN')}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-600">Tiền thuế:</span>
+                                    <span className="text-gray-900 font-medium">{selectedInvoice.tax_amount?.toLocaleString('vi-VN')}</span>
+                                </div>
+                                <hr className="border-gray-200 my-3" />
+                                <div className="flex justify-between">
+                                    <span className="text-gray-900 font-bold">Tổng cộng:</span>
+                                    <span className="text-2xl font-bold text-blue-600">{selectedInvoice.total_amount?.toLocaleString('vi-VN')}</span>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">({selectedInvoice.currency})</p>
+                            </div>
+                        </div>
+
+                        <hr className="border-gray-200" />
+
+                        {/* Blockchain Verification */}
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                                        <FileJson size={20} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-900">Xác thực Blockchain</h3>
+                                        <p className="text-sm text-gray-600">Xác minh tính xác thực của hóa đơn trên blockchain</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Hash Display */}
+                            <div className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+                                <p className="text-xs font-semibold text-gray-600 mb-2">Mã hash hóa đơn:</p>
+                                <p className="text-xs font-mono text-gray-900 break-all bg-gray-50 p-3 rounded border border-gray-200">
+                                    {selectedInvoice.immutable_hash}
+                                </p>
+                            </div>
+
+                            {/* Verification Status */}
+                            {blockchainStatus === null ? (
+                                <button
+                                    onClick={verifyBlockchain}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition flex items-center justify-center gap-2"
+                                >
+                                    <CheckCircle size={20} />
+                                    Xác thực trên Blockchain
+                                </button>
+                            ) : blockchainStatus === 'pending' ? (
+                                <div className="flex items-center justify-center gap-3 py-4">
+                                    <Clock size={20} className="text-yellow-600 animate-spin" />
+                                    <span className="text-yellow-700 font-medium">Đang xác thực...</span>
+                                </div>
+                            ) : blockchainStatus === 'verified' && blockchainDetails ? (
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4">
+                                        <CheckCircle size={24} className="text-green-600" />
+                                        <span className="text-green-700 font-medium">Xác thực thành công! Hóa đơn hợp lệ</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 bg-white rounded-lg p-4 border border-gray-200">
+                                        <div>
+                                            <p className="text-xs font-semibold text-gray-600 mb-1">TX Hash:</p>
+                                            <p className="text-xs font-mono text-gray-900 truncate">{blockchainDetails.transactionHash}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold text-gray-600 mb-1">Block Number:</p>
+                                            <p className="text-xs font-mono text-gray-900">{blockchainDetails.blockNumber}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold text-gray-600 mb-1">Timestamp:</p>
+                                            <p className="text-xs text-gray-900">{new Date(blockchainDetails.timestamp).toLocaleString('vi-VN')}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold text-gray-600 mb-1">Gas Used:</p>
+                                            <p className="text-xs font-mono text-gray-900">{blockchainDetails.gasUsed}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg p-4">
+                                    <AlertCircle size={24} className="text-red-600" />
+                                    <span className="text-red-700 font-medium">Xác thực thất bại. Vui lòng thử lại.</span>
+                                </div>
+                            )}
+
+                            <button
+                                onClick={() => {
+                                    setBlockchainStatus(null);
+                                    setBlockchainDetails(null);
+                                }}
+                                className="w-full mt-4 border border-gray-300 text-gray-700 font-medium py-2 rounded-lg hover:bg-gray-50 transition"
+                            >
+                                Xoá Kết quả
+                            </button>
+                        </div>
+
+                        {/* Additional Notes */}
+                        {selectedInvoice.note && (
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <p className="text-sm font-semibold text-gray-700 mb-2">Ghi chú:</p>
+                                <p className="text-sm text-gray-600">{selectedInvoice.note}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const renderInvoices = () => (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold text-gray-900">Quản lý Hóa đơn</h1>
+                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                    <Plus size={20} />
+                    Tải hóa đơn mới
+                </button>
+            </div>
+
+            {/* Search and Filter Bar */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <div className="flex gap-4 flex-col md:flex-row">
+                    <div className="flex-1 relative">
+                        <Search size={18} className="absolute left-3 top-3 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Tìm kiếm theo số hóa đơn hoặc tên khách hàng..."
+                            value={searchTerm}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => {
+                            setStatusFilter(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="Đã phát hành">Đã phát hành</option>
+                        <option value="Chờ xác nhận">Chờ xác nhận</option>
+                        <option value="Quá hạn">Quá hạn</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* Invoices Table */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                {paginatedInvoices.length > 0 ? (
+                    <>
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gray-50 border-b border-gray-200">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Số hóa đơn</th>
+                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Khách hàng</th>
+                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Ngày phát hành</th>
+                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Số tiền</th>
+                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Trạng thái</th>
+                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {paginatedInvoices.map((invoice) => (
+                                        <tr key={invoice.invoice_number} className="hover:bg-gray-50 transition">
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.invoice_number}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-600">{invoice.CustomerName || '-'}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-600">{invoice.issued_date || '-'}</td>
+                                            <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                                                {invoice.total_amount?.toLocaleString('vi-VN')} {invoice.currency || 'VND'}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm">
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                                    invoice.status === 'Đã phát hành' ? 'bg-green-100 text-green-700' :
+                                                    invoice.status === 'Chờ xác nhận' ? 'bg-yellow-100 text-yellow-700' :
+                                                    'bg-red-100 text-red-700'
+                                                }`}>
+                                                    {invoice.status || '-'}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm">
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={() => setSelectedInvoice(invoice)}
+                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                        title="Xem chi tiết"
+                                                    >
+                                                        <Eye size={18} />
+                                                    </button>
+                                                    <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+                                                        <Download size={18} />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => deleteInvoice(invoice.invoice_number)}
+                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination */}
+                        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                            <div className="text-sm text-gray-600">
+                                Hiển thị {paginatedInvoices.length > 0 ? (currentPage - 1) * invoicesPerPage + 1 : 0} đến {Math.min(currentPage * invoicesPerPage, filteredInvoices.length)} trong {filteredInvoices.length} kết quả
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronLeft size={18} />
+                                </button>
+                                <div className="flex items-center gap-2">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            onClick={() => setCurrentPage(page)}
+                                            className={`w-8 h-8 rounded-lg font-medium transition ${
+                                                currentPage === page
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'text-gray-600 hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+                                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronRight size={18} />
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="text-center py-12">
+                        <FileText size={48} className="mx-auto text-gray-400 mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1">Không tìm thấy hóa đơn</h3>
+                        <p className="text-gray-600">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 
     const renderDashboard = () => (
         <div className="space-y-6">
@@ -331,14 +772,7 @@ const InvoiceDashboard = () => {
             case 'dashboard': return renderDashboard();
             case 'organizations': return renderOrganizations();
             case 'apikeys': return renderApiKeys();
-            case 'invoices':
-                return (
-                    <div className="text-center py-20">
-                        <FileText size={64} className="mx-auto text-gray-400 mb-4" />
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Quản lý Hóa đơn</h2>
-                        <p className="text-gray-600">Tính năng đang được phát triển</p>
-                    </div>
-                );
+            case 'invoices': return renderInvoices();
             case 'analytics':
                 return (
                     <div className="text-center py-20">
@@ -419,6 +853,9 @@ const InvoiceDashboard = () => {
                     {renderContent()}
                 </div>
             </div>
+
+            {/* Invoice Detail Modal */}
+            {renderInvoiceDetail()}
         </div>
     );
 };
