@@ -32,17 +32,14 @@ const Login = () => {
 
         try {
             const response = await login({
-                UsernameOrEmail: usernameOrEmail,
-                Password: password
+                usernameOrEmail: usernameOrEmail,
+                password: password
             });
 
-            if (response.success) {
-                // Redirect to the page user was trying to access, or dashboard
-                const from = location.state?.from?.pathname || '/dashboard';
-                navigate(from, { replace: true });
-            } else {
-                setError(response.message || 'Đăng nhập thất bại');
-            }
+            // Login function now directly returns data or throws error
+            // Redirect to the page user was trying to access, or dashboard
+            const from = location.state?.from?.pathname || '/dashboard';
+            navigate(from, { replace: true });
         } catch (error) {
             setError('Có lỗi xảy ra trong quá trình đăng nhập');
             console.error('Login error:', error);

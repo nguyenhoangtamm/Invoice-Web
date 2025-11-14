@@ -8,8 +8,11 @@ export default function AdminInvoiceBatches() {
     const [showModal, setShowModal] = useState(false);
     const [editingBatch, setEditingBatch] = useState<InvoiceBatch | null>(null);
     const [formData, setFormData] = useState<CreateInvoiceBatchRequest>({
+        batchId: '',
         batchName: '',
         description: '',
+        count: 0,
+        merkleRoot: '' as any,
     });
 
     useEffect(() => {
@@ -19,9 +22,9 @@ export default function AdminInvoiceBatches() {
     const loadBatches = async () => {
         setLoading(true);
         try {
-            const response = await invoiceBatchService.getAllInvoiceBatches();
+            const response = await invoiceBatchService.getInvoiceBatchesPaginated();
             if (response.success && response.data) {
-                setBatches(response.data);
+                setBatches(response.data.data);
             }
         } catch (error) {
             console.error('Error loading batches:', error);
@@ -65,8 +68,11 @@ export default function AdminInvoiceBatches() {
     const handleEdit = (batch: InvoiceBatch) => {
         setEditingBatch(batch);
         setFormData({
-            batchName: batch.batchName,
+            batchId: String(batch.batchId ?? batch.id ?? ''),
+            batchName: batch.batchName ?? '',
             description: batch.description || '',
+            count: batch.count ?? batch.totalInvoices ?? 0,
+            merkleRoot: batch.merkleRoot ?? null,
         });
         setShowModal(true);
     };
@@ -89,8 +95,11 @@ export default function AdminInvoiceBatches() {
 
     const resetForm = () => {
         setFormData({
+            batchId: '',
             batchName: '',
             description: '',
+            count: 0,
+            merkleRoot: '' as any,
         });
         setEditingBatch(null);
     };
@@ -99,7 +108,7 @@ export default function AdminInvoiceBatches() {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: name === 'count' ? Number(value) : value
         }));
     };
 
@@ -151,19 +160,25 @@ export default function AdminInvoiceBatches() {
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Tên lô
+                                Mã lô
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Trạng thái
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Tiến độ
+                                Số lượng
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Số lượng HĐ
+                                Merkle Root
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Ngày tạo
+                                Tx Hash
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Block
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Xác nhận
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Thao tác
@@ -174,50 +189,32 @@ export default function AdminInvoiceBatches() {
                         {batches.map((batch) => (
                             <tr key={batch.id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div>
-                                        <div className="text-sm font-medium text-gray-900">{batch.batchName}</div>
-                                        {batch.description && (
-                                            <div className="text-sm text-gray-500">{batch.description}</div>
-                                        )}
-                                    </div>
+                                    <div className="text-sm font-medium text-gray-900">{batch.batchId || batch.batchName}</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    {getStatusBadge(batch.status)}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div
-                                            className="bg-blue-600 h-2 rounded-full"
-                                            style={{
-                                                width: `${getProgressPercentage(batch.processedInvoices, batch.totalInvoices)}%`
-                                            }}
-                                        ></div>
-                                    </div>
-                                    <div className="text-xs text-gray-500 mt-1">
-                                        {getProgressPercentage(batch.processedInvoices, batch.totalInvoices)}%
-                                    </div>
+                                    {getStatusBadge(String(batch.status))}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <div className="text-center">
-                                        <div className="font-medium">{batch.processedInvoices}/{batch.totalInvoices}</div>
-                                        <div className="text-xs">đã xử lý</div>
-                                    </div>
+                                    {batch.count ?? batch.totalInvoices ?? 0}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {new Date(batch.createdAt).toLocaleDateString('vi-VN')}
+                                    <div className="text-sm text-gray-700 truncate max-w-xs">{batch.merkleRoot ?? '-'}</div>
                                 </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <div className="text-sm text-gray-700 truncate max-w-xs">{batch.txHash ?? '-'}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.blockNumber ?? '-'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.confirmedAt ? new Date(batch.confirmedAt).toLocaleString('vi-VN') : '-'}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <button
                                         onClick={() => handleEdit(batch)}
                                         className="text-blue-600 hover:text-blue-900 mr-3"
-                                        disabled={batch.status === 'processing'}
                                     >
                                         Sửa
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(batch.id)}
+                                        onClick={() => handleDelete(String(batch.id))}
                                         className="text-red-600 hover:text-red-900"
-                                        disabled={batch.status === 'processing'}
                                     >
                                         Xóa
                                     </button>
@@ -243,6 +240,42 @@ export default function AdminInvoiceBatches() {
                                 {editingBatch ? 'Sửa Lô Hóa đơn' : 'Tạo Lô Hóa đơn'}
                             </h3>
                             <form onSubmit={handleSubmit} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Mã lô *</label>
+                                    <input
+                                        type="text"
+                                        name="batchId"
+                                        required
+                                        value={formData.batchId as string}
+                                        onChange={handleInputChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Nhập mã lô (ví dụ BATCH-1)"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Số lượng *</label>
+                                    <input
+                                        type="number"
+                                        name="count"
+                                        required
+                                        min={0}
+                                        value={formData.count as number}
+                                        onChange={handleInputChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Số lượng hóa đơn trong lô"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Merkle Root</label>
+                                    <input
+                                        type="text"
+                                        name="merkleRoot"
+                                        value={String(formData.merkleRoot ?? '')}
+                                        onChange={handleInputChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Merkle root (nếu có)"
+                                    />
+                                </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">
                                         Tên lô *

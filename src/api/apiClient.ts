@@ -12,7 +12,6 @@ export {
     userApiService,
     invoiceApiService,
     companyApiService,
-    dashboardApiService,
 } from "./services/index";
 
 // Export default for backward compatibility

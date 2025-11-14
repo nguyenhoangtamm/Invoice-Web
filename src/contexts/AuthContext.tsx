@@ -1,24 +1,31 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authApiService } from '../api/services/authService';
+import {
+  login as loginApi,
+  register as registerApi,
+  logout as logoutApi,
+  refreshToken as refreshTokenApi,
+  getCurrentUser as getCurrentUserApi,
+  clearAuthTokens,
+  getAuthToken,
+  getRefreshTokenValue
+} from '../api/services/authService';
 import type {
-  LoginRequest,
-  RegisterRequest,
-  AuthResponse,
-  CurrentUserResponse,
-  AuthUser,
-  ApiResponse
-} from '../types/invoice';
+  LoginDto,
+  RegisterDto,
+  AuthResponseDto,
+  UserDto
+} from '../api/services/authService';
 
 // Auth Context Interface
 interface AuthContextType {
-  user: AuthUser | null;
-  currentUserInfo: CurrentUserResponse | null;
+  user: UserDto | null;
+  currentUserInfo: UserDto | null;
   accessToken: string | null;
   refreshToken: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (credentials: LoginRequest) => Promise<ApiResponse<AuthResponse>>;
-  register: (userData: RegisterRequest) => Promise<ApiResponse<AuthResponse>>;
+  login: (credentials: LoginDto) => Promise<AuthResponseDto>;
+  register: (userData: RegisterDto) => Promise<AuthResponseDto>;
   logout: () => Promise<void>;
   refreshAccessToken: () => Promise<boolean>;
   getCurrentUser: () => Promise<void>;
@@ -41,8 +48,8 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [currentUserInfo, setCurrentUserInfo] = useState<CurrentUserResponse | null>(null);
+  const [user, setUser] = useState<UserDto | null>(null);
+  const [currentUserInfo, setCurrentUserInfo] = useState<UserDto | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,22 +62,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuthState();
   }, []);
 
-  // Set up axios interceptor for token refresh
-  useEffect(() => {
-    if (accessToken) {
-      authApiService.setAuthToken(accessToken);
-    }
-  }, [accessToken]);
+  // Token is automatically handled by axios interceptor
+  // No need for manual token setting
 
   /**
    * Initialize authentication state from localStorage
    */
   const initializeAuthState = () => {
     try {
-      const storedAccessToken = localStorage.getItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN);
-      const storedRefreshToken = localStorage.getItem(LOCAL_STORAGE_KEYS.REFRESH_TOKEN);
-      const storedUser = localStorage.getItem(LOCAL_STORAGE_KEYS.USER);
-      const storedCurrentUserInfo = localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_USER_INFO);
+      // Support tokens stored under either the legacy keys used by
+      // the auth service ("authToken"/"refreshToken") or the
+      // local keys used by this context (invoice_access_token/...)
+      const storedAccessToken = getAuthToken() || localStorage.getItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN);
+      const storedRefreshToken = getRefreshTokenValue() || localStorage.getItem(LOCAL_STORAGE_KEYS.REFRESH_TOKEN);
+      const storedUser = localStorage.getItem(LOCAL_STORAGE_KEYS.USER) || localStorage.getItem('invoice_user');
+      const storedCurrentUserInfo = localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_USER_INFO) || localStorage.getItem('invoice_current_user_info');
 
       if (storedAccessToken && storedRefreshToken && storedUser) {
         setAccessToken(storedAccessToken);
@@ -81,8 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setCurrentUserInfo(JSON.parse(storedCurrentUserInfo));
         }
 
-        // Set token in API client
-        authApiService.setAuthToken(storedAccessToken);        // Get fresh user info
+        // Tokens are automatically handled by axios interceptor        
         getCurrentUser();
       }
     } catch (error) {
@@ -94,21 +99,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   /**
-   * Store auth data to localStorage and state
+   * Store authentication data in localStorage and state
    */
-  const storeAuthData = (authData: AuthResponse) => {
-    const { data } = authData;
+  const storeAuthData = (authData: AuthResponseDto) => {
+    setAccessToken(authData.accessToken);
+    setRefreshToken(authData.refreshToken);
+    setUser(authData.user);
 
-    setAccessToken(data.accessToken);
-    setRefreshToken(data.refreshToken);
-    setUser(data.user);
+    // Persist tokens in both the context-specific keys and the
+    // legacy/global keys used by axios/auth utilities so any
+    // consumer can find them.
+    localStorage.setItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN, authData.accessToken);
+    localStorage.setItem(LOCAL_STORAGE_KEYS.REFRESH_TOKEN, authData.refreshToken);
+    localStorage.setItem(LOCAL_STORAGE_KEYS.USER, JSON.stringify(authData.user));
 
-    localStorage.setItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
-    localStorage.setItem(LOCAL_STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
-    localStorage.setItem(LOCAL_STORAGE_KEYS.USER, JSON.stringify(data.user));
+    // Also save the keys the axios client and auth service expect
+    // (keep for backward compatibility).
+    try {
+      localStorage.setItem('authToken', authData.accessToken);
+      localStorage.setItem('refreshToken', authData.refreshToken);
+    } catch (e) {
+      // ignore storage errors
+    }
 
-    // Set token in API client
-    authApiService.setAuthToken(data.accessToken);
+    // Tokens are automatically handled by axios interceptor
   };
 
   /**
@@ -125,33 +139,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem(LOCAL_STORAGE_KEYS.USER);
     localStorage.removeItem(LOCAL_STORAGE_KEYS.CURRENT_USER_INFO);
 
-    // Clear token from API client
-    authApiService.clearAuthToken();
+    // Clear tokens using utility function
+    clearAuthTokens();
   };
 
   /**
    * Login function
    */
-  const login = async (credentials: LoginRequest): Promise<ApiResponse<AuthResponse>> => {
+  const login = async (credentials: LoginDto): Promise<AuthResponseDto> => {
     setIsLoading(true);
 
     try {
-      const response = await authApiService.login(credentials);
+      const response = await loginApi(credentials);
 
-      if (response.success && response.data) {
-        storeAuthData(response.data);
-        // Get additional user info after login
-        await getCurrentUser();
-      }
+      storeAuthData(response);
+      // Get additional user info after login
+      await getCurrentUser();
 
       return response;
     } catch (error) {
       console.error('Login error:', error);
-      return {
-        success: false,
-        message: 'Đăng nhập thất bại',
-        errors: [error instanceof Error ? error.message : 'Unknown error']
-      };
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -160,26 +168,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   /**
    * Register function
    */
-  const register = async (userData: RegisterRequest): Promise<ApiResponse<AuthResponse>> => {
+  const register = async (userData: RegisterDto): Promise<AuthResponseDto> => {
     setIsLoading(true);
 
     try {
-      const response = await authApiService.register(userData);
+      const response = await registerApi(userData);
 
-      if (response.success && response.data) {
-        storeAuthData(response.data);
-        // Get additional user info after registration
-        await getCurrentUser();
-      }
+      storeAuthData(response);
+      // Get additional user info after registration
+      await getCurrentUser();
 
       return response;
     } catch (error) {
       console.error('Registration error:', error);
-      return {
-        success: false,
-        message: 'Đăng ký thất bại',
-        errors: [error instanceof Error ? error.message : 'Unknown error']
-      };
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -193,7 +195,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       // Call logout API
-      await authApiService.logout();
+      await logoutApi();
     } catch (error) {
       console.error('Logout API error:', error);
       // Even if API call fails, still clear local data
@@ -213,15 +215,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const response = await authApiService.refreshToken({ RefreshToken: refreshToken });
+      const response = await refreshTokenApi({ refreshToken });
 
-      if (response.success && response.data) {
-        storeAuthData(response.data);
-        return true;
-      } else {
-        clearAuthData();
-        return false;
-      }
+      storeAuthData(response);
+      return true;
     } catch (error) {
       console.error('Token refresh error:', error);
       clearAuthData();
@@ -236,12 +233,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!accessToken) return;
 
     try {
-      const response = await authApiService.getCurrentUser();
+      const response = await getCurrentUserApi();
 
-      if (response.success && response.data) {
-        setCurrentUserInfo(response.data);
-        localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_USER_INFO, JSON.stringify(response.data));
-      }
+      // Ensure we populate both the minimal `user` used for auth checks
+      // and the `currentUserInfo` used for richer profile data.
+      // Some backends return the user only via the /me endpoint and the
+      // login response may not include a `user` field, so set both here.
+      setUser(response as UserDto);
+      setCurrentUserInfo(response);
+      localStorage.setItem(LOCAL_STORAGE_KEYS.USER, JSON.stringify(response));
+      localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_USER_INFO, JSON.stringify(response));
     } catch (error) {
       console.error('Get current user error:', error);
       // Don't clear auth data on this error, just log it

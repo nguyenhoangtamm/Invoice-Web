@@ -1,188 +1,271 @@
-import { BaseApiClient } from "../baseApiClient";
-import { API_CONFIG, USE_MOCK_API } from "../config";
-import * as mockApi from "../mockApi";
-import type {
-    Invoice,
-    PaginatedResponse,
-    ApiResponse,
-} from "../../types/invoice";
+import type { AxiosRequestConfig } from "axios";
+import axiosClient from "../axiosClient";
 
-/**
- * Invoice API Service
- * Handles all invoice-related API calls
- */
-export class InvoiceApiService extends BaseApiClient {
-    async searchInvoiceByCode(
-        code: string
-    ): Promise<ApiResponse<Invoice | null>> {
-        if (USE_MOCK_API) {
-            return mockApi.searchByCodeApi(code);
+// Invoice DTO
+export type InvoiceDto = {
+    id: string;
+    invoiceCode: string;
+    customerName: string;
+    customerTaxId: string | null;
+    customerAddress: string | null;
+    customerPhone: string | null;
+    customerEmail: string | null;
+    issueDate: string;
+    dueDate: string | null;
+    subtotal: number;
+    taxAmount: number;
+    totalAmount: number;
+    status: "draft" | "sent" | "paid" | "cancelled";
+    notes: string | null;
+    createdAt: string;
+    updatedAt: string | null;
+    createdBy: string | null;
+    updatedBy: string | null;
+};
+
+// Invoice Line Item DTO
+export type InvoiceLineDto = {
+    id: string;
+    invoiceId: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    taxRate: number;
+    lineTotal: number;
+    sortOrder: number;
+};
+
+// Invoice Query Parameters
+export type InvoicesQueryParams = {
+    page: number;
+    pageSize: number;
+    searchTerm?: string;
+    status?: "draft" | "sent" | "paid" | "cancelled";
+    issueDate?: string; // ISO date
+    dueDateFrom?: string; // ISO date
+    dueDateTo?: string; // ISO date
+    customerName?: string;
+    sortColumn?: string;
+    sortDirection?: "asc" | "desc";
+};
+
+// Invoice Query Response
+export type InvoicesQueryResponse = {
+    items: InvoiceDto[];
+    totalCount: number;
+    page: number;
+    pageSize: number;
+};
+
+// Invoice Search Parameters
+export type InvoiceSearchParams = {
+    query?: string;
+    status?: "draft" | "sent" | "paid" | "cancelled";
+    issueDate?: string; // ISO date
+    dueDateFrom?: string; // ISO date
+    dueDateTo?: string; // ISO date
+    page?: number;
+    pageSize?: number;
+};
+
+// Invoice Payload for Create/Update
+export type InvoicePayload = {
+    customerName: string;
+    customerTaxId?: string | null;
+    customerAddress?: string | null;
+    customerPhone?: string | null;
+    customerEmail?: string | null;
+    issueDate: string; // ISO date
+    dueDate?: string | null; // ISO date
+    subtotal: number;
+    taxAmount: number;
+    totalAmount: number;
+    status: "draft" | "sent" | "paid" | "cancelled";
+    notes?: string | null;
+    lines: {
+        description: string;
+        quantity: number;
+        unitPrice: number;
+        taxRate: number;
+        sortOrder: number;
+    }[];
+};
+
+// Helper functions to clean parameters
+const cleanInvoicesParams = (params: InvoicesQueryParams) => {
+    const payload: Record<string, string | number> = {
+        page: params.page,
+        pageSize: params.pageSize,
+    };
+    if (params.searchTerm) payload.searchTerm = params.searchTerm;
+    if (params.status) payload.status = params.status;
+    if (params.issueDate) payload.issueDate = params.issueDate;
+    if (params.dueDateFrom) payload.dueDateFrom = params.dueDateFrom;
+    if (params.dueDateTo) payload.dueDateTo = params.dueDateTo;
+    if (params.customerName) payload.customerName = params.customerName;
+    if (params.sortColumn) payload.sortColumn = params.sortColumn;
+    if (params.sortDirection) payload.sortDirection = params.sortDirection;
+    return payload;
+};
+
+const cleanSearchParams = (params: InvoiceSearchParams) => {
+    const payload: Record<string, string | number> = {};
+    if (params.query) payload.query = params.query;
+    if (params.status) payload.status = params.status;
+    if (params.issueDate) payload.issueDate = params.issueDate;
+    if (params.dueDateFrom) payload.dueDateFrom = params.dueDateFrom;
+    if (params.dueDateTo) payload.dueDateTo = params.dueDateTo;
+    if (typeof params.page === "number") payload.page = params.page;
+    if (typeof params.pageSize === "number") payload.pageSize = params.pageSize;
+    return payload;
+};
+
+// API Functions
+export const fetchInvoices = async (
+    params: InvoicesQueryParams,
+    options?: Pick<AxiosRequestConfig, "signal">
+): Promise<InvoicesQueryResponse> => {
+    const response = await axiosClient.get<InvoicesQueryResponse>(
+        "/api/invoices",
+        {
+            params: cleanInvoicesParams(params),
+            signal: options?.signal,
         }
+    );
+    return response.data;
+};
 
-        return this.get<Invoice | null>(
-            `${API_CONFIG.ENDPOINTS.INVOICE_BY_CODE}/${encodeURIComponent(
-                code
-            )}`
-        );
-    }
+export const getInvoice = async (
+    id: string,
+    options?: Pick<AxiosRequestConfig, "signal">
+): Promise<InvoiceDto> => {
+    const response = await axiosClient.get<InvoiceDto>(`/api/invoices/${id}`, {
+        signal: options?.signal,
+    });
+    return response.data;
+};
 
-    async searchInvoiceByContact(
-        query: string
-    ): Promise<ApiResponse<Invoice[]>> {
-        if (USE_MOCK_API) {
-            return mockApi.searchByContactApi(query);
+export const searchInvoiceByCode = async (
+    code: string,
+    options?: Pick<AxiosRequestConfig, "signal">
+): Promise<InvoiceDto | null> => {
+    const response = await axiosClient.get<InvoiceDto | null>(
+        `/api/invoices/by-code/${encodeURIComponent(code)}`,
+        {
+            signal: options?.signal,
         }
+    );
+    return response.data;
+};
 
-        return this.get<Invoice[]>(
-            `${API_CONFIG.ENDPOINTS.INVOICE_BY_CONTACT}?q=${encodeURIComponent(
-                query
-            )}`
-        );
-    }
-
-    async uploadXmlFile(file: File): Promise<ApiResponse<Invoice>> {
-        if (USE_MOCK_API) {
-            return mockApi.uploadXmlFileApi(file);
+export const searchInvoicesByContact = async (
+    query: string,
+    options?: Pick<AxiosRequestConfig, "signal">
+): Promise<InvoiceDto[]> => {
+    const response = await axiosClient.get<InvoiceDto[]>(
+        `/api/invoices/by-contact`,
+        {
+            params: { q: query },
+            signal: options?.signal,
         }
+    );
+    return response.data;
+};
 
-        return this.uploadFile<Invoice>(
-            API_CONFIG.ENDPOINTS.INVOICE_UPLOAD_XML,
-            file,
-            "xml_file"
-        );
-    }
+export const createInvoice = async (
+    payload: InvoicePayload
+): Promise<InvoiceDto> => {
+    const response = await axiosClient.post<InvoiceDto>(
+        "/api/invoices",
+        payload
+    );
+    return response.data;
+};
 
-    async getInvoices(
-        page = 1,
-        limit = 10,
-        status?: string
-    ): Promise<ApiResponse<PaginatedResponse<Invoice>>> {
-        if (USE_MOCK_API) {
-            return mockApi.getInvoicesApi(page, limit, status);
+export const updateInvoice = async (
+    id: string,
+    payload: InvoicePayload
+): Promise<InvoiceDto> => {
+    const response = await axiosClient.put<InvoiceDto>(
+        `/api/invoices/${id}`,
+        payload
+    );
+    return response.data;
+};
+
+export const deleteInvoice = async (
+    id: string,
+    options?: Pick<AxiosRequestConfig, "signal">
+): Promise<void> => {
+    await axiosClient.delete(`/api/invoices/${id}`, {
+        signal: options?.signal,
+    });
+};
+
+export const searchInvoices = async (
+    params: InvoiceSearchParams,
+    options?: Pick<AxiosRequestConfig, "signal">
+): Promise<InvoicesQueryResponse> => {
+    const response = await axiosClient.get<InvoicesQueryResponse>(
+        "/api/invoices/search",
+        {
+            params: cleanSearchParams(params),
+            signal: options?.signal,
         }
+    );
+    return response.data;
+};
 
-        const params = new URLSearchParams({
-            page: page.toString(),
-            limit: limit.toString(),
-        });
+export const uploadXmlFile = async (file: File): Promise<InvoiceDto> => {
+    const formData = new FormData();
+    formData.append("xml_file", file);
 
-        if (status && status !== "all") {
-            params.append("status", status);
+    const response = await axiosClient.post<InvoiceDto>(
+        "/api/invoices/upload-xml",
+        formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
         }
+    );
+    return response.data;
+};
 
-        return this.get<PaginatedResponse<Invoice>>(
-            `${API_CONFIG.ENDPOINTS.INVOICES}?${params.toString()}`
-        );
-    }
+export const exportInvoices = async (
+    format: "excel" | "pdf" | "csv" = "excel",
+    params?: InvoicesQueryParams,
+    options?: Pick<AxiosRequestConfig, "signal">
+): Promise<Blob> => {
+    const queryParams = params ? cleanInvoicesParams(params) : {};
+    queryParams.format = format;
 
-    async getInvoiceById(id: string): Promise<ApiResponse<Invoice>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                data: {} as Invoice, // Mock data
-                message: "Lấy hóa đơn thành công",
-            };
-        }
+    const response = await axiosClient.get("/api/invoices/export", {
+        params: queryParams,
+        responseType: "blob",
+        signal: options?.signal,
+    });
+    return response.data;
+};
 
-        return this.get<Invoice>(`${API_CONFIG.ENDPOINTS.INVOICES}/${id}`);
-    }
+// Keep the old class for backward compatibility
+export class InvoiceApiService {
+    searchInvoiceByCode = searchInvoiceByCode;
+    searchInvoiceByContact = searchInvoicesByContact;
+    uploadXmlFile = uploadXmlFile;
+    getInvoices = (page = 1, limit = 10, status?: string) =>
+        fetchInvoices({ page, pageSize: limit, status: status as any });
+    getInvoiceById = getInvoice;
+    createInvoice = createInvoice;
+    updateInvoice = updateInvoice;
+    deleteInvoice = deleteInvoice;
+    exportInvoices = exportInvoices;
+    searchInvoices = (searchParams: any) => searchInvoices(searchParams);
 
-    async createInvoice(
-        invoiceData: Partial<Invoice>
-    ): Promise<ApiResponse<Invoice>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                data: { ...invoiceData } as Invoice,
-                message: "Tạo hóa đơn thành công",
-            };
-        }
-
-        return this.post<Invoice>(API_CONFIG.ENDPOINTS.INVOICES, invoiceData);
-    }
-
-    async updateInvoice(
-        id: string,
-        invoiceData: Partial<Invoice>
-    ): Promise<ApiResponse<Invoice>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                data: { ...invoiceData } as Invoice,
-                message: "Cập nhật hóa đơn thành công",
-            };
-        }
-
-        return this.put<Invoice>(
-            `${API_CONFIG.ENDPOINTS.INVOICES}/${id}`,
-            invoiceData
-        );
-    }
-
-    async deleteInvoice(id: string): Promise<ApiResponse<void>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                message: "Xóa hóa đơn thành công",
-            };
-        }
-
-        return this.delete<void>(`${API_CONFIG.ENDPOINTS.INVOICES}/${id}`);
-    }
-
-    async exportInvoices(format: string = "excel"): Promise<ApiResponse<Blob>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                data: new Blob([], { type: "application/vnd.ms-excel" }),
-                message: "Export thành công",
-            };
-        }
-
-        return this.get<Blob>(
-            `${API_CONFIG.ENDPOINTS.INVOICE_EXPORT}?format=${format}`
-        );
-    }
-
-    async searchInvoices(searchParams: {
-        query?: string;
-        status?: string;
-        dateFrom?: string;
-        dateTo?: string;
-        page?: number;
-        limit?: number;
-    }): Promise<ApiResponse<PaginatedResponse<Invoice>>> {
-        if (USE_MOCK_API) {
-            return mockApi.getInvoicesApi(
-                searchParams.page || 1,
-                searchParams.limit || 10,
-                searchParams.status
-            );
-        }
-
-        const params = new URLSearchParams();
-
-        if (searchParams.query) params.append("q", searchParams.query);
-        if (searchParams.status && searchParams.status !== "all")
-            params.append("status", searchParams.status);
-        if (searchParams.dateFrom)
-            params.append("dateFrom", searchParams.dateFrom);
-        if (searchParams.dateTo) params.append("dateTo", searchParams.dateTo);
-        if (searchParams.page)
-            params.append("page", searchParams.page.toString());
-        if (searchParams.limit)
-            params.append("limit", searchParams.limit.toString());
-
-        return this.get<PaginatedResponse<Invoice>>(
-            `${API_CONFIG.ENDPOINTS.INVOICE_SEARCH}?${params.toString()}`
-        );
-    }
+    // Mock methods for token management (if needed)
+    setAuthToken = (token: string) => {};
+    clearAuthToken = () => {};
 }
 
-// Export singleton instance
+// Export singleton instance for backward compatibility
 export const invoiceApiService = new InvoiceApiService();

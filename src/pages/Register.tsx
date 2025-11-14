@@ -62,25 +62,20 @@ const Register = () => {
 
         try {
             const registerData = {
-                Email: formData.email,
-                Password: formData.password,
-                UserName: formData.userName,
-                Fullname: formData.fullname,
-                Gender: formData.gender,
-                BirthDate: formData.birthDate,
-                Address: formData.address,
-                Bio: formData.bio,
-                PhoneNumber: formData.phoneNumber
+                email: formData.email,
+                password: formData.password,
+                confirmPassword: formData.confirmPassword,
+                username: formData.userName,
+                fullName: formData.fullname,
+                phone: formData.phoneNumber,
+                agreeToTerms: true
             };
 
             const response = await register(registerData);
 
-            if (response.success) {
-                // Redirect to dashboard on successful registration
-                navigate('/dashboard');
-            } else {
-                setError(response.message || 'Đăng ký thất bại');
-            }
+            // Register function now directly returns data or throws error
+            // Redirect to dashboard on successful registration
+            navigate('/dashboard');
         } catch (error) {
             setError('Có lỗi xảy ra trong quá trình đăng ký');
             console.error('Registration error:', error);
@@ -282,7 +277,7 @@ const Register = () => {
                                     <div className="flex-1 bg-gray-200 rounded-full h-2">
                                         <div
                                             className={`h-full rounded-full transition-all duration-300 ${passwordStrength <= 1 ? 'bg-red-500' :
-                                                    passwordStrength <= 3 ? 'bg-yellow-500' : 'bg-green-500'
+                                                passwordStrength <= 3 ? 'bg-yellow-500' : 'bg-green-500'
                                                 }`}
                                             style={{ width: getPasswordStrengthWidth() }}
                                         ></div>

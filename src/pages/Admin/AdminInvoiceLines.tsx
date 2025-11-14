@@ -44,7 +44,7 @@ export default function AdminInvoiceLines() {
 
         setLoading(true);
         try {
-            const response = await invoiceLineService.getInvoiceLinesByInvoice(invoiceId);
+            const response = await invoiceLineService.getInvoiceLinesByInvoiceId(invoiceId);
             if (response.success && response.data) {
                 setInvoiceLines(response.data);
             }

@@ -25,7 +25,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-3">
                     {isAuthenticated ? (
                         <>
-                            <span className="text-sm text-gray-600">Xin chào, {user?.fullName || user?.userName}</span>
+                            <span className="text-sm text-gray-600">Xin chào, {user?.fullName || user?.username}</span>
                             {user?.role === 'Admin' && (
                                 <Link
                                     to="/admin"

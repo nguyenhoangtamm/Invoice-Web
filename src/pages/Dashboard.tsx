@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Home, FileText, Building2, Key, Settings, BarChart3, Users, CreditCard, Menu, X, Plus, Copy, Eye, EyeOff, Trash2, Download, Search, Filter, ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle, Share2, FileJson, ArrowLeft } from 'lucide-react';
 import { useCompanyInfo, useDashboardStats } from '../hooks/useApi';
-import { apiClient } from '../api/apiClient';
+import { fetchInvoices } from '../api/services';
 import type { Invoice } from '../types/invoice';
+import type { InvoiceDto } from '../api/services';
 import { mockInvoices } from '../data/mockInvoice';
 
 const InvoiceDashboard = () => {
@@ -40,15 +41,19 @@ const InvoiceDashboard = () => {
     }, [companyInfo]);
 
     useEffect(() => {
-        // Lấy 4 hóa đơn gần đây từ fake API
+        // Lấy 4 hóa đơn gần đây từ API
         const fetchRecent = async () => {
-            const res = await apiClient.getInvoices(1, 4);
-            if (res.success && res.data) {
-                setRecentInvoices(res.data.data);
+            try {
+                const res = await fetchInvoices({ page: 1, pageSize: 4 });
+                setRecentInvoices(res.items as any);
+            } catch (error) {
+                console.error('Error fetching recent invoices:', error);
+                // Fallback to mock data
+                setRecentInvoices(mockInvoices.slice(0, 4) as any);
             }
         };
         fetchRecent();
-        
+
         // Lấy danh sách tất cả hóa đơn cho trang Invoices
         setInvoiceList(mockInvoices);
         setCurrentPage(1);
@@ -56,7 +61,7 @@ const InvoiceDashboard = () => {
 
     const computedStats = useMemo(() => {
         const total = dashboardStats?.totalInvoices ?? 0;
-        const pending = dashboardStats?.pendingInvoices ?? 0;
+        const pending = 0; // TODO: Add pending invoices to API
 
         // Đếm số hóa đơn phát hành trong tháng hiện tại từ danh sách gần đây (best-effort)
         const now = new Date();
@@ -106,12 +111,12 @@ const InvoiceDashboard = () => {
     const verifyBlockchain = async () => {
         // Simulate blockchain verification
         setBlockchainStatus('pending');
-        
+
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 2000));
-        
+
         const isVerified = Math.random() > 0.1; // 90% success rate
-        
+
         if (isVerified) {
             setBlockchainStatus('verified');
             setBlockchainDetails({
@@ -128,7 +133,7 @@ const InvoiceDashboard = () => {
     const filteredInvoices = useMemo(() => {
         return invoiceList.filter(inv => {
             const matchesSearch = (inv.invoice_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                (inv.CustomerName || '').toLowerCase().includes(searchTerm.toLowerCase());
+                (inv.CustomerName || '').toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus = statusFilter === 'all' || (inv.status || '').includes(statusFilter);
             return matchesSearch && matchesStatus;
         });
@@ -438,17 +443,16 @@ const InvoiceDashboard = () => {
                                                 {invoice.total_amount?.toLocaleString('vi-VN')} {invoice.currency || 'VND'}
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                    invoice.status === 'Đã phát hành' ? 'bg-green-100 text-green-700' :
-                                                    invoice.status === 'Chờ xác nhận' ? 'bg-yellow-100 text-yellow-700' :
-                                                    'bg-red-100 text-red-700'
-                                                }`}>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${invoice.status === 'Đã phát hành' ? 'bg-green-100 text-green-700' :
+                                                        invoice.status === 'Chờ xác nhận' ? 'bg-yellow-100 text-yellow-700' :
+                                                            'bg-red-100 text-red-700'
+                                                    }`}>
                                                     {invoice.status || '-'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm">
                                                 <div className="flex gap-2">
-                                                    <button 
+                                                    <button
                                                         onClick={() => setSelectedInvoice(invoice)}
                                                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                                                         title="Xem chi tiết"
@@ -458,7 +462,7 @@ const InvoiceDashboard = () => {
                                                     <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
                                                         <Download size={18} />
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={() => deleteInvoice(invoice.invoice_number)}
                                                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                                                     >
@@ -490,11 +494,10 @@ const InvoiceDashboard = () => {
                                         <button
                                             key={page}
                                             onClick={() => setCurrentPage(page)}
-                                            className={`w-8 h-8 rounded-lg font-medium transition ${
-                                                currentPage === page
+                                            className={`w-8 h-8 rounded-lg font-medium transition ${currentPage === page
                                                     ? 'bg-blue-600 text-white'
                                                     : 'text-gray-600 hover:bg-gray-100'
-                                            }`}
+                                                }`}
                                         >
                                             {page}
                                         </button>
