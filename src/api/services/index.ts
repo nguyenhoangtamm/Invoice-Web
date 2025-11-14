@@ -4,6 +4,12 @@ export { userApiService } from "./userService";
 export { invoiceApiService } from "./invoiceService";
 export { companyApiService } from "./companyService";
 export { dashboardApiService } from "./dashboardService";
+export { apiKeyService } from "./apiKeyService";
+export { organizationService } from "./organizationService";
+export { roleService } from "./roleService";
+export { menuService } from "./menuService";
+export { invoiceBatchService } from "./invoiceBatchService";
+export { invoiceLineService } from "./invoiceLineService";
 
 // Export types
 export type { AuthApiService } from "./authService";

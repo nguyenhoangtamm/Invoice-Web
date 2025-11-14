@@ -12,6 +12,12 @@ import AdminLayout from '../layouts/AdminLayout';
 import AdminDashboard from '../pages/Admin/AdminDashboard';
 import AdminUsers from '../pages/Admin/AdminUsers';
 import AdminInvoices from '../pages/Admin/AdminInvoices';
+import AdminApiKeys from '../pages/Admin/AdminApiKeys';
+import AdminOrganizations from '../pages/Admin/AdminOrganizations';
+import AdminRoles from '../pages/Admin/AdminRoles';
+import AdminMenus from '../pages/Admin/AdminMenus';
+import AdminInvoiceBatches from '../pages/Admin/AdminInvoiceBatches';
+import AdminInvoiceLines from '../pages/Admin/AdminInvoiceLines';
 import AdminGuard from '../components/common/AdminGuard';
 import AuthGuard from '../components/common/AuthGuard';
 
@@ -38,7 +44,13 @@ export const routes: RouteObject[] = [
             { index: true, element: <Navigate to="/admin/dashboard" replace /> },
             { path: 'dashboard', element: <AdminDashboard /> },
             { path: 'users', element: <AdminUsers /> },
+            { path: 'organizations', element: <AdminOrganizations /> },
+            { path: 'roles', element: <AdminRoles /> },
+            { path: 'menus', element: <AdminMenus /> },
             { path: 'invoices', element: <AdminInvoices /> },
+            { path: 'invoice-lines', element: <AdminInvoiceLines /> },
+            { path: 'invoice-batches', element: <AdminInvoiceBatches /> },
+            { path: 'api-keys', element: <AdminApiKeys /> },
         ]
     },
     // Auth routes without layout
