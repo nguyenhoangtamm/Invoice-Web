@@ -1,22 +1,54 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Github, Chrome, Wallet } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
-    const [email, setEmail] = useState('');
+    const [usernameOrEmail, setUsernameOrEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [referralCode, setReferralCode] = useState('');
     const [agreeTerms, setAgreeTerms] = useState(false);
     const [agreeMarketing, setAgreeMarketing] = useState(false);
-    const navigate = useNavigate();
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { login, isAuthenticated } = useAuth();
+
+    // Redirect if already logged in
+    useEffect(() => {
+        if (isAuthenticated) {
+            const from = location.state?.from?.pathname || '/dashboard';
+            navigate(from, { replace: true });
+        }
+    }, [isAuthenticated, navigate, location]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Xử lý logic đăng nhập ở đây
-        console.log('Login attempt:', { email, password });
-        // Chuyển hướng đến dashboard sau khi đăng nhập thành công
-        navigate('/dashboard');
+        setError('');
+        setIsLoading(true);
+
+        try {
+            const response = await login({
+                UsernameOrEmail: usernameOrEmail,
+                Password: password
+            });
+
+            if (response.success) {
+                // Redirect to the page user was trying to access, or dashboard
+                const from = location.state?.from?.pathname || '/dashboard';
+                navigate(from, { replace: true });
+            } else {
+                setError(response.message || 'Đăng nhập thất bại');
+            }
+        } catch (error) {
+            setError('Có lỗi xảy ra trong quá trình đăng nhập');
+            console.error('Login error:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleGoogleLogin = () => {
@@ -66,32 +98,32 @@ const Login = () => {
 
                 {/* Social login buttons */}
                 <div className="space-y-3 mb-6">
-                    <button 
+                    <button
                         onClick={handleGoogleLogin}
                         className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                     >
                         <Chrome className="w-5 h-5 text-red-500" />
                         <span className="font-medium text-gray-700">Google</span>
                     </button>
-                    
-                    <button 
+
+                    <button
                         onClick={handleGithubLogin}
                         className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                     >
                         <Github className="w-5 h-5 text-gray-900" />
                         <span className="font-medium text-gray-700">GitHub</span>
                     </button>
-                    
+
                     <div className="grid grid-cols-2 gap-3">
-                        <button 
+                        <button
                             onClick={handleWalletLogin}
                             className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                         >
                             <Wallet className="w-5 h-5 text-purple-600" />
                             <span className="font-medium text-gray-700 text-sm">Ethereum Wallet</span>
                         </button>
-                        
-                        <button 
+
+                        <button
                             onClick={handleSSOLogin}
                             className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                         >
@@ -110,19 +142,26 @@ const Login = () => {
                     </div>
                 </div>
 
+                {/* Error message */}
+                {error && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+                        <p className="text-sm text-red-600">{error}</p>
+                    </div>
+                )}
+
                 {/* Login form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                            Email
+                        <label htmlFor="usernameOrEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                            Email hoặc Tên đăng nhập
                         </label>
                         <input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            id="usernameOrEmail"
+                            type="text"
+                            value={usernameOrEmail}
+                            onChange={(e) => setUsernameOrEmail(e.target.value)}
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Nhập email của bạn"
+                            placeholder="Nhập email hoặc tên đăng nhập"
                             required
                         />
                     </div>
@@ -187,7 +226,7 @@ const Login = () => {
                                 .
                             </span>
                         </label>
-                        
+
                         <label className="flex items-start gap-3">
                             <input
                                 type="checkbox"
@@ -203,10 +242,10 @@ const Login = () => {
 
                     <button
                         type="submit"
-                        disabled={!agreeTerms}
+                        disabled={!agreeTerms || isLoading}
                         className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Đăng nhập
+                        {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                     </button>
                 </form>
 

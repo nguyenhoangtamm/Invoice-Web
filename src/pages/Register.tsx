@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Github, Chrome, Wallet, Check } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Register = () => {
     const [formData, setFormData] = useState({
-        fullName: '',
         email: '',
         password: '',
+        userName: '',
+        fullname: '',
+        gender: 'Nam',
+        birthDate: '',
+        address: '',
+        bio: '',
+        phoneNumber: '',
         confirmPassword: '',
         referralCode: ''
     });
@@ -15,7 +22,11 @@ const Register = () => {
     const [agreeTerms, setAgreeTerms] = useState(false);
     const [agreeMarketing, setAgreeMarketing] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState(0);
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
     const navigate = useNavigate();
+    const { register } = useAuth();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -33,16 +44,49 @@ const Register = () => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError('');
+
         if (formData.password !== formData.confirmPassword) {
-            alert('Mật khẩu xác nhận không khớp!');
+            setError('Mật khẩu xác nhận không khớp!');
             return;
         }
-        // Xử lý logic đăng ký ở đây
-        console.log('Register attempt:', formData);
-        // Chuyển hướng đến dashboard sau khi đăng ký thành công
-        navigate('/dashboard');
+
+        if (passwordStrength < 3) {
+            setError('Mật khẩu cần mạnh hơn (ít nhất 8 ký tự, có chữ hoa, chữ thường, số)');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const registerData = {
+                Email: formData.email,
+                Password: formData.password,
+                UserName: formData.userName,
+                Fullname: formData.fullname,
+                Gender: formData.gender,
+                BirthDate: formData.birthDate,
+                Address: formData.address,
+                Bio: formData.bio,
+                PhoneNumber: formData.phoneNumber
+            };
+
+            const response = await register(registerData);
+
+            if (response.success) {
+                // Redirect to dashboard on successful registration
+                navigate('/dashboard');
+            } else {
+                setError(response.message || 'Đăng ký thất bại');
+            }
+        } catch (error) {
+            setError('Có lỗi xảy ra trong quá trình đăng ký');
+            console.error('Registration error:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleGoogleRegister = () => {
@@ -108,32 +152,32 @@ const Register = () => {
 
                 {/* Social register buttons */}
                 <div className="space-y-3 mb-6">
-                    <button 
+                    <button
                         onClick={handleGoogleRegister}
                         className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                     >
                         <Chrome className="w-5 h-5 text-red-500" />
                         <span className="font-medium text-gray-700">Đăng ký bằng Google</span>
                     </button>
-                    
-                    <button 
+
+                    <button
                         onClick={handleGithubRegister}
                         className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                     >
                         <Github className="w-5 h-5 text-gray-900" />
                         <span className="font-medium text-gray-700">Đăng ký bằng GitHub</span>
                     </button>
-                    
+
                     <div className="grid grid-cols-2 gap-3">
-                        <button 
+                        <button
                             onClick={handleWalletRegister}
                             className="flex items-center justify-center gap-2 px-3 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                         >
                             <Wallet className="w-4 h-4 text-purple-600" />
                             <span className="font-medium text-gray-700 text-xs">Ethereum Wallet</span>
                         </button>
-                        
-                        <button 
+
+                        <button
                             onClick={handleSSORegister}
                             className="flex items-center justify-center gap-2 px-3 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                         >
@@ -152,17 +196,40 @@ const Register = () => {
                     </div>
                 </div>
 
+                {/* Error message */}
+                {error && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+                        <p className="text-sm text-red-600">{error}</p>
+                    </div>
+                )}
+
                 {/* Register form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="userName" className="block text-sm font-medium text-gray-700 mb-2">
+                            Tên đăng nhập
+                        </label>
+                        <input
+                            id="userName"
+                            name="userName"
+                            type="text"
+                            value={formData.userName}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Nhập tên đăng nhập"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="fullname" className="block text-sm font-medium text-gray-700 mb-2">
                             Họ và tên
                         </label>
                         <input
-                            id="fullName"
-                            name="fullName"
+                            id="fullname"
+                            name="fullname"
                             type="text"
-                            value={formData.fullName}
+                            value={formData.fullname}
                             onChange={handleInputChange}
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                             placeholder="Nhập họ và tên"
@@ -214,10 +281,9 @@ const Register = () => {
                                 <div className="flex items-center gap-2 mb-1">
                                     <div className="flex-1 bg-gray-200 rounded-full h-2">
                                         <div
-                                            className={`h-full rounded-full transition-all duration-300 ${
-                                                passwordStrength <= 1 ? 'bg-red-500' :
-                                                passwordStrength <= 3 ? 'bg-yellow-500' : 'bg-green-500'
-                                            }`}
+                                            className={`h-full rounded-full transition-all duration-300 ${passwordStrength <= 1 ? 'bg-red-500' :
+                                                    passwordStrength <= 3 ? 'bg-yellow-500' : 'bg-green-500'
+                                                }`}
                                             style={{ width: getPasswordStrengthWidth() }}
                                         ></div>
                                     </div>
@@ -260,6 +326,88 @@ const Register = () => {
                         )}
                     </div>
 
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
+                                Giới tính
+                            </label>
+                            <select
+                                id="gender"
+                                name="gender"
+                                value={formData.gender}
+                                onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                required
+                            >
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 mb-2">
+                                Ngày sinh
+                            </label>
+                            <input
+                                id="birthDate"
+                                name="birthDate"
+                                type="date"
+                                value={formData.birthDate}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                            Số điện thoại
+                        </label>
+                        <input
+                            id="phoneNumber"
+                            name="phoneNumber"
+                            type="tel"
+                            value={formData.phoneNumber}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Nhập số điện thoại"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
+                            Địa chỉ
+                        </label>
+                        <input
+                            id="address"
+                            name="address"
+                            type="text"
+                            value={formData.address}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Nhập địa chỉ"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
+                            Giới thiệu bản thân (tùy chọn)
+                        </label>
+                        <textarea
+                            id="bio"
+                            name="bio"
+                            value={formData.bio}
+                            onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                            placeholder="Giới thiệu ngắn về bản thân"
+                            rows={3}
+                        />
+                    </div>
+
                     <div>
                         <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700 mb-2">
                             Mã giới thiệu (tùy chọn)
@@ -297,7 +445,7 @@ const Register = () => {
                                 .
                             </span>
                         </label>
-                        
+
                         <label className="flex items-start gap-3">
                             <input
                                 type="checkbox"
@@ -313,10 +461,10 @@ const Register = () => {
 
                     <button
                         type="submit"
-                        disabled={!agreeTerms || formData.password !== formData.confirmPassword}
+                        disabled={!agreeTerms || formData.password !== formData.confirmPassword || isLoading}
                         className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Tạo tài khoản
+                        {isLoading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
                     </button>
                 </form>
 
