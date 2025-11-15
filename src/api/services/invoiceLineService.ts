@@ -14,28 +14,28 @@ export class InvoiceLineService extends BaseApiClient {
     async createInvoiceLine(
         data: CreateInvoiceLineRequest
     ): Promise<ApiResponse<InvoiceLine>> {
-        return this.post<InvoiceLine>("/api/v1/InvoiceLines/create", data);
+        return this.post<InvoiceLine>("InvoiceLines/create", data);
     }
 
     async updateInvoiceLine(
         data: UpdateInvoiceLineRequest
     ): Promise<ApiResponse<InvoiceLine>> {
         return this.post<InvoiceLine>(
-            `/api/v1/InvoiceLines/update/${data.id}`,
+            `InvoiceLines/update/${data.id}`,
             data
         );
     }
 
     async deleteInvoiceLine(id: string): Promise<ApiResponse<void>> {
-        return this.post<void>(`/api/v1/InvoiceLines/delete/${id}`);
+        return this.post<void>(`InvoiceLines/delete/${id}`);
     }
 
     async getInvoiceLineById(id: string): Promise<ApiResponse<InvoiceLine>> {
-        return this.get<InvoiceLine>(`/api/v1/InvoiceLines/get-by-id/${id}`);
+        return this.get<InvoiceLine>(`InvoiceLines/get-by-id/${id}`);
     }
 
     async getAllInvoiceLines(): Promise<ApiResponse<InvoiceLine[]>> {
-        return this.get<InvoiceLine[]>("/api/v1/InvoiceLines/get-all");
+        return this.get<InvoiceLine[]>("InvoiceLines/get-all");
     }
 
     async getInvoiceLinesPaginated(
@@ -43,7 +43,7 @@ export class InvoiceLineService extends BaseApiClient {
         pageSize: number = 10
     ): Promise<ApiResponse<PaginatedResponse<InvoiceLine>>> {
         return this.get<PaginatedResponse<InvoiceLine>>(
-            `/api/v1/InvoiceLines/get-pagination?page=${page}&pageSize=${pageSize}`
+            `InvoiceLines/get-pagination?page=${page}&pageSize=${pageSize}`
         );
     }
 
@@ -51,7 +51,7 @@ export class InvoiceLineService extends BaseApiClient {
         invoiceId: string
     ): Promise<ApiResponse<InvoiceLine[]>> {
         return this.get<InvoiceLine[]>(
-            `/api/v1/InvoiceLines/by-invoice/${invoiceId}`
+            `InvoiceLines/by-invoice/${invoiceId}`
         );
     }
 }

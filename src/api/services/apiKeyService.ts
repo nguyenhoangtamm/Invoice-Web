@@ -15,7 +15,7 @@ export class ApiKeyService extends BaseApiClient {
     async createApiKey(
         data: CreateApiKeyRequest
     ): Promise<ApiResponse<ApiKey>> {
-        return this.post<ApiKey>("/api/v1/ApiKeys/create", data);
+        return this.post<ApiKey>("ApiKeys/create", data);
     }
 
     async updateApiKey(
@@ -37,7 +37,7 @@ export class ApiKeyService extends BaseApiClient {
             };
         }
 
-        return this.put<ApiKey>(`/api/v1/ApiKeys/update/${data.id}`, data);
+        return this.put<ApiKey>(`ApiKeys/update/${data.id}`, data);
     }
 
     async deleteApiKey(id: string): Promise<ApiResponse<void>> {
@@ -49,7 +49,7 @@ export class ApiKeyService extends BaseApiClient {
             };
         }
 
-        return this.delete<void>(`/api/v1/ApiKeys/delete/${id}`);
+        return this.delete<void>(`ApiKeys/delete/${id}`);
     }
 
     async getApiKeyById(id: string): Promise<ApiResponse<ApiKey>> {
@@ -72,7 +72,7 @@ export class ApiKeyService extends BaseApiClient {
             };
         }
 
-        return this.get<ApiKey>(`/api/v1/ApiKeys/get-by-id/${id}`);
+        return this.get<ApiKey>(`ApiKeys/get-by-id/${id}`);
     }
 
     async getAllApiKeys(): Promise<ApiResponse<ApiKey[]>> {
@@ -108,7 +108,7 @@ export class ApiKeyService extends BaseApiClient {
             };
         }
 
-        return this.get<ApiKey[]>("/api/v1/ApiKeys/get-all");
+        return this.get<ApiKey[]>("ApiKeys/get-all");
     }
 
     async getApiKeysPaginated(
@@ -157,7 +157,7 @@ export class ApiKeyService extends BaseApiClient {
         }
 
         return this.get<PaginatedResponse<ApiKey>>(
-            `/api/v1/ApiKeys/get-pagination?page=${page}&pageSize=${pageSize}`
+            `ApiKeys/get-pagination?page=${page}&pageSize=${pageSize}`
         );
     }
 }

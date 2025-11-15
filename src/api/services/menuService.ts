@@ -12,27 +12,27 @@ import type {
  */
 export class MenuService extends BaseApiClient {
     async createMenu(data: CreateMenuRequest): Promise<ApiResponse<Menu>> {
-        return this.post<Menu>("/api/v1/Menus/create", data);
+        return this.post<Menu>("Menus/create", data);
     }
 
     async updateMenu(data: UpdateMenuRequest): Promise<ApiResponse<Menu>> {
-        return this.post<Menu>(`/api/v1/Menus/update/${data.id}`, data);
+        return this.post<Menu>(`Menus/update/${data.id}`, data);
     }
 
     async deleteMenu(id: string): Promise<ApiResponse<void>> {
-        return this.post<void>(`/api/v1/Menus/delete/${id}`);
+        return this.post<void>(`Menus/delete/${id}`);
     }
 
     async getMenuById(id: string): Promise<ApiResponse<Menu>> {
-        return this.get<Menu>(`/api/v1/Menus/get-by-id/${id}`);
+        return this.get<Menu>(`Menus/get-by-id/${id}`);
     }
 
     async getAllMenus(): Promise<ApiResponse<Menu[]>> {
-        return this.get<Menu[]>("/api/v1/Menus/get-all");
+        return this.get<Menu[]>("Menus/get-all");
     }
 
     async getMenuTree(): Promise<ApiResponse<Menu[]>> {
-        return this.get<Menu[]>("/api/v1/Menus/tree");
+        return this.get<Menu[]>("Menus/tree");
     }
 
     async getMenusPaginated(
@@ -40,7 +40,7 @@ export class MenuService extends BaseApiClient {
         pageSize: number = 10
     ): Promise<ApiResponse<PaginatedResponse<Menu>>> {
         return this.get<PaginatedResponse<Menu>>(
-            `/api/v1/Menus/get-pagination?page=${page}&pageSize=${pageSize}`
+            `Menus/get-pagination?page=${page}&pageSize=${pageSize}`
         );
     }
 
@@ -48,14 +48,14 @@ export class MenuService extends BaseApiClient {
         roleId: string,
         menuIds: string[]
     ): Promise<ApiResponse<void>> {
-        return this.post<void>("/api/v1/Menus/assign-to-role", {
+        return this.post<void>("Menus/assign-to-role", {
             roleId,
             menuIds,
         });
     }
 
     async getMenusByRole(roleId: string): Promise<ApiResponse<Menu[]>> {
-        return this.get<Menu[]>(`/api/v1/Menus/by-role/${roleId}`);
+        return this.get<Menu[]>(`Menus/by-role/${roleId}`);
     }
 }
 

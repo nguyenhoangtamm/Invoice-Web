@@ -81,16 +81,22 @@ export default function AdminRoles() {
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
+    // Pagination states
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+
     useEffect(() => {
         loadRoles();
-    }, []);
+    }, [pageIndex, pageSize]);
 
     const loadRoles = async () => {
         setLoading(true);
         try {
-            const response = await roleService.getAllRoles();
+            const response = await roleService.getRolesPaginated(pageIndex + 1, pageSize);
             if (response.success && response.data) {
-                setRoles(response.data);
+                setRoles(response.data.data || []);
+                setTotalCount(response.data.totalPages || 0);
             }
         } catch (error) {
             console.error('Error loading roles:', error);
@@ -172,6 +178,16 @@ export default function AdminRoles() {
             ...prev,
             ...value,
         }));
+    };
+
+    // Pagination handlers
+    const handlePageChange = (newPageIndex: number) => {
+        setPageIndex(newPageIndex);
+    };
+
+    const handlePageSizeChange = (newPageSize: number) => {
+        setPageSize(newPageSize);
+        setPageIndex(0); // Reset to first page when changing page size
     };
 
     const columns: TableColumn[] = [
@@ -258,12 +274,14 @@ export default function AdminRoles() {
                     columns={columns}
                     loading={loading}
                     className="w-full"
-                    showRowNumbers={false}
-                    pageIndex={0}
-                    pageSize={10}
+                    showRowNumbers={true}
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
                     emptyText="Không có vai trò nào"
                     showPagination={true}
-                    totalCount={roles.length}
+                    totalCount={totalCount}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
                 />
             </div>
         </div>

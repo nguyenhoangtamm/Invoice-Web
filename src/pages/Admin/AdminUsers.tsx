@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { fetchUsers, createUser, updateUser, deleteUser } from '../../api/services/userService';
-import type { AdminUserDto, UserPayload } from '../../api/services/userService';
+import { userService } from '../../api/services/userService';
+import type { AdminUserDto, UserPayload } from '../../types/user';
 import { Button, Form, Modal, InputPicker } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
@@ -109,16 +109,24 @@ export default function AdminUsers() {
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
+    // Pagination states
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+
     useEffect(() => {
         loadUsers();
         loadRoles();
-    }, []);
+    }, [pageIndex, pageSize]);
 
     const loadUsers = async () => {
         setLoading(true);
         try {
-            const response = await fetchUsers({ page: 1, pageSize: 100 });
-            setUsers(response.items || []);
+            const response = await userService.getUsersPaginated(pageIndex + 1, pageSize);
+            if (response.success && response.data) {
+                setUsers(response.data.data || []);
+                setTotalCount(response.data.totalPages || 0);
+            }
         } catch (error) {
             console.error('Error loading users:', error);
         } finally {
@@ -129,11 +137,13 @@ export default function AdminUsers() {
     const loadRoles = async () => {
         try {
             const response = await roleService.getAllRoles();
-            const roleOptions = response.map((role: any) => ({
-                label: role.name,
-                value: role.id
-            }));
-            setRoles(roleOptions);
+            if (response.success && response.data) {
+                const roleOptions = response.data.map((role: any) => ({
+                    label: role.name,
+                    value: role.id
+                }));
+                setRoles(roleOptions);
+            }
         } catch (error) {
             console.error('Error loading roles:', error);
         }
@@ -145,9 +155,9 @@ export default function AdminUsers() {
 
         try {
             if (editingUser) {
-                await updateUser(editingUser.id, formData);
+                await userService.updateUser(editingUser.id, formData);
             } else {
-                await createUser(formData);
+                await userService.createUser(formData);
             }
             await loadUsers();
             setShowModal(false);
@@ -180,7 +190,7 @@ export default function AdminUsers() {
         setDeleteLoading(true);
         setLoading(true);
         try {
-            await deleteUser(deleteTargetId);
+            await userService.deleteUser(deleteTargetId);
             await loadUsers();
         } catch (error) {
             console.error('Error deleting user:', error);
@@ -208,6 +218,16 @@ export default function AdminUsers() {
 
     const handleFormChange = (value: Partial<UserPayload>) => {
         setFormData(prev => ({ ...prev, ...value }));
+    };
+
+    // Pagination handlers
+    const handlePageChange = (newPageIndex: number) => {
+        setPageIndex(newPageIndex);
+    };
+
+    const handlePageSizeChange = (newPageSize: number) => {
+        setPageSize(newPageSize);
+        setPageIndex(0); // Reset to first page when changing page size
     };
 
     const columns: TableColumn[] = [
@@ -249,8 +269,8 @@ export default function AdminUsers() {
             label: 'Trạng thái',
             render: (row: any) => (
                 <span className={`inline-block px-2 py-1 rounded text-xs ${row.status === 'active' ? 'bg-green-100 text-green-800' :
-                        row.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
-                            'bg-red-100 text-red-800'
+                    row.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                        'bg-red-100 text-red-800'
                     }`}>
                     {row.status === 'active' ? 'Hoạt động' :
                         row.status === 'inactive' ? 'Không hoạt động' : 'Tạm khóa'}
@@ -323,12 +343,14 @@ export default function AdminUsers() {
                     columns={columns}
                     loading={loading}
                     className="w-full"
-                    showRowNumbers={false}
-                    pageIndex={0}
-                    pageSize={10}
+                    showRowNumbers={true}
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
                     emptyText="Không có người dùng nào"
                     showPagination={true}
-                    totalCount={users.length}
+                    totalCount={totalCount}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
                 />
             </div>
         </div>

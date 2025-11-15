@@ -79,7 +79,7 @@ export const login = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<AuthResponseDto> => {
     const response = await axiosClient.post<AuthResponseDto>(
-        "/api/v1/auth/login",
+        "auth/login",
         payload,
         {
             signal: options?.signal,
@@ -107,7 +107,7 @@ export const register = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<AuthResponseDto> => {
     const response = await axiosClient.post<AuthResponseDto>(
-        "/api/v1/auth/register",
+        "auth/register",
         payload,
         {
             signal: options?.signal,
@@ -130,7 +130,7 @@ export const logout = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<{ message: string }> => {
     const response = await axiosClient.post<{ message: string }>(
-        "/api/v1/auth/logout",
+        "auth/logout",
         {},
         {
             signal: options?.signal,
@@ -149,7 +149,7 @@ export const refreshToken = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<AuthResponseDto> => {
     const response = await axiosClient.post<AuthResponseDto>(
-        "/api/v1/auth/refresh",
+        "auth/refresh",
         payload,
         {
             signal: options?.signal,
@@ -171,7 +171,7 @@ export const refreshToken = async (
 export const getCurrentUser = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<UserDto> => {
-    const response = await axiosClient.get<UserDto>("/api/v1/auth/me", {
+    const response = await axiosClient.get<UserDto>("auth/me", {
         signal: options?.signal,
     });
     return unwrapResponse<UserDto>(response.data);
@@ -182,7 +182,7 @@ export const forgotPassword = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<{ message: string }> => {
     const response = await axiosClient.post<{ message: string }>(
-        "/api/v1/auth/forgot-password",
+        "auth/forgot-password",
         payload,
         {
             signal: options?.signal,
@@ -196,7 +196,7 @@ export const resetPassword = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<{ message: string }> => {
     const response = await axiosClient.post<{ message: string }>(
-        "/api/v1/auth/reset-password",
+        "auth/reset-password",
         payload,
         {
             signal: options?.signal,
@@ -210,7 +210,7 @@ export const changePassword = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<{ message: string }> => {
     const response = await axiosClient.post<{ message: string }>(
-        "/api/v1/auth/change-password",
+        "auth/change-password",
         payload,
         {
             signal: options?.signal,
@@ -224,7 +224,7 @@ export const verifyEmail = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<{ message: string }> => {
     const response = await axiosClient.post<{ message: string }>(
-        `/api/v1/auth/verify-email/${token}`,
+        `auth/verify-email/${token}`,
         {},
         {
             signal: options?.signal,

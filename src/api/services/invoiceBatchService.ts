@@ -14,28 +14,28 @@ export class InvoiceBatchService extends BaseApiClient {
     async createInvoiceBatch(
         data: CreateInvoiceBatchRequest
     ): Promise<ApiResponse<InvoiceBatch>> {
-        return this.post<InvoiceBatch>("/api/v1/InvoiceBatches/create", data);
+        return this.post<InvoiceBatch>("InvoiceBatches/create", data);
     }
 
     async updateInvoiceBatch(
         data: UpdateInvoiceBatchRequest
     ): Promise<ApiResponse<InvoiceBatch>> {
         return this.post<InvoiceBatch>(
-            `/api/v1/InvoiceBatches/update/${data.id}`,
+            `InvoiceBatches/update/${data.id}`,
             data
         );
     }
 
     async deleteInvoiceBatch(id: string): Promise<ApiResponse<void>> {
-        return this.post<void>(`/api/v1/InvoiceBatches/delete/${id}`);
+        return this.post<void>(`InvoiceBatches/delete/${id}`);
     }
 
     async getInvoiceBatchById(id: string): Promise<ApiResponse<InvoiceBatch>> {
-        return this.get<InvoiceBatch>(`/api/v1/InvoiceBatches/get-by-id/${id}`);
+        return this.get<InvoiceBatch>(`InvoiceBatches/get-by-id/${id}`);
     }
 
     async getAllInvoiceBatches(): Promise<ApiResponse<InvoiceBatch[]>> {
-        return this.get<InvoiceBatch[]>("/api/v1/InvoiceBatches/get-all");
+        return this.get<InvoiceBatch[]>("InvoiceBatches/get-all");
     }
 
     async getInvoiceBatchesPaginated(
@@ -43,7 +43,7 @@ export class InvoiceBatchService extends BaseApiClient {
         pageSize: number = 10
     ): Promise<ApiResponse<PaginatedResponse<InvoiceBatch>>> {
         return this.get<PaginatedResponse<InvoiceBatch>>(
-            `/api/v1/InvoiceBatches/get-pagination?page=${page}&pageSize=${pageSize}`
+            `InvoiceBatches/get-pagination?page=${page}&pageSize=${pageSize}`
         );
     }
 }

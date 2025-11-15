@@ -115,7 +115,7 @@ export const getDashboardStats = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<DashboardStatsDto> => {
     const response = await axiosClient.get<DashboardStatsDto>(
-        "/api/dashboard/stats",
+        "dashboard/stats",
         {
             params: cleanDashboardParams(params),
             signal: options?.signal,
@@ -129,7 +129,7 @@ export const getRevenueChart = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<RevenueChartDataDto[]> => {
     const response = await axiosClient.get<RevenueChartDataDto[]>(
-        "/api/dashboard/revenue-chart",
+        "dashboard/revenue-chart",
         {
             params: cleanRevenueChartParams(params),
             signal: options?.signal,
@@ -143,7 +143,7 @@ export const getTopCustomers = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<TopCustomerDto[]> => {
     const response = await axiosClient.get<TopCustomerDto[]>(
-        "/api/dashboard/top-customers",
+        "dashboard/top-customers",
         {
             params: cleanTopCustomersParams(params),
             signal: options?.signal,
@@ -157,7 +157,7 @@ export const getRecentActivity = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<RecentActivityDto[]> => {
     const response = await axiosClient.get<RecentActivityDto[]>(
-        "/api/dashboard/recent-activity",
+        "dashboard/recent-activity",
         {
             params: cleanRecentActivityParams(params),
             signal: options?.signal,
@@ -184,7 +184,7 @@ export const getCompanyInfo = async (
     options?: Pick<AxiosRequestConfig, "signal">
 ): Promise<CompanyInfoDto> => {
     const response = await axiosClient.get<CompanyInfoDto>(
-        "/api/company/info",
+        "company/info",
         {
             signal: options?.signal,
         }

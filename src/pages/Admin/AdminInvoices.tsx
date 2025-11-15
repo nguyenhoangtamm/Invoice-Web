@@ -149,16 +149,22 @@ export default function AdminInvoices() {
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
+    // Pagination states
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+
     useEffect(() => {
         loadInvoices();
-    }, []);
+    }, [pageIndex, pageSize]);
 
     const loadInvoices = async () => {
         setLoading(true);
         try {
-            const response = await invoiceService.getInvoicesPaginated();
+            const response = await invoiceService.getInvoicesPaginated(pageIndex + 1, pageSize);
             if (response.success && response.data) {
-                setInvoices(response.data.data);
+                setInvoices(response.data.data || []);
+                setTotalCount(response.data.totalPages || 0);
             }
         } catch (error) {
             console.error('Error loading invoices:', error);
@@ -248,6 +254,16 @@ export default function AdminInvoices() {
             ...prev,
             ...value,
         }));
+    };
+
+    // Pagination handlers
+    const handlePageChange = (newPageIndex: number) => {
+        setPageIndex(newPageIndex);
+    };
+
+    const handlePageSizeChange = (newPageSize: number) => {
+        setPageSize(newPageSize);
+        setPageIndex(0); // Reset to first page when changing page size
     };
 
     const getStatusBadge = (status: number) => {
@@ -361,12 +377,14 @@ export default function AdminInvoices() {
                     columns={columns}
                     loading={loading}
                     className="w-full"
-                    showRowNumbers={false}
-                    pageIndex={0}
-                    pageSize={10}
+                    showRowNumbers={true}
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
                     emptyText="Không có hóa đơn nào"
                     showPagination={true}
-                    totalCount={invoices.length}
+                    totalCount={totalCount}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
                 />
             </div>
         </div>

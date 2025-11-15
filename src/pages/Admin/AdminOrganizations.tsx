@@ -109,16 +109,22 @@ export default function AdminOrganizations() {
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
+    // Pagination states
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+
     useEffect(() => {
         loadOrganizations();
-    }, []);
+    }, [pageIndex, pageSize]);
 
     const loadOrganizations = async () => {
         setLoading(true);
         try {
-            const response = await organizationService.getAllOrganizations();
+            const response = await organizationService.getOrganizationsPaginated(pageIndex + 1, pageSize);
             if (response.success && response.data) {
-                setOrganizations(response.data);
+                setOrganizations(response.data.data || []);
+                setTotalCount(response.data.totalPages || 0);
             }
         } catch (error) {
             console.error('Error loading organizations:', error);
@@ -208,6 +214,16 @@ export default function AdminOrganizations() {
             ...prev,
             ...value,
         }));
+    };
+
+    // Pagination handlers
+    const handlePageChange = (newPageIndex: number) => {
+        setPageIndex(newPageIndex);
+    };
+
+    const handlePageSizeChange = (newPageSize: number) => {
+        setPageSize(newPageSize);
+        setPageIndex(0); // Reset to first page when changing page size
     };
 
     const columns: TableColumn[] = [
@@ -315,12 +331,14 @@ export default function AdminOrganizations() {
                     columns={columns}
                     loading={loading}
                     className="w-full"
-                    showRowNumbers={false}
-                    pageIndex={0}
-                    pageSize={10}
+                    showRowNumbers={true}
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
                     emptyText="Không có tổ chức nào"
                     showPagination={true}
-                    totalCount={organizations.length}
+                    totalCount={totalCount}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
                 />
             </div>
         </div>
