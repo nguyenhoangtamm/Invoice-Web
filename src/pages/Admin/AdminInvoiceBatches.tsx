@@ -1,6 +1,80 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC } from 'react';
 import { invoiceBatchService } from '../../api/services/invoiceBatchService';
 import type { InvoiceBatch, CreateInvoiceBatchRequest, UpdateInvoiceBatchRequest } from '../../types/admin';
+import { Button, Form, Modal } from 'rsuite';
+import Table from '../../components/common/table';
+import type { TableColumn } from '../../components/common/table';
+
+type Props = {
+    open: boolean;
+    onClose: () => void;
+    loading: boolean;
+    editingBatch: InvoiceBatch | null;
+    formValue: CreateInvoiceBatchRequest;
+    onChange: (val: Partial<CreateInvoiceBatchRequest>) => void;
+    onSubmit: (e?: React.FormEvent) => Promise<void> | void;
+};
+
+const InvoiceBatchModal: FC<Props> = ({ open, onClose, loading, editingBatch, formValue, onChange, onSubmit }) => {
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            size="sm"
+        >
+            <Modal.Header>
+                <Modal.Title>{editingBatch ? 'Sửa Lô Hóa đơn' : 'Tạo Lô Hóa đơn'}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form
+                    fluid
+                    formValue={formValue}
+                    onChange={(val: any) => onChange(val)}
+                >
+                    <Form.Group controlId="batchId">
+                        <Form.ControlLabel>Mã lô *</Form.ControlLabel>
+                        <Form.Control name="batchId" />
+                    </Form.Group>
+
+                    <Form.Group controlId="count">
+                        <Form.ControlLabel>Số lượng *</Form.ControlLabel>
+                        <Form.Control name="count" type="number" />
+                    </Form.Group>
+
+                    <Form.Group controlId="merkleRoot">
+                        <Form.ControlLabel>Merkle Root</Form.ControlLabel>
+                        <Form.Control name="merkleRoot" />
+                    </Form.Group>
+
+                    <Form.Group controlId="batchName">
+                        <Form.ControlLabel>Tên lô *</Form.ControlLabel>
+                        <Form.Control name="batchName" />
+                    </Form.Group>
+
+                    <Form.Group controlId="description">
+                        <Form.ControlLabel>Mô tả</Form.ControlLabel>
+                        <Form.Control name="description" accepter="textarea" rows={3} />
+                    </Form.Group>
+                </Form>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button
+                    appearance="subtle"
+                    onClick={onClose}
+                >
+                    Hủy
+                </Button>
+                <Button
+                    appearance="primary"
+                    onClick={() => { void onSubmit(); }}
+                    loading={loading}
+                >
+                    {editingBatch ? 'Cập nhật' : 'Tạo mới'}
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    );
+};
 
 export default function AdminInvoiceBatches() {
     const [batches, setBatches] = useState<InvoiceBatch[]>([]);
@@ -33,8 +107,8 @@ export default function AdminInvoiceBatches() {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (e?: React.FormEvent) => {
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
         setLoading(true);
 
         try {
@@ -104,12 +178,13 @@ export default function AdminInvoiceBatches() {
         setEditingBatch(null);
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
+    // RSuite Form will provide the entire form value object on change
+    const handleFormChange = (value: Partial<CreateInvoiceBatchRequest>) => {
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'count' ? Number(value) : value
-        }));
+            ...value,
+            count: value.count !== undefined ? Number(value.count) : prev.count,
+        } as CreateInvoiceBatchRequest));
     };
 
     const getStatusBadge = (status: string) => {
@@ -133,20 +208,21 @@ export default function AdminInvoiceBatches() {
         if (total === 0) return 0;
         return Math.round((processed / total) * 100);
     };
-
+    
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Quản lý Lô Hóa đơn</h2>
-                <button
+                <Button
+                    appearance="primary"
                     onClick={() => {
                         resetForm();
                         setShowModal(true);
                     }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 rounded-md"
                 >
                     Tạo Lô mới
-                </button>
+                </Button>
             </div>
 
             {loading && (
@@ -155,178 +231,89 @@ export default function AdminInvoiceBatches() {
                 </div>
             )}
 
+            <InvoiceBatchModal
+                open={showModal}
+                onClose={() => {
+                    setShowModal(false);
+                    resetForm();
+                }}
+                loading={loading}
+                editingBatch={editingBatch}
+                formValue={formData}
+                onChange={handleFormChange}
+                onSubmit={handleSubmit}
+            />
+
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Mã lô
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Trạng thái
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Số lượng
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Merkle Root
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Tx Hash
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Block
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Xác nhận
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Thao tác
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {batches.map((batch) => (
-                            <tr key={batch.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-gray-900">{batch.batchId || batch.batchName}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    {getStatusBadge(String(batch.status))}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {batch.count ?? batch.totalInvoices ?? 0}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <div className="text-sm text-gray-700 truncate max-w-xs">{batch.merkleRoot ?? '-'}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <div className="text-sm text-gray-700 truncate max-w-xs">{batch.txHash ?? '-'}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.blockNumber ?? '-'}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.confirmedAt ? new Date(batch.confirmedAt).toLocaleString('vi-VN') : '-'}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <button
-                                        onClick={() => handleEdit(batch)}
-                                        className="text-blue-600 hover:text-blue-900 mr-3"
-                                    >
-                                        Sửa
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(String(batch.id))}
-                                        className="text-red-600 hover:text-red-900"
-                                    >
-                                        Xóa
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                {/* Use shared Table component */}
+                {
+                    (() => {
+                        const columns: TableColumn[] = [
+                            {
+                                key: 'batchId',
+                                label: 'Mã lô',
+                                dataKey: 'batchId',
+                                render: (row: any) => row.batchId || row.batchName || '-',
+                            },
+                            {
+                                key: 'status',
+                                label: 'Trạng thái',
+                                render: (row: any) => getStatusBadge(String(row.status)),
+                            },
+                            {
+                                key: 'count',
+                                label: 'Số lượng',
+                                dataKey: 'count',
+                                render: (row: any) => row.count ?? row.totalInvoices ?? 0,
+                            },
+                            {
+                                key: 'merkleRoot',
+                                label: 'Merkle Root',
+                                render: (row: any) => row.merkleRoot ? <div className="truncate max-w-xs">{row.merkleRoot}</div> : '-',
+                            },
+                            {
+                                key: 'txHash',
+                                label: 'Tx Hash',
+                                render: (row: any) => row.txHash ? <div className="truncate max-w-xs">{row.txHash}</div> : '-',
+                            },
+                            {
+                                key: 'blockNumber',
+                                label: 'Block',
+                                dataKey: 'blockNumber',
+                            },
+                            {
+                                key: 'confirmedAt',
+                                label: 'Xác nhận',
+                                render: (row: any) => row.confirmedAt ? new Date(row.confirmedAt).toLocaleString('vi-VN') : '-',
+                            },
+                            {
+                                key: 'actions',
+                                label: 'Thao tác',
+                                isAction: true,
+                                render: (row: any) => (
+                                    <div>
+                                        <Button appearance="link" size="sm" className="mr-3" onClick={() => handleEdit(row)}>Sửa</Button>
+                                        <Button appearance="link" size="sm" color="red" onClick={() => handleDelete(String(row.id))}>Xóa</Button>
+                                    </div>
+                                ),
+                            },
+                        ];
 
-                {batches.length === 0 && !loading && (
-                    <div className="text-center py-8 text-gray-500">
-                        Không có lô hóa đơn nào
-                    </div>
-                )}
+                        return (
+                            <Table
+                                data={batches}
+                                columns={columns}
+                                loading={loading}
+                                className="w-full"
+                                showRowNumbers={false}
+                                pageIndex={0}
+                                pageSize={10}
+                                emptyText="Không có lô hóa đơn nào"
+                            />
+                        );
+                    })()
+                }
             </div>
-
-            {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                        <div className="mt-3">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                {editingBatch ? 'Sửa Lô Hóa đơn' : 'Tạo Lô Hóa đơn'}
-                            </h3>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Mã lô *</label>
-                                    <input
-                                        type="text"
-                                        name="batchId"
-                                        required
-                                        value={formData.batchId as string}
-                                        onChange={handleInputChange}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Nhập mã lô (ví dụ BATCH-1)"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Số lượng *</label>
-                                    <input
-                                        type="number"
-                                        name="count"
-                                        required
-                                        min={0}
-                                        value={formData.count as number}
-                                        onChange={handleInputChange}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Số lượng hóa đơn trong lô"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Merkle Root</label>
-                                    <input
-                                        type="text"
-                                        name="merkleRoot"
-                                        value={String(formData.merkleRoot ?? '')}
-                                        onChange={handleInputChange}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Merkle root (nếu có)"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">
-                                        Tên lô *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="batchName"
-                                        required
-                                        value={formData.batchName}
-                                        onChange={handleInputChange}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Nhập tên lô hóa đơn"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">
-                                        Mô tả
-                                    </label>
-                                    <textarea
-                                        name="description"
-                                        value={formData.description}
-                                        onChange={handleInputChange}
-                                        rows={3}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Mô tả về lô hóa đơn này"
-                                    />
-                                </div>
-                                <div className="flex justify-end space-x-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowModal(false);
-                                            resetForm();
-                                        }}
-                                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        Hủy
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                                    >
-                                        {loading ? 'Đang lưu...' : editingBatch ? 'Cập nhật' : 'Tạo mới'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
