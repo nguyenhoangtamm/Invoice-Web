@@ -58,6 +58,11 @@ export interface CreateInvoiceBatchRequest {
     count?: number;
     merkleRoot?: string | null;
     batchCid?: string | null;
+    // Optional blockchain/processing fields that may be provided on create
+    status?: number | string;
+    txHash?: string | null;
+    blockNumber?: number | null;
+    confirmedAt?: string | Date | null;
 }
 
 export interface UpdateInvoiceBatchRequest {
@@ -69,6 +74,7 @@ export interface UpdateInvoiceBatchRequest {
     merkleRoot?: string | null;
     batchCid?: string | null;
     status?: number | string;
+    confirmedAt?: string | Date | null;
 }
 
 // Menu types

@@ -20,11 +20,11 @@ export class InvoiceBatchService extends BaseApiClient {
     async updateInvoiceBatch(
         data: UpdateInvoiceBatchRequest
     ): Promise<ApiResponse<InvoiceBatch>> {
-        return this.put<InvoiceBatch>(`/api/v1/InvoiceBatches/update/${data.id}`, data);
+        return this.post<InvoiceBatch>(`/api/v1/InvoiceBatches/update/${data.id}`, data);
     }
 
     async deleteInvoiceBatch(id: string): Promise<ApiResponse<void>> {
-        return this.delete<void>(`/api/v1/InvoiceBatches/delete/${id}`);
+        return this.post<void>(`/api/v1/InvoiceBatches/delete/${id}`);
     }
 
     async getInvoiceBatchById(id: string): Promise<ApiResponse<InvoiceBatch>> {

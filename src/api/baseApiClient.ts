@@ -33,10 +33,16 @@ export class BaseApiClient {
     ): Promise<ApiResponse<T>> {
         try {
             const url = `${this.baseUrl}${endpoint}`;
+            // Always attach the latest auth token (if any) from localStorage so every request includes it
+            const token =
+                typeof window !== "undefined"
+                    ? localStorage.getItem("authToken")
+                    : null;
             const config: RequestInit = {
                 ...options,
                 headers: {
                     ...this.defaultHeaders,
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     ...options.headers,
                 },
                 signal: AbortSignal.timeout(this.timeout),
