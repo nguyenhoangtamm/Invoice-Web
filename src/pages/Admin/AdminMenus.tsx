@@ -107,11 +107,9 @@ export default function AdminMenus() {
     const loadMenus = async () => {
         setLoading(true);
         try {
-            const response = await menuService.getAllMenus();
-            if (response.success && response.data) {
-                setMenus(response.data);
-                const flattened = flattenMenus(response.data);
-                setFlatMenus(flattened);
+            const response = await menuService.getMenusPaginated();
+           if (response.success && response.data) {
+                setMenus(response.data.data);
             }
         } catch (error) {
             console.error('Error loading menus:', error);

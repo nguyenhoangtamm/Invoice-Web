@@ -136,9 +136,9 @@ export default function AdminInvoiceLines() {
     const loadInvoiceLines = async () => {
         setLoading(true);
         try {
-            const response = await invoiceLineService.getAllInvoiceLines();
+            const response = await invoiceLineService.getInvoiceLinesPaginated();
             if (response.success && response.data) {
-                setInvoiceLines(response.data);
+                setInvoiceLines(response.data.data);
             }
         } catch (error) {
             console.error('Error loading invoice lines:', error);

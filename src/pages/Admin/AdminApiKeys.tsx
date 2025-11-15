@@ -145,7 +145,7 @@ const AdminApiKeys = () => {
         setSelectedApiKey(apiKey);
         setFormData({
             name: apiKey.name,
-            permissions: apiKey.permissions,
+            permissions: apiKey.permissions || [],
             expiresAt: apiKey.expiresAt || '',
         });
         setShowEditModal(true);
@@ -182,8 +182,8 @@ const AdminApiKeys = () => {
     const getStatusBadge = (isActive: boolean) => {
         return (
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
+                ? 'bg-green-100 text-green-800'
+                : 'bg-red-100 text-red-800'
                 }`}>
                 {isActive ? 'Hoạt động' : 'Không hoạt động'}
             </span>
@@ -335,7 +335,7 @@ const AdminApiKeys = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex flex-wrap gap-1">
-                                                {apiKey.permissions.map((permission, index) => (
+                                                {(apiKey.permissions || []).map((permission, index) => (
                                                     <span
                                                         key={index}
                                                         className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs"
@@ -418,8 +418,8 @@ const AdminApiKeys = () => {
                                             key={page}
                                             onClick={() => setCurrentPage(page)}
                                             className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${page === currentPage
-                                                    ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                                                 }`}
                                         >
                                             {page}
@@ -471,17 +471,17 @@ const AdminApiKeys = () => {
                                             <label key={permission} className="flex items-center">
                                                 <input
                                                     type="checkbox"
-                                                    checked={formData.permissions.includes(permission)}
+                                                    checked={(formData.permissions || []).includes(permission)}
                                                     onChange={(e) => {
                                                         if (e.target.checked) {
                                                             setFormData({
                                                                 ...formData,
-                                                                permissions: [...formData.permissions, permission]
+                                                                permissions: [...(formData.permissions || []), permission]
                                                             });
                                                         } else {
                                                             setFormData({
                                                                 ...formData,
-                                                                permissions: formData.permissions.filter(p => p !== permission)
+                                                                permissions: (formData.permissions || []).filter(p => p !== permission)
                                                             });
                                                         }
                                                     }}
@@ -561,17 +561,17 @@ const AdminApiKeys = () => {
                                             <label key={permission} className="flex items-center">
                                                 <input
                                                     type="checkbox"
-                                                    checked={formData.permissions.includes(permission)}
+                                                    checked={(formData.permissions || []).includes(permission)}
                                                     onChange={(e) => {
                                                         if (e.target.checked) {
                                                             setFormData({
                                                                 ...formData,
-                                                                permissions: [...formData.permissions, permission]
+                                                                permissions: [...(formData.permissions || []), permission]
                                                             });
                                                         } else {
                                                             setFormData({
                                                                 ...formData,
-                                                                permissions: formData.permissions.filter(p => p !== permission)
+                                                                permissions: (formData.permissions || []).filter(p => p !== permission)
                                                             });
                                                         }
                                                     }}
