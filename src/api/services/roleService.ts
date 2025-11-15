@@ -1,166 +1,53 @@
-import type { AxiosRequestConfig } from "axios";
-import axiosClient from "../axiosClient";
+import { BaseApiClient } from "../baseApiClient";
+import type { ApiResponse, PaginatedResponse } from "../../types/invoice";
+import type {
+    Role,
+    CreateRoleRequest,
+    UpdateRoleRequest,
+} from "../../types/role";
 
-// Role DTO
-export type RoleDto = {
-    id: string;
-    name: string;
-    code: string;
-    description: string | null;
-    permissions: string[];
-    isSystem: boolean;
-    isActive: boolean;
-    organizationId: string | null;
-    organizationName: string | null;
-    createdAt: string;
-    updatedAt: string | null;
-    createdBy: string | null;
-    updatedBy: string | null;
-};
+/**
+ * Role Management Service
+ * Handles all role-related operations
+ */
+export class RoleService extends BaseApiClient {
+    async createRole(data: CreateRoleRequest): Promise<ApiResponse<Role>> {
+        return this.post<Role>("/api/v1/Roles/create", data);
+    }
 
-// Role Query Parameters
-export type RolesQueryParams = {
-    page: number;
-    pageSize: number;
-    searchTerm?: string;
-    isActive?: boolean;
-    isSystem?: boolean;
-    organizationId?: string;
-    sortColumn?: string;
-    sortDirection?: "asc" | "desc";
-};
+    async updateRole(data: UpdateRoleRequest): Promise<ApiResponse<Role>> {
+        return this.post<Role>(`/api/v1/Roles/update/${data.id}`, data);
+    }
 
-// Role Query Response
-export type RolesQueryResponse = {
-    items: RoleDto[];
-    totalCount: number;
-    page: number;
-    pageSize: number;
-};
+    async deleteRole(id: string): Promise<ApiResponse<void>> {
+        return this.post<void>(`/api/v1/Roles/delete/${id}`);
+    }
 
-// Role Payload for Create/Update
-export type RolePayload = {
-    name: string;
-    code: string;
-    description?: string | null;
-    permissions: string[];
-    isActive: boolean;
-    organizationId?: string | null;
-};
+    async getRoleById(id: string): Promise<ApiResponse<Role>> {
+        return this.get<Role>(`/api/v1/Roles/get-by-id/${id}`);
+    }
 
-// Permission DTO
-export type PermissionDto = {
-    id: string;
-    name: string;
-    code: string;
-    description: string | null;
-    category: string;
-    isActive: boolean;
-};
+    async getAllRoles(): Promise<ApiResponse<Role[]>> {
+        return this.get<Role[]>("/api/v1/Roles/get-all");
+    }
 
-// Helper function to clean parameters
-const cleanRolesParams = (params: RolesQueryParams) => {
-    const payload: Record<string, string | number | boolean> = {
-        page: params.page,
-        pageSize: params.pageSize,
-    };
-    if (params.searchTerm) payload.searchTerm = params.searchTerm;
-    if (typeof params.isActive === "boolean")
-        payload.isActive = params.isActive;
-    if (typeof params.isSystem === "boolean")
-        payload.isSystem = params.isSystem;
-    if (params.organizationId) payload.organizationId = params.organizationId;
-    if (params.sortColumn) payload.sortColumn = params.sortColumn;
-    if (params.sortDirection) payload.sortDirection = params.sortDirection;
-    return payload;
-};
+    async getRolesPaginated(
+        page: number = 1,
+        pageSize: number = 10
+    ): Promise<ApiResponse<PaginatedResponse<Role>>> {
+        return this.get<PaginatedResponse<Role>>(
+            `/api/v1/Roles/get-pagination?page=${page}&pageSize=${pageSize}`
+        );
+    }
 
-// API Functions
-export const fetchRoles = async (
-    params: RolesQueryParams,
-    options?: Pick<AxiosRequestConfig, "signal">
-): Promise<RolesQueryResponse> => {
-    const response = await axiosClient.get<RolesQueryResponse>("/api/roles", {
-        params: cleanRolesParams(params),
-        signal: options?.signal,
-    });
-    return response.data;
-};
-
-export const getAllRoles = async (
-    options?: Pick<AxiosRequestConfig, "signal">
-): Promise<RoleDto[]> => {
-    const response = await axiosClient.get<RoleDto[]>("/api/roles/all", {
-        signal: options?.signal,
-    });
-    return response.data;
-};
-
-export const getRole = async (
-    id: string,
-    options?: Pick<AxiosRequestConfig, "signal">
-): Promise<RoleDto> => {
-    const response = await axiosClient.get<RoleDto>(`/api/roles/${id}`, {
-        signal: options?.signal,
-    });
-    return response.data;
-};
-
-export const createRole = async (payload: RolePayload): Promise<RoleDto> => {
-    const response = await axiosClient.post<RoleDto>("/api/roles", payload);
-    return response.data;
-};
-
-export const updateRole = async (
-    id: string,
-    payload: RolePayload
-): Promise<RoleDto> => {
-    const response = await axiosClient.put<RoleDto>(
-        `/api/roles/${id}`,
-        payload
-    );
-    return response.data;
-};
-
-export const deleteRole = async (
-    id: string,
-    options?: Pick<AxiosRequestConfig, "signal">
-): Promise<void> => {
-    await axiosClient.delete(`/api/roles/${id}`, { signal: options?.signal });
-};
-
-export const getAllPermissions = async (
-    options?: Pick<AxiosRequestConfig, "signal">
-): Promise<PermissionDto[]> => {
-    const response = await axiosClient.get<PermissionDto[]>(
-        "/api/permissions",
-        {
-            signal: options?.signal,
-        }
-    );
-    return response.data;
-};
-
-export const bulkDeleteRoles = async (
-    ids: string[]
-): Promise<{ message: string }> => {
-    const response = await axiosClient.post<{ message: string }>(
-        "/api/roles/bulk-delete",
-        { ids }
-    );
-    return response.data;
-};
-
-// Keep the old class for backward compatibility
-export class RoleService {
-    createRole = (data: any) => createRole(data);
-    updateRole = (data: any) => updateRole(data.id, data);
-    deleteRole = deleteRole;
-    getRoleById = getRole;
-    getAllRoles = getAllRoles;
-    getRolesPaginated = (page = 1, pageSize = 10) =>
-        fetchRoles({ page, pageSize });
+    async assignPermissionsToRole(
+        roleId: string,
+        permissions: string[]
+    ): Promise<ApiResponse<void>> {
+        return this.post<void>(`/api/v1/Roles/${roleId}/permissions`, {
+            permissions,
+        });
+    }
 }
 
-// Export singleton instance for backward compatibility
 export const roleService = new RoleService();

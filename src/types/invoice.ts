@@ -131,3 +131,28 @@ export interface DashboardStats {
     paidInvoices: number;
     overdueInvoices: number;
 }
+
+// Invoice Detail type (for detailed invoice information)
+export interface InvoiceDetail extends Invoice {
+    id: string;
+}
+
+// Request types for Invoice operations
+export interface CreateInvoiceRequest {
+    invoiceNumber: string;
+    organizationId: string;
+    customerId?: string;
+    sellerId?: string;
+    issueDate: string;
+    dueDate?: string;
+    totalAmount: number;
+    taxAmount?: number;
+    discountAmount?: number;
+    status: string;
+    notes?: string;
+    batchId?: string;
+}
+
+export interface UpdateInvoiceRequest extends CreateInvoiceRequest {
+    id: string;
+}

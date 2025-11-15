@@ -1,220 +1,328 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC } from 'react';
+import { BaseApiClient } from '../../api/baseApiClient';
+import type { Organization, CreateOrganizationRequest, UpdateOrganizationRequest } from '../../types/organization';
+import type { ApiResponse, PaginatedResponse } from '../../types/invoice';
+import { Button, Form, Modal, Checkbox } from 'rsuite';
+import Table from '../../components/common/table';
+import { ConfirmModal } from '../../components/common/ConfirmModal';
+import type { TableColumn } from '../../components/common/table';
 import { organizationService } from '../../api/services/organizationService';
-import type { Organization, CreateOrganizationRequest, UpdateOrganizationRequest } from '../../types/admin';
+
+type Props = {
+    open: boolean;
+    onClose: () => void;
+    loading: boolean;
+    editingOrganization: Organization | null;
+    formValue: CreateOrganizationRequest;
+    onChange: (val: Partial<CreateOrganizationRequest>) => void;
+    onSubmit: (e?: React.FormEvent) => Promise<void> | void;
+};
+
+const OrganizationModal: FC<Props> = ({ open, onClose, loading, editingOrganization, formValue, onChange, onSubmit }) => {
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            size="md"
+        >
+            <Modal.Header>
+                <Modal.Title>{editingOrganization ? 'Sửa Tổ chức' : 'Tạo Tổ chức'}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form
+                    fluid
+                    formValue={formValue}
+                    onChange={(val: any) => onChange(val)}
+                >
+                    <Form.Group controlId="name">
+                        <Form.ControlLabel>Tên tổ chức *</Form.ControlLabel>
+                        <Form.Control name="name" />
+                    </Form.Group>
+
+                    <Form.Group controlId="description">
+                        <Form.ControlLabel>Mô tả</Form.ControlLabel>
+                        <Form.Control
+                            name="description"
+                            componentClass="textarea"
+                            rows={3}
+                        />
+                    </Form.Group>
+
+                    <Form.Group controlId="taxCode">
+                        <Form.ControlLabel>Mã số thuế</Form.ControlLabel>
+                        <Form.Control name="taxCode" />
+                    </Form.Group>
+
+                    <Form.Group controlId="address">
+                        <Form.ControlLabel>Địa chỉ</Form.ControlLabel>
+                        <Form.Control
+                            name="address"
+                            componentClass="textarea"
+                            rows={3}
+                        />
+                    </Form.Group>
+
+                    <Form.Group controlId="phone">
+                        <Form.ControlLabel>Số điện thoại</Form.ControlLabel>
+                        <Form.Control name="phone" />
+                    </Form.Group>
+
+                    <Form.Group controlId="email">
+                        <Form.ControlLabel>Email</Form.ControlLabel>
+                        <Form.Control name="email" type="email" />
+                    </Form.Group>
+                </Form>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button
+                    appearance="subtle"
+                    onClick={onClose}
+                >
+                    Hủy
+                </Button>
+                <Button
+                    appearance="primary"
+                    onClick={() => { void onSubmit(); }}
+                    loading={loading}
+                >
+                    {editingOrganization ? 'Cập nhật' : 'Tạo mới'}
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    );
+};
 
 export default function AdminOrganizations() {
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [organizations, setOrganizations] = useState<Organization[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [showModal, setShowModal] = useState(false);
     const [editingOrganization, setEditingOrganization] = useState<Organization | null>(null);
-    const [deletingOrganization, setDeletingOrganization] = useState<Organization | null>(null);
-
-    const {
-        data,
-        loading,
-        error,
-        handlePageChange,
-        handlePageSizeChange,
-        handleCreate,
-        handleUpdate,
-        handleDelete,
-    } = useAdminData<Organization, CreateOrganizationRequest, UpdateOrganizationRequest>({
-        fetchPaginated: organizationService.getOrganizationsPaginated.bind(organizationService),
-        create: organizationService.createOrganization.bind(organizationService),
-        update: organizationService.updateOrganization.bind(organizationService),
-        delete: organizationService.deleteOrganization.bind(organizationService),
-        getById: organizationService.getOrganizationById.bind(organizationService),
+    const [formData, setFormData] = useState<CreateOrganizationRequest>({
+        name: '',
+        description: '',
+        address: '',
+        phone: '',
+        email: '',
+        taxCode: '',
+        isActive: true,
     });
+    const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
-    const columns: Column<Organization>[] = [
-        {
-            key: 'name',
-            title: 'Tên tổ chức',
-            width: '200px',
-        },
-        {
-            key: 'email',
-            title: 'Email',
-            width: '180px',
-        },
-        {
-            key: 'phone',
-            title: 'Số điện thoại',
-            width: '120px',
-        },
-        {
-            key: 'taxCode',
-            title: 'Mã số thuế',
-            width: '120px',
-        },
-        {
-            key: 'address',
-            title: 'Địa chỉ',
-            width: '200px',
-            render: (value) => (
-                <div className="truncate max-w-48" title={value}>
-                    {value || '-'}
-                </div>
-            ),
-        },
-        {
-            key: 'isActive',
-            title: 'Trạng thái',
-            width: '100px',
-        },
-        {
-            key: 'createdAt',
-            title: 'Ngày tạo',
-            width: '120px',
-        },
-    ];
+    useEffect(() => {
+        loadOrganizations();
+    }, []);
 
-    const formFields: Field[] = [
-        {
-            name: 'name',
-            label: 'Tên tổ chức',
-            type: 'text',
-            required: true,
-            maxLength: 200,
-            placeholder: 'Nhập tên tổ chức'
-        },
-        {
-            name: 'email',
-            label: 'Email',
-            type: 'email',
-            maxLength: 100,
-            placeholder: 'Nhập địa chỉ email'
-        },
-        {
-            name: 'phone',
-            label: 'Số điện thoại',
-            type: 'text',
-            maxLength: 20,
-            placeholder: 'Nhập số điện thoại'
-        },
-        {
-            name: 'taxCode',
-            label: 'Mã số thuế',
-            type: 'text',
-            maxLength: 20,
-            placeholder: 'Nhập mã số thuế'
-        },
-        {
-            name: 'address',
-            label: 'Địa chỉ',
-            type: 'textarea',
-            maxLength: 300,
-            placeholder: 'Nhập địa chỉ tổ chức',
-            rows: 3
-        },
-        {
-            name: 'description',
-            label: 'Mô tả',
-            type: 'textarea',
-            maxLength: 500,
-            placeholder: 'Nhập mô tả về tổ chức',
-            rows: 3
-        },
-        {
-            name: 'isActive',
-            label: 'Hoạt động',
-            type: 'checkbox',
+    const loadOrganizations = async () => {
+        setLoading(true);
+        try {
+            const response = await organizationService.getAllOrganizations();
+            if (response.success && response.data) {
+                setOrganizations(response.data);
+            }
+        } catch (error) {
+            console.error('Error loading organizations:', error);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
 
-    const handleAdd = () => {
-        setIsCreateModalOpen(true);
+    const handleSubmit = async (e?: React.FormEvent) => {
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+        setLoading(true);
+
+        try {
+            if (editingOrganization) {
+                const updateData: UpdateOrganizationRequest = {
+                    id: editingOrganization.id,
+                    ...formData,
+                };
+                const response = await organizationService.updateOrganization(updateData);
+                if (response.success) {
+                    await loadOrganizations();
+                    setShowModal(false);
+                    resetForm();
+                }
+            } else {
+                const response = await organizationService.createOrganization(formData);
+                if (response.success) {
+                    await loadOrganizations();
+                    setShowModal(false);
+                    resetForm();
+                }
+            }
+        } catch (error) {
+            console.error('Error saving organization:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleEdit = (organization: Organization) => {
         setEditingOrganization(organization);
-        setIsEditModalOpen(true);
+        setFormData({
+            name: organization.name || '',
+            description: organization.description || '',
+            address: organization.address || '',
+            phone: organization.phone || '',
+            email: organization.email || '',
+            taxCode: organization.taxCode || '',
+            isActive: organization.isActive,
+        });
+        setShowModal(true);
     };
 
-    const handleDeleteClick = (organization: Organization) => {
-        setDeletingOrganization(organization);
-        setIsDeleteModalOpen(true);
-    };
-
-    const handleCreateSubmit = async (formData: CreateOrganizationRequest): Promise<boolean> => {
-        return await handleCreate(formData);
-    };
-
-    const handleEditSubmit = async (formData: Partial<Organization>): Promise<boolean> => {
-        if (!editingOrganization) return false;
-        
-        const updateData: UpdateOrganizationRequest = {
-            id: editingOrganization.id,
-            name: formData.name!,
-            email: formData.email,
-            phone: formData.phone,
-            taxCode: formData.taxCode,
-            address: formData.address,
-            description: formData.description,
-            isActive: formData.isActive ?? true,
-        };
-        
-        return await handleUpdate(updateData);
-    };
-
-    const handleDeleteConfirm = async () => {
-        if (!deletingOrganization) return;
-        
-        const success = await handleDelete(deletingOrganization.id);
-        if (success) {
-            setIsDeleteModalOpen(false);
-            setDeletingOrganization(null);
+    const performDelete = async () => {
+        if (!deleteTargetId) return;
+        setDeleteLoading(true);
+        setLoading(true);
+        try {
+            const response = await organizationService.deleteOrganization(deleteTargetId);
+            if (response.success) {
+                await loadOrganizations();
+            }
+        } catch (error) {
+            console.error('Error deleting organization:', error);
+        } finally {
+            setDeleteLoading(false);
+            setDeleteTargetId(null);
+            setLoading(false);
         }
     };
 
+    const resetForm = () => {
+        setFormData({
+            name: '',
+            description: '',
+            address: '',
+            phone: '',
+            email: '',
+            taxCode: '',
+            isActive: true,
+        });
+        setEditingOrganization(null);
+    };
+
+    const handleFormChange = (value: Partial<CreateOrganizationRequest>) => {
+        setFormData(prev => ({
+            ...prev,
+            ...value,
+        }));
+    };
+
+    const columns: TableColumn[] = [
+        {
+            key: 'name',
+            label: 'Tên tổ chức',
+            dataKey: 'name',
+        },
+        {
+            key: 'taxCode',
+            label: 'Mã số thuế',
+            dataKey: 'taxCode',
+            render: (row: any) => row.taxCode || '-',
+        },
+        {
+            key: 'phone',
+            label: 'Số điện thoại',
+            dataKey: 'phone',
+            render: (row: any) => row.phone || '-',
+        },
+        {
+            key: 'email',
+            label: 'Email',
+            dataKey: 'email',
+            render: (row: any) => row.email || '-',
+        },
+        {
+            key: 'address',
+            label: 'Địa chỉ',
+            render: (row: any) => (
+                <div className="truncate max-w-xs" title={row.address}>
+                    {row.address || '-'}
+                </div>
+            ),
+        },
+        {
+            key: 'createdAt',
+            label: 'Ngày tạo',
+            render: (row: any) => row.createdAt ? new Date(row.createdAt).toLocaleDateString('vi-VN') : '-',
+        },
+        {
+            key: 'actions',
+            label: 'Thao tác',
+            isAction: true,
+            flexGrow: 1,
+            render: (row: any) => (
+                <div>
+                    <Button appearance="link" size="sm" className="mr-3" onClick={() => handleEdit(row)}>Sửa</Button>
+                    <Button appearance="link" size="sm" color="red" onClick={() => setDeleteTargetId(String(row.id))}>Xóa</Button>
+                </div>
+            ),
+        },
+    ];
+
     return (
-        <>
-            <AdminTable<Organization>
-                title="Quản lý tổ chức"
-                columns={columns}
-                data={data}
-                loading={loading}
-                error={error}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                onAdd={handleAdd}
-                onEdit={handleEdit}
-                onDelete={handleDeleteClick}
-                addButtonText="Thêm tổ chức"
-            />
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Quản lý Tổ chức</h2>
+                <Button
+                    appearance="primary"
+                    onClick={() => {
+                        resetForm();
+                        setShowModal(true);
+                    }}
+                    className="px-4 py-2 rounded-md"
+                >
+                    Tạo Tổ chức mới
+                </Button>
+            </div>
 
-            <AdminModal
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
-                onSubmit={handleCreateSubmit}
-                title="Thêm tổ chức mới"
-                fields={formFields}
-            />
+            {loading && (
+                <div className="flex justify-center items-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+            )}
 
-            <AdminModal
-                isOpen={isEditModalOpen}
+            <OrganizationModal
+                open={showModal}
                 onClose={() => {
-                    setIsEditModalOpen(false);
-                    setEditingOrganization(null);
+                    setShowModal(false);
+                    resetForm();
                 }}
-                onSubmit={handleEditSubmit}
-                title="Chỉnh sửa tổ chức"
-                fields={formFields}
-                initialData={editingOrganization || undefined}
+                loading={loading}
+                editingOrganization={editingOrganization}
+                formValue={formData}
+                onChange={handleFormChange}
+                onSubmit={handleSubmit}
             />
 
             <ConfirmModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => {
-                    setIsDeleteModalOpen(false);
-                    setDeletingOrganization(null);
-                }}
-                onConfirm={handleDeleteConfirm}
-                title="Xác nhận xóa tổ chức"
-                message={`Bạn có chắc chắn muốn xóa tổ chức "${deletingOrganization?.name}"? Hành động này không thể hoàn tác.`}
+                isOpen={!!deleteTargetId}
+                onClose={() => setDeleteTargetId(null)}
+                onConfirm={performDelete}
+                title="Xóa tổ chức"
+                message="Bạn có chắc chắn muốn xóa tổ chức này?"
+                type="delete"
                 confirmText="Xóa"
-                type="danger"
+                cancelText="Hủy"
+                loading={deleteLoading}
             />
-        </>
+
+            <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                <Table
+                    data={organizations}
+                    columns={columns}
+                    loading={loading}
+                    className="w-full"
+                    showRowNumbers={false}
+                    pageIndex={0}
+                    pageSize={10}
+                    emptyText="Không có tổ chức nào"
+                    showPagination={true}
+                    totalCount={organizations.length}
+                />
+            </div>
+        </div>
     );
 }

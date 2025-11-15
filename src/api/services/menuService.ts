@@ -4,8 +4,7 @@ import type {
     Menu,
     CreateMenuRequest,
     UpdateMenuRequest,
-    AssignMenuToRoleRequest,
-} from "../../types/admin";
+} from "../../types/menu";
 
 /**
  * Menu Management Service
@@ -17,11 +16,11 @@ export class MenuService extends BaseApiClient {
     }
 
     async updateMenu(data: UpdateMenuRequest): Promise<ApiResponse<Menu>> {
-        return this.put<Menu>(`/api/v1/Menus/update/${data.id}`, data);
+        return this.post<Menu>(`/api/v1/Menus/update/${data.id}`, data);
     }
 
     async deleteMenu(id: string): Promise<ApiResponse<void>> {
-        return this.delete<void>(`/api/v1/Menus/delete/${id}`);
+        return this.post<void>(`/api/v1/Menus/delete/${id}`);
     }
 
     async getMenuById(id: string): Promise<ApiResponse<Menu>> {
@@ -30,6 +29,10 @@ export class MenuService extends BaseApiClient {
 
     async getAllMenus(): Promise<ApiResponse<Menu[]>> {
         return this.get<Menu[]>("/api/v1/Menus/get-all");
+    }
+
+    async getMenuTree(): Promise<ApiResponse<Menu[]>> {
+        return this.get<Menu[]>("/api/v1/Menus/tree");
     }
 
     async getMenusPaginated(
@@ -41,24 +44,18 @@ export class MenuService extends BaseApiClient {
         );
     }
 
-    async getMenuTree(): Promise<ApiResponse<Menu[]>> {
-        return this.get<Menu[]>("/api/v1/Menus/tree");
-    }
-
-    async getMenuTreeByRole(roleId: string): Promise<ApiResponse<Menu[]>> {
-        return this.get<Menu[]>(`/api/v1/Menus/tree/role/${roleId}`);
-    }
-
-    async getMenusByUserRoles(): Promise<ApiResponse<Menu[]>> {
-        return this.get<Menu[]>("/api/v1/Menus/GetMenusByUserRoles");
-    }
-
-    async assignMenuToRole(data: AssignMenuToRoleRequest): Promise<ApiResponse<void>> {
-        return this.post<void>("/api/v1/Menus/assign-to-role", data);
+    async assignMenuToRole(
+        roleId: string,
+        menuIds: string[]
+    ): Promise<ApiResponse<void>> {
+        return this.post<void>("/api/v1/Menus/assign-to-role", {
+            roleId,
+            menuIds,
+        });
     }
 
     async getMenusByRole(roleId: string): Promise<ApiResponse<Menu[]>> {
-        return this.get<Menu[]>(`/api/v1/Menus/role/${roleId}`);
+        return this.get<Menu[]>(`/api/v1/Menus/by-role/${roleId}`);
     }
 }
 

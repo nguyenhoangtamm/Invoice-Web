@@ -1,6 +1,6 @@
 import React, { useState, useEffect, FC } from 'react';
 import { invoiceBatchService } from '../../api/services/invoiceBatchService';
-import type { InvoiceBatch, CreateInvoiceBatchRequest, UpdateInvoiceBatchRequest } from '../../types/admin';
+import type { InvoiceBatch, CreateInvoiceBatchRequest, UpdateInvoiceBatchRequest } from '../../types/invoiceBatch';
 import { Button, Form, Modal, InputPicker, DatePicker } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';

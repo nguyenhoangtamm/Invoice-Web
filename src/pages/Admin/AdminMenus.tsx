@@ -1,11 +1,91 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC } from 'react';
+import { BaseApiClient } from '../../api/baseApiClient';
+import type { Menu, CreateMenuRequest, UpdateMenuRequest } from '../../types/menu';
+import type { ApiResponse, PaginatedResponse } from '../../types/invoice';
+import { Button, Form, Modal, InputPicker, InputNumber } from 'rsuite';
 import { menuService } from '../../api/services/menuService';
-import { roleService } from '../../api/services/roleService';
-import type { Menu, CreateMenuRequest, UpdateMenuRequest, Role } from '../../types/admin';
+
+type Props = {
+    open: boolean;
+    onClose: () => void;
+    loading: boolean;
+    editingMenu: Menu | null;
+    formValue: CreateMenuRequest;
+    onChange: (val: Partial<CreateMenuRequest>) => void;
+    onSubmit: (e?: React.FormEvent) => Promise<void> | void;
+    parentMenuOptions: Array<{ label: string; value: string }>;
+};
+
+const MenuModal: FC<Props> = ({ open, onClose, loading, editingMenu, formValue, onChange, onSubmit, parentMenuOptions }) => {
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            size="sm"
+        >
+            <Modal.Header>
+                <Modal.Title>{editingMenu ? 'Sửa Menu' : 'Tạo Menu'}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form
+                    fluid
+                    formValue={formValue}
+                    onChange={(val: any) => onChange(val)}
+                >
+                    <Form.Group controlId="title">
+                        <Form.ControlLabel>Tên menu *</Form.ControlLabel>
+                        <Form.Control name="title" />
+                    </Form.Group>
+
+                    <Form.Group controlId="url">
+                        <Form.ControlLabel>Đường dẫn *</Form.ControlLabel>
+                        <Form.Control name="url" />
+                    </Form.Group>
+
+                    <Form.Group controlId="icon">
+                        <Form.ControlLabel>Icon</Form.ControlLabel>
+                        <Form.Control name="icon" />
+                    </Form.Group>
+
+                    <Form.Group controlId="order">
+                        <Form.ControlLabel>Thứ tự</Form.ControlLabel>
+                        <Form.Control name="order" accepter={InputNumber} />
+                    </Form.Group>
+
+                    <Form.Group controlId="parentId">
+                        <Form.ControlLabel>Menu cha</Form.ControlLabel>
+                        <Form.Control
+                            name="parentId"
+                            accepter={InputPicker}
+                            data={parentMenuOptions}
+                            placeholder="Chọn menu cha (không bắt buộc)"
+                            style={{ width: '100%' }}
+                        />
+                    </Form.Group>
+                </Form>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button
+                    appearance="subtle"
+                    onClick={onClose}
+                >
+                    Hủy
+                </Button>
+                <Button
+                    appearance="primary"
+                    onClick={() => { void onSubmit(); }}
+                    loading={loading}
+                >
+                    {editingMenu ? 'Cập nhật' : 'Tạo mới'}
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    );
+};
 
 export default function AdminMenus() {
     const [menus, setMenus] = useState<Menu[]>([]);
-    const [roles, setRoles] = useState<Role[]>([]);
+    const [flatMenus, setFlatMenus] = useState<Menu[]>([]);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
@@ -13,22 +93,25 @@ export default function AdminMenus() {
         title: '',
         url: '',
         icon: '',
-        parentId: '',
         order: 0,
+        parentId: undefined,
         isActive: true,
     });
+    const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     useEffect(() => {
         loadMenus();
-        loadRoles();
     }, []);
 
     const loadMenus = async () => {
         setLoading(true);
         try {
-            const response = await menuService.getMenuTree();
+            const response = await menuService.getAllMenus();
             if (response.success && response.data) {
                 setMenus(response.data);
+                const flattened = flattenMenus(response.data);
+                setFlatMenus(flattened);
             }
         } catch (error) {
             console.error('Error loading menus:', error);
@@ -37,31 +120,35 @@ export default function AdminMenus() {
         }
     };
 
-    const loadRoles = async () => {
-        try {
-            const response = await roleService.getAllRoles();
-            if (response.success && response.data) {
-                setRoles(response.data);
+    const flattenMenus = (menuList: Menu[], level = 0): any[] => {
+        let result: any[] = [];
+        menuList.forEach(menu => {
+            result.push({ ...menu, level });
+            if (menu.children && menu.children.length > 0) {
+                result = result.concat(flattenMenus(menu.children, level + 1));
             }
-        } catch (error) {
-            console.error('Error loading roles:', error);
-        }
+        });
+        return result;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const getParentMenuOptions = () => {
+        return flatMenus
+            .filter(menu => !menu.parentId) // Only top-level menus can be parents
+            .map(menu => ({
+                label: menu.title || '',
+                value: menu.id
+            }));
+    };
+
+    const handleSubmit = async (e?: React.FormEvent) => {
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
         setLoading(true);
 
         try {
-            const menuData = {
-                ...formData,
-                parentId: formData.parentId || undefined,
-            };
-
             if (editingMenu) {
                 const updateData: UpdateMenuRequest = {
                     id: editingMenu.id,
-                    ...menuData,
+                    ...formData,
                 };
                 const response = await menuService.updateMenu(updateData);
                 if (response.success) {
@@ -70,7 +157,7 @@ export default function AdminMenus() {
                     resetForm();
                 }
             } else {
-                const response = await menuService.createMenu(menuData);
+                const response = await menuService.createMenu(formData);
                 if (response.success) {
                     await loadMenus();
                     setShowModal(false);
@@ -87,29 +174,31 @@ export default function AdminMenus() {
     const handleEdit = (menu: Menu) => {
         setEditingMenu(menu);
         setFormData({
-            title: menu.title,
+            title: menu.title || '',
             url: menu.url || '',
             icon: menu.icon || '',
-            parentId: menu.parentId || '',
-            order: menu.order,
+            order: menu.order || 0,
+            parentId: menu.parentId || undefined,
             isActive: menu.isActive,
         });
         setShowModal(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa menu này?')) {
-            setLoading(true);
-            try {
-                const response = await menuService.deleteMenu(id);
-                if (response.success) {
-                    await loadMenus();
-                }
-            } catch (error) {
-                console.error('Error deleting menu:', error);
-            } finally {
-                setLoading(false);
+    const performDelete = async () => {
+        if (!deleteTargetId) return;
+        setDeleteLoading(true);
+        setLoading(true);
+        try {
+            const response = await menuService.deleteMenu(deleteTargetId);
+            if (response.success) {
+                await loadMenus();
             }
+        } catch (error) {
+            console.error('Error deleting menu:', error);
+        } finally {
+            setDeleteLoading(false);
+            setDeleteTargetId(null);
+            setLoading(false);
         }
     };
 
@@ -118,11 +207,19 @@ export default function AdminMenus() {
             title: '',
             url: '',
             icon: '',
-            parentId: '',
             order: 0,
+            parentId: undefined,
             isActive: true,
         });
         setEditingMenu(null);
+    };
+
+    const handleFormChange = (value: Partial<CreateMenuRequest>) => {
+        setFormData(prev => ({
+            ...prev,
+            ...value,
+            order: value.order !== undefined ? Number(value.order) : prev.order,
+        }));
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -163,8 +260,8 @@ export default function AdminMenus() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${menu.isActive
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
                             }`}>
                             {menu.isActive ? 'Hoạt động' : 'Không hoạt động'}
                         </span>
@@ -180,7 +277,7 @@ export default function AdminMenus() {
                             Sửa
                         </button>
                         <button
-                            onClick={() => handleDelete(menu.id)}
+                            onClick={() => setDeleteTargetId(menu.id)}
                             className="text-red-600 hover:text-red-900"
                         >
                             Xóa
@@ -192,18 +289,7 @@ export default function AdminMenus() {
         ));
     };
 
-    const flattenMenus = (menuList: Menu[]): Menu[] => {
-        let result: Menu[] = [];
-        menuList.forEach(menu => {
-            result.push(menu);
-            if (menu.children && menu.children.length > 0) {
-                result = result.concat(flattenMenus(menu.children));
-            }
-        });
-        return result;
-    };
-
-    const parentMenuOptions = flattenMenus(menus).filter(menu => !menu.parentId);
+    const parentMenuOptions = flatMenus.filter(menu => !menu.parentId);
 
     return (
         <div>

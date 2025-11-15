@@ -57,12 +57,13 @@ export class AdminUserService {
             roleId,
             status: status as any,
         });
-    getUserRoles = () => getAllRoles();
+    getUserRoles = () => roleService.getAllRoles();
     changeUserStatus = (id: string, status: string) =>
         toggleUserStatus(id, status as "active" | "inactive" | "suspended");
     resetUserPassword = resetUserPassword;
 }
 
+import { roleService } from "./roleService";
 // Import required functions
 import {
     createUser,
@@ -73,5 +74,4 @@ import {
     resetUserPassword,
     toggleUserStatus,
 } from "./userService";
-import { getAllRoles } from "./roleService";
 import type { AdminUserDto, UserPayload, RoleInfoDto } from "./userService";

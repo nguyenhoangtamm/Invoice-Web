@@ -165,3 +165,29 @@ export const getRecentActivity = async (
     );
     return response.data;
 };
+
+// Company Info DTO
+export type CompanyInfoDto = {
+    id: string;
+    name: string;
+    address: string;
+    tax_code: string;
+    email: string;
+    phone: string;
+    logo?: string;
+    created_at: string;
+    updated_at: string;
+};
+
+// Get Company Info function
+export const getCompanyInfo = async (
+    options?: Pick<AxiosRequestConfig, "signal">
+): Promise<CompanyInfoDto> => {
+    const response = await axiosClient.get<CompanyInfoDto>(
+        "/api/company/info",
+        {
+            signal: options?.signal,
+        }
+    );
+    return response.data;
+};

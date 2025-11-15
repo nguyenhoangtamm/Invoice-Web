@@ -2,7 +2,6 @@ import type { RouteObject } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
 import App from '../App';
 import Lookup from '../pages/Lookup';
-import InvoiceDashboard from '../pages/Dashboard';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Terms from '../pages/Terms';
@@ -20,6 +19,7 @@ import AdminInvoiceBatches from '../pages/Admin/AdminInvoiceBatches';
 import AdminInvoiceLines from '../pages/Admin/AdminInvoiceLines';
 import AdminGuard from '../components/common/AdminGuard';
 import AuthGuard from '../components/common/AuthGuard';
+import InvoiceDashboard from '../pages/Dashboard';
 
 export const routes: RouteObject[] = [
     {

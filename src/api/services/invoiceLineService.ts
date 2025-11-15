@@ -1,41 +1,10 @@
 import { BaseApiClient } from "../baseApiClient";
 import type { ApiResponse, PaginatedResponse } from "../../types/invoice";
-
-// Invoice Line interfaces
-export interface InvoiceLine {
-    id: string;
-    invoiceId: string;
-    lineNumber: number;
-    description: string;
-    unit?: string;
-    quantity: number;
-    unitPrice: number;
-    taxAmount?: number;
-    lineTotal: number;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface CreateInvoiceLineRequest {
-    invoiceId: string;
-    lineNumber: number;
-    description: string;
-    unit?: string;
-    quantity: number;
-    unitPrice: number;
-    taxAmount?: number;
-}
-
-export interface UpdateInvoiceLineRequest {
-    id: string;
-    invoiceId: string;
-    lineNumber: number;
-    description: string;
-    unit?: string;
-    quantity: number;
-    unitPrice: number;
-    taxAmount?: number;
-}
+import type {
+    InvoiceLine,
+    CreateInvoiceLineRequest,
+    UpdateInvoiceLineRequest,
+} from "../../types/invoiceLine";
 
 /**
  * Invoice Line Management Service
@@ -51,11 +20,14 @@ export class InvoiceLineService extends BaseApiClient {
     async updateInvoiceLine(
         data: UpdateInvoiceLineRequest
     ): Promise<ApiResponse<InvoiceLine>> {
-        return this.put<InvoiceLine>(`/api/v1/InvoiceLines/update/${data.id}`, data);
+        return this.post<InvoiceLine>(
+            `/api/v1/InvoiceLines/update/${data.id}`,
+            data
+        );
     }
 
     async deleteInvoiceLine(id: string): Promise<ApiResponse<void>> {
-        return this.delete<void>(`/api/v1/InvoiceLines/delete/${id}`);
+        return this.post<void>(`/api/v1/InvoiceLines/delete/${id}`);
     }
 
     async getInvoiceLineById(id: string): Promise<ApiResponse<InvoiceLine>> {
@@ -78,7 +50,9 @@ export class InvoiceLineService extends BaseApiClient {
     async getInvoiceLinesByInvoiceId(
         invoiceId: string
     ): Promise<ApiResponse<InvoiceLine[]>> {
-        return this.get<InvoiceLine[]>(`/api/v1/InvoiceLines/by-invoice/${invoiceId}`);
+        return this.get<InvoiceLine[]>(
+            `/api/v1/InvoiceLines/by-invoice/${invoiceId}`
+        );
     }
 }
 

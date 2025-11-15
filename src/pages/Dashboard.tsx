@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Home, FileText, Building2, Key, Settings, BarChart3, Users, CreditCard, Menu, X, Plus, Copy, Eye, EyeOff, Trash2, Download, Search, Filter, ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle, Share2, FileJson, ArrowLeft } from 'lucide-react';
-import { useCompanyInfo, useDashboardStats } from '../hooks/useApi';
-import { fetchInvoices } from '../api/services';
 import type { Invoice } from '../types/invoice';
-import type { InvoiceDto } from '../api/services';
 import { mockInvoices } from '../data/mockInvoice';
+import { invoiceService } from '../api/services/invoiceService';
+import { getDashboardStats, getCompanyInfo } from '../api/services/dashboardService';
+import type { DashboardStatsDto, CompanyInfoDto } from '../api/services/dashboardService';
 
 const InvoiceDashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -28,9 +28,8 @@ const InvoiceDashboard = () => {
         timestamp: string;
         gasUsed: string;
     } | null>(null);
-
-    const { data: dashboardStats } = useDashboardStats();
-    const { data: companyInfo } = useCompanyInfo();
+    const [dashboardStats, setDashboardStats] = useState<DashboardStatsDto | null>(null);
+    const [companyInfo, setCompanyInfo] = useState<CompanyInfoDto | null>(null);
 
     useEffect(() => {
         if (companyInfo) {
@@ -41,17 +40,44 @@ const InvoiceDashboard = () => {
     }, [companyInfo]);
 
     useEffect(() => {
+        // Fetch dashboard stats
+        const fetchDashboardStats = async () => {
+            try {
+                const stats = await getDashboardStats({});
+                setDashboardStats(stats);
+            } catch (error) {
+                console.error('Error fetching dashboard stats:', error);
+            }
+        };
+
+        // Fetch company info
+        const fetchCompanyInfo = async () => {
+            try {
+                const info = await getCompanyInfo();
+                setCompanyInfo(info);
+            } catch (error) {
+                console.error('Error fetching company info:', error);
+            }
+        };
+
         // Lấy 4 hóa đơn gần đây từ API
         const fetchRecent = async () => {
             try {
-                const res = await fetchInvoices({ page: 1, pageSize: 4 });
-                setRecentInvoices(res.items as any);
+                const res = await invoiceService.getInvoicesPaginated(1, 4);
+                if (res.success && res.data) {
+                    setRecentInvoices(res.data.data);
+                } else {
+                    setRecentInvoices([]);
+                }
             } catch (error) {
                 console.error('Error fetching recent invoices:', error);
                 // Fallback to mock data
                 setRecentInvoices(mockInvoices.slice(0, 4) as any);
             }
         };
+
+        fetchDashboardStats();
+        fetchCompanyInfo();
         fetchRecent();
 
         // Lấy danh sách tất cả hóa đơn cho trang Invoices
@@ -444,8 +470,8 @@ const InvoiceDashboard = () => {
                                             </td>
                                             <td className="px-6 py-4 text-sm">
                                                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${invoice.status === 'Đã phát hành' ? 'bg-green-100 text-green-700' :
-                                                        invoice.status === 'Chờ xác nhận' ? 'bg-yellow-100 text-yellow-700' :
-                                                            'bg-red-100 text-red-700'
+                                                    invoice.status === 'Chờ xác nhận' ? 'bg-yellow-100 text-yellow-700' :
+                                                        'bg-red-100 text-red-700'
                                                     }`}>
                                                     {invoice.status || '-'}
                                                 </span>
@@ -495,8 +521,8 @@ const InvoiceDashboard = () => {
                                             key={page}
                                             onClick={() => setCurrentPage(page)}
                                             className={`w-8 h-8 rounded-lg font-medium transition ${currentPage === page
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'text-gray-600 hover:bg-gray-100'
+                                                ? 'bg-blue-600 text-white'
+                                                : 'text-gray-600 hover:bg-gray-100'
                                                 }`}
                                         >
                                             {page}

@@ -4,7 +4,7 @@ import type {
     InvoiceBatch,
     CreateInvoiceBatchRequest,
     UpdateInvoiceBatchRequest,
-} from "../../types/admin";
+} from "../../types/invoiceBatch";
 
 /**
  * Invoice Batch Management Service
@@ -20,7 +20,10 @@ export class InvoiceBatchService extends BaseApiClient {
     async updateInvoiceBatch(
         data: UpdateInvoiceBatchRequest
     ): Promise<ApiResponse<InvoiceBatch>> {
-        return this.post<InvoiceBatch>(`/api/v1/InvoiceBatches/update/${data.id}`, data);
+        return this.post<InvoiceBatch>(
+            `/api/v1/InvoiceBatches/update/${data.id}`,
+            data
+        );
     }
 
     async deleteInvoiceBatch(id: string): Promise<ApiResponse<void>> {

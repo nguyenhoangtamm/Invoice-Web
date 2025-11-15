@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Key, Edit2, Trash2, Eye, EyeOff, Copy, Search, Filter, RefreshCw } from 'lucide-react';
-import { apiKeyService, type ApiKey, type CreateApiKeyRequest, type UpdateApiKeyRequest } from '../../api/services/apiKeyService';
-import type { PaginatedResponse } from '../../types/invoice';
+import { ApiKey, CreateApiKeyRequest, UpdateApiKeyRequest } from '../../types/apiKey';
+import { apiKeyService } from '../../api/services/apiKeyService';
 
 const AdminApiKeys = () => {
     const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);

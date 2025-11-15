@@ -1,33 +1,11 @@
 import { BaseApiClient } from "../baseApiClient";
 import { API_CONFIG, USE_MOCK_API } from "../config";
 import type { ApiResponse, PaginatedResponse } from "../../types/invoice";
-
-// API Key interfaces
-export interface ApiKey {
-    id: string;
-    name: string;
-    keyValue: string;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    lastUsed?: string;
-    expiresAt?: string;
-    permissions: string[];
-}
-
-export interface CreateApiKeyRequest {
-    name: string;
-    permissions: string[];
-    expiresAt?: string;
-}
-
-export interface UpdateApiKeyRequest {
-    id: string;
-    name: string;
-    isActive: boolean;
-    permissions: string[];
-    expiresAt?: string;
-}
+import type {
+    ApiKey,
+    CreateApiKeyRequest,
+    UpdateApiKeyRequest,
+} from "../../types/apiKey";
 
 /**
  * API Key Management Service
