@@ -396,6 +396,8 @@ export default function AdminInvoiceBatches() {
                     pageIndex={0}
                     pageSize={10}
                     emptyText="Không có lô hóa đơn nào"
+                    showPagination={true}
+                    totalCount={batches.length}
                 />
             </div>
         </div>
