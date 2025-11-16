@@ -141,8 +141,8 @@ export default function AdminInvoices() {
     const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
     const [formData, setFormData] = useState<CreateInvoiceRequest>({
         invoiceNumber: '',
-        organizationId: '1',
-        status: 'draft',
+        organizationId: 1,
+        status: 1,
         issueDate: new Date().toISOString(),
         totalAmount: 0,
     });
@@ -180,7 +180,7 @@ export default function AdminInvoices() {
         try {
             if (editingInvoice) {
                 const updateData: UpdateInvoiceRequest = {
-                    id: editingInvoice.invoice_number || 'unknown',
+                    id: editingInvoice.invoiceNumber || 'unknown',
                     ...formData,
                 };
                 const response = await invoiceService.updateInvoice(updateData);
@@ -207,15 +207,15 @@ export default function AdminInvoices() {
     const handleEdit = (invoice: Invoice) => {
         setEditingInvoice(invoice);
         setFormData({
-            invoiceNumber: invoice.invoice_number || '',
-            organizationId: invoice.tenant_organization_id || '1',
-            issueDate: invoice.issued_date || new Date().toISOString(),
-            totalAmount: invoice.total_amount || 0,
-            taxAmount: invoice.tax_amount || 0,
-            discountAmount: invoice.discount_amount || 0,
-            status: invoice.status || 'draft',
+            invoiceNumber: invoice.invoiceNumber || '',
+            organizationId: invoice.organizationId || 1,
+            issueDate: invoice.issuedDate || new Date().toISOString(),
+            totalAmount: invoice.totalAmount || 0,
+            taxAmount: invoice.taxAmount || 0,
+            discountAmount: invoice.discountAmount || 0,
+            status: invoice.status,
             notes: invoice.note || '',
-            batchId: invoice.batch_id || '',
+            batchId: invoice.batchId || undefined,
         });
         setShowModal(true);
     };
@@ -241,8 +241,8 @@ export default function AdminInvoices() {
     const resetForm = () => {
         setFormData({
             invoiceNumber: '',
-            organizationId: '1',
-            status: 'draft',
+            organizationId: 1,
+            status: 1,
             issueDate: new Date().toISOString(),
             totalAmount: 0,
         });

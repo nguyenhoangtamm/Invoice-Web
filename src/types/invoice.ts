@@ -1,36 +1,48 @@
 export interface InvoiceLine {
-    line_number?: number;
-    description?: string;
+    id: number;
+    invoiceId: number;
+    lineNumber: number;
+    description: string;
+    quantity: number;
     unit?: string;
-    quantity?: number;
-    unit_price?: number;
-    tax_amount?: number;
-    line_total?: number;
+    unitPrice: number;
+    discount: number;
+    taxRate: number;
+    taxAmount: number;
+    lineTotal: number;
 }
 
 export interface Invoice {
-    invoice_number?: string;
-    form_number?: string;
-    serial?: string;
-    CustomerName?: string;
-    CustomerAddress?: string;
-    CustomerEmail?: string;
-    CustomerPhone?: string;
-    issued_date?: string; // ISO date
-    subtotal?: number;
-    tax_amount?: number;
-    discount_amount?: number;
-    total_amount?: number;
-    currency?: string;
-    status?: string;
-    tenant_organization_id?: string;
-    issued_by_user_id?: string;
+    id: number;
+    invoiceNumber: string;
+    formNumber: string;
+    serial: string;
+    organizationId: number;
+    issuedByUserId: number;
+    sellerName: string;
+    sellerTaxId: string;
+    sellerAddress?: string;
+    sellerPhone?: string;
+    sellerEmail?: string;
+    customerName: string;
+    customerTaxId: string;
+    customerAddress?: string;
+    customerPhone?: string;
+    customerEmail?: string;
+    status: number;
+    issuedDate: string;
+    subTotal: number;
+    taxAmount: number;
+    discountAmount: number;
+    totalAmount: number;
+    currency: string;
     note?: string;
-    batch_id?: string;
-    immutable_hash?: string;
-    created_at?: string;
-    updated_at?: string;
-    lines?: InvoiceLine[];
+    batchId: number;
+    immutableHash?: string;
+    cid?: string;
+    cidHash?: string;
+    merkleProof?: string;
+    lines: InvoiceLine[];
 }
 
 // User types
@@ -133,24 +145,22 @@ export interface DashboardStats {
 }
 
 // Invoice Detail type (for detailed invoice information)
-export interface InvoiceDetail extends Invoice {
-    id: string;
-}
+export interface InvoiceDetail extends Invoice {}
 
 // Request types for Invoice operations
 export interface CreateInvoiceRequest {
     invoiceNumber: string;
-    organizationId: string;
-    customerId?: string;
-    sellerId?: string;
+    organizationId: number;
+    customerId?: number;
+    sellerId?: number;
     issueDate: string;
     dueDate?: string;
     totalAmount: number;
     taxAmount?: number;
     discountAmount?: number;
-    status: string;
+    status: number;
     notes?: string;
-    batchId?: string;
+    batchId?: number;
 }
 
 export interface UpdateInvoiceRequest extends CreateInvoiceRequest {

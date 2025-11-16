@@ -187,59 +187,9 @@ const Login = () => {
                         </div>
                     </div>
 
-                    <div>
-                        <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700 mb-2">
-                            Mã giới thiệu (tùy chọn)
-                        </label>
-                        <input
-                            id="referralCode"
-                            type="text"
-                            value={referralCode}
-                            onChange={(e) => setReferralCode(e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Nhập mã"
-                        />
-                    </div>
-
-                    {/* Checkboxes */}
-                    <div className="space-y-3">
-                        <label className="flex items-start gap-3">
-                            <input
-                                type="checkbox"
-                                checked={agreeTerms}
-                                onChange={(e) => setAgreeTerms(e.target.checked)}
-                                className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                required
-                            />
-                            <span className="text-sm text-gray-600">
-                                Tôi đồng ý với{' '}
-                                <Link to="/terms" className="text-blue-600 hover:underline">
-                                    Điều khoản sử dụng
-                                </Link>{' '}
-                                và{' '}
-                                <Link to="/privacy" className="text-blue-600 hover:underline">
-                                    Chính sách bảo mật
-                                </Link>
-                                .
-                            </span>
-                        </label>
-
-                        <label className="flex items-start gap-3">
-                            <input
-                                type="checkbox"
-                                checked={agreeMarketing}
-                                onChange={(e) => setAgreeMarketing(e.target.checked)}
-                                className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <span className="text-sm text-gray-600">
-                                Tôi đồng ý nhận thông tin cập nhật marketing từ Invoice API.
-                            </span>
-                        </label>
-                    </div>
-
                     <button
                         type="submit"
-                        disabled={!agreeTerms || isLoading}
+                        disabled={isLoading}
                         className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}

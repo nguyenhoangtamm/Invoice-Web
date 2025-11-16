@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Home, FileText, Building2, Key, Settings, BarChart3, Users, CreditCard, Menu, X, Plus, Copy, Eye, EyeOff, Trash2, Download, Search, Filter, ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle, Share2, FileJson, ArrowLeft } from 'lucide-react';
+import { Home, FileText, Building2, Key, Settings, BarChart3, Users, CreditCard, Menu, X, Plus, Copy, Eye, EyeOff, Trash2, Download, Search, Filter, ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle, Share2, FileJson, ArrowLeft, LogOut } from 'lucide-react';
 import type { Invoice } from '../types/invoice';
 import { mockInvoices } from '../data/mockInvoice';
 import { invoiceService } from '../api/services/invoiceService';
 import { getDashboardStats, getCompanyInfo } from '../api/services/dashboardService';
 import type { DashboardStatsDto, CompanyInfoDto } from '../api/services/dashboardService';
+import { useAuth } from '../contexts/AuthContext';
+import { InvoiceStatus } from '../enums/invoiceEnum';
 
 const InvoiceDashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -30,6 +32,8 @@ const InvoiceDashboard = () => {
     } | null>(null);
     const [dashboardStats, setDashboardStats] = useState<DashboardStatsDto | null>(null);
     const [companyInfo, setCompanyInfo] = useState<CompanyInfoDto | null>(null);
+
+    const { logout } = useAuth();
 
     useEffect(() => {
         if (companyInfo) {
@@ -87,21 +91,25 @@ const InvoiceDashboard = () => {
 
     const computedStats = useMemo(() => {
         const total = dashboardStats?.totalInvoices ?? 0;
-        const pending = 0; // TODO: Add pending invoices to API
+        const totalRevenue = dashboardStats?.totalRevenue ?? 0;
+        const totalCustomers = dashboardStats?.totalCustomers ?? 0;
+        const avgInvoiceValue = dashboardStats?.avgInvoiceValue ?? 0;
 
         // Đếm số hóa đơn phát hành trong tháng hiện tại từ danh sách gần đây (best-effort)
         const now = new Date();
         const thisMonthCount = recentInvoices.filter(inv => {
-            if (!inv.issued_date) return false;
-            const d = new Date(inv.issued_date);
+            if (!inv.issuedDate) return false;
+            const d = new Date(inv.issuedDate);
             return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
         }).length;
 
         return {
             total,
             thisMonth: thisMonthCount,
-            pending,
-            stored: 245.8 // chưa có chỉ số trong mock, tạm giữ nguyên
+            pending: 0, 
+            totalRevenue,
+            totalCustomers,
+            avgInvoiceValue
         };
     }, [dashboardStats, recentInvoices]);
 
@@ -131,7 +139,7 @@ const InvoiceDashboard = () => {
 
     const deleteInvoice = (invoiceNumber: string | undefined) => {
         if (!invoiceNumber) return;
-        setInvoiceList(prev => prev.filter(inv => inv.invoice_number !== invoiceNumber));
+        setInvoiceList(prev => prev.filter(inv => inv.invoiceNumber !== invoiceNumber));
     };
 
     const verifyBlockchain = async () => {
@@ -158,9 +166,10 @@ const InvoiceDashboard = () => {
 
     const filteredInvoices = useMemo(() => {
         return invoiceList.filter(inv => {
-            const matchesSearch = (inv.invoice_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (inv.CustomerName || '').toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesStatus = statusFilter === 'all' || (inv.status || '').includes(statusFilter);
+            const matchesSearch = (inv.invoiceNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (inv.customerName || '').toLowerCase().includes(searchTerm.toLowerCase());
+            const statusVal = inv.status != null ? String(inv.status) : '';
+            const matchesStatus = statusFilter === 'all' || statusVal.toLowerCase().includes(statusFilter.toLowerCase());
             return matchesSearch && matchesStatus;
         });
     }, [invoiceList, searchTerm, statusFilter]);
@@ -194,7 +203,7 @@ const InvoiceDashboard = () => {
                             </button>
                             <div>
                                 <h2 className="text-2xl font-bold text-gray-900">Chi tiết hóa đơn</h2>
-                                <p className="text-gray-600 text-sm mt-1">{selectedInvoice.invoice_number}</p>
+                                <p className="text-gray-600 text-sm mt-1">{selectedInvoice.invoiceNumber}</p>
                             </div>
                         </div>
                         <button
@@ -226,10 +235,10 @@ const InvoiceDashboard = () => {
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-3">Thông tin khách hàng</h3>
                                 <div className="space-y-2">
-                                    <p className="text-gray-900 font-medium">{selectedInvoice.CustomerName}</p>
-                                    <p className="text-sm text-gray-600">{selectedInvoice.CustomerAddress}</p>
-                                    <p className="text-sm text-gray-600">Email: {selectedInvoice.CustomerEmail}</p>
-                                    <p className="text-sm text-gray-600">Tel: {selectedInvoice.CustomerPhone}</p>
+                                    <p className="text-gray-900 font-medium">{selectedInvoice.customerName}</p>
+                                    <p className="text-sm text-gray-600">{selectedInvoice.customerAddress}</p>
+                                    <p className="text-sm text-gray-600">Email: {selectedInvoice.customerEmail}</p>
+                                    <p className="text-sm text-gray-600">Tel: {selectedInvoice.customerPhone}</p>
                                 </div>
                             </div>
                         </div>
@@ -240,7 +249,7 @@ const InvoiceDashboard = () => {
                         <div className="grid grid-cols-3 gap-4">
                             <div className="bg-blue-50 rounded-lg p-4">
                                 <p className="text-xs font-semibold text-gray-600 mb-1">Mẫu số hóa đơn</p>
-                                <p className="text-lg font-bold text-gray-900">{selectedInvoice.form_number}</p>
+                                <p className="text-lg font-bold text-gray-900">{selectedInvoice.formNumber}</p>
                             </div>
                             <div className="bg-purple-50 rounded-lg p-4">
                                 <p className="text-xs font-semibold text-gray-600 mb-1">Ký hiệu hóa đơn</p>
@@ -248,7 +257,7 @@ const InvoiceDashboard = () => {
                             </div>
                             <div className="bg-green-50 rounded-lg p-4">
                                 <p className="text-xs font-semibold text-gray-600 mb-1">Ngày phát hành</p>
-                                <p className="text-lg font-bold text-gray-900">{selectedInvoice.issued_date}</p>
+                                <p className="text-lg font-bold text-gray-900">{selectedInvoice.issuedDate}</p>
                             </div>
                         </div>
 
@@ -269,13 +278,13 @@ const InvoiceDashboard = () => {
                                     </thead>
                                     <tbody>
                                         {selectedInvoice.lines?.map((line) => (
-                                            <tr key={line.line_number} className="border-b border-gray-200 hover:bg-gray-50">
-                                                <td className="px-4 py-3 text-gray-900">{line.line_number}</td>
+                                            <tr key={line.lineNumber} className="border-b border-gray-200 hover:bg-gray-50">
+                                                <td className="px-4 py-3 text-gray-900">{line.lineNumber}</td>
                                                 <td className="px-4 py-3 text-gray-900">{line.description}</td>
                                                 <td className="px-4 py-3 text-center text-gray-600">{line.unit}</td>
                                                 <td className="px-4 py-3 text-right text-gray-900 font-medium">{line.quantity}</td>
-                                                <td className="px-4 py-3 text-right text-gray-900">{line.unit_price?.toLocaleString('vi-VN')}</td>
-                                                <td className="px-4 py-3 text-right text-gray-900 font-semibold">{line.line_total?.toLocaleString('vi-VN')}</td>
+                                                <td className="px-4 py-3 text-right text-gray-900">{line.unitPrice?.toLocaleString('vi-VN')}</td>
+                                                <td className="px-4 py-3 text-right text-gray-900 font-semibold">{line.lineTotal?.toLocaleString('vi-VN')}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -288,20 +297,20 @@ const InvoiceDashboard = () => {
                             <div className="w-80 space-y-2 bg-gray-50 rounded-lg p-6">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-600">Cộng tiền hàng:</span>
-                                    <span className="text-gray-900 font-medium">{selectedInvoice.subtotal?.toLocaleString('vi-VN')}</span>
+                                    <span className="text-gray-900 font-medium">{selectedInvoice.subTotal?.toLocaleString('vi-VN')}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-600">Chiết khấu:</span>
-                                    <span className="text-gray-900 font-medium">{selectedInvoice.discount_amount?.toLocaleString('vi-VN')}</span>
+                                    <span className="text-gray-900 font-medium">{selectedInvoice.discountAmount?.toLocaleString('vi-VN')}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-600">Tiền thuế:</span>
-                                    <span className="text-gray-900 font-medium">{selectedInvoice.tax_amount?.toLocaleString('vi-VN')}</span>
+                                    <span className="text-gray-900 font-medium">{selectedInvoice.taxAmount?.toLocaleString('vi-VN')}</span>
                                 </div>
                                 <hr className="border-gray-200 my-3" />
                                 <div className="flex justify-between">
                                     <span className="text-gray-900 font-bold">Tổng cộng:</span>
-                                    <span className="text-2xl font-bold text-blue-600">{selectedInvoice.total_amount?.toLocaleString('vi-VN')}</span>
+                                    <span className="text-2xl font-bold text-blue-600">{selectedInvoice.totalAmount?.toLocaleString('vi-VN')}</span>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2">({selectedInvoice.currency})</p>
                             </div>
@@ -327,7 +336,7 @@ const InvoiceDashboard = () => {
                             <div className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
                                 <p className="text-xs font-semibold text-gray-600 mb-2">Mã hash hóa đơn:</p>
                                 <p className="text-xs font-mono text-gray-900 break-all bg-gray-50 p-3 rounded border border-gray-200">
-                                    {selectedInvoice.immutable_hash}
+                                    {selectedInvoice.immutableHash}
                                 </p>
                             </div>
 
@@ -461,16 +470,16 @@ const InvoiceDashboard = () => {
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
                                     {paginatedInvoices.map((invoice) => (
-                                        <tr key={invoice.invoice_number} className="hover:bg-gray-50 transition">
-                                            <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.invoice_number}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-600">{invoice.CustomerName || '-'}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-600">{invoice.issued_date || '-'}</td>
+                                        <tr key={invoice.invoiceNumber} className="hover:bg-gray-50 transition">
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.invoiceNumber}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-600">{invoice.customerName || '-'}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-600">{invoice.issuedDate || '-'}</td>
                                             <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                                                {invoice.total_amount?.toLocaleString('vi-VN')} {invoice.currency || 'VND'}
+                                                {invoice.totalAmount?.toLocaleString('vi-VN')} {invoice.currency || 'VND'}
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${invoice.status === 'Đã phát hành' ? 'bg-green-100 text-green-700' :
-                                                    invoice.status === 'Chờ xác nhận' ? 'bg-yellow-100 text-yellow-700' :
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${invoice.status === InvoiceStatus.BlockchainConfirmed ? 'bg-green-100 text-green-700' :
+                                                    invoice.status === InvoiceStatus.Uploaded ? 'bg-yellow-100 text-yellow-700' :
                                                         'bg-red-100 text-red-700'
                                                     }`}>
                                                     {invoice.status || '-'}
@@ -489,7 +498,7 @@ const InvoiceDashboard = () => {
                                                         <Download size={18} />
                                                     </button>
                                                     <button
-                                                        onClick={() => deleteInvoice(invoice.invoice_number)}
+                                                        onClick={() => deleteInvoice(invoice.invoiceNumber)}
                                                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                                                     >
                                                         <Trash2 size={18} />
@@ -591,12 +600,12 @@ const InvoiceDashboard = () => {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="p-3 bg-yellow-100 rounded-lg">
-                            <FileText className="text-yellow-600" size={24} />
+                            <Users className="text-yellow-600" size={24} />
                         </div>
-                        <span className="text-sm text-gray-500">Đang xử lý</span>
+                        <span className="text-sm text-gray-500">Tổng số</span>
                     </div>
-                    <h3 className="text-gray-600 text-sm mb-1">Chờ xác nhận</h3>
-                    <p className="text-3xl font-bold text-gray-900">{computedStats.pending}</p>
+                    <h3 className="text-gray-600 text-sm mb-1">Khách hàng</h3>
+                    <p className="text-3xl font-bold text-gray-900">{computedStats.totalCustomers}</p>
                 </div>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -604,10 +613,10 @@ const InvoiceDashboard = () => {
                         <div className="p-3 bg-purple-100 rounded-lg">
                             <CreditCard className="text-purple-600" size={24} />
                         </div>
-                        <span className="text-sm text-gray-500">Tổng dung lượng</span>
+                        <span className="text-sm text-gray-500">Tổng doanh thu</span>
                     </div>
-                    <h3 className="text-gray-600 text-sm mb-1">Đã sử dụng</h3>
-                    <p className="text-3xl font-bold text-gray-900">{computedStats.stored} MB</p>
+                    <h3 className="text-gray-600 text-sm mb-1">Doanh thu</h3>
+                    <p className="text-3xl font-bold text-gray-900">{computedStats.totalRevenue.toLocaleString()} VND</p>
                 </div>
             </div>
 
@@ -616,13 +625,13 @@ const InvoiceDashboard = () => {
                     <h3 className="text-lg font-semibold mb-4">Hoạt động gần đây</h3>
                     <div className="space-y-4">
                         {recentInvoices.map((inv, idx) => (
-                            <div key={(inv.invoice_number || inv.form_number || idx).toString()} className="flex items-center gap-4 pb-4 border-b border-gray-100 last:border-0">
+                            <div key={(inv.invoiceNumber || inv.formNumber || idx).toString()} className="flex items-center gap-4 pb-4 border-b border-gray-100 last:border-0">
                                 <div className="p-2 bg-blue-50 rounded-lg">
                                     <FileText className="text-blue-600" size={20} />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="font-medium text-gray-900">{inv.invoice_number || inv.form_number || 'Hóa đơn'}</p>
-                                    <p className="text-sm text-gray-500">Ngày phát hành: {inv.issued_date || '-'}</p>
+                                    <p className="font-medium text-gray-900">{inv.invoiceNumber || inv.formNumber || 'Hóa đơn'}</p>
+                                    <p className="text-sm text-gray-500">Ngày phát hành: {inv.issuedDate || '-'}</p>
                                 </div>
                                 <button className="text-blue-600 hover:text-blue-700">
                                     <Eye size={20} />
@@ -863,7 +872,7 @@ const InvoiceDashboard = () => {
 
                 {sidebarOpen && (
                     <div className="absolute bottom-0 w-64 p-4 border-t border-gray-200 bg-white">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 mb-3">
                             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
                                 PA
                             </div>
@@ -872,6 +881,13 @@ const InvoiceDashboard = () => {
                                 <p className="text-sm text-gray-500">0 API Credits</p>
                             </div>
                         </div>
+                        <button
+                            onClick={logout}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                        >
+                            <LogOut size={18} />
+                            <span className="font-medium">Đăng xuất</span>
+                        </button>
                     </div>
                 )}
             </div>
