@@ -123,7 +123,7 @@ export default function AdminUsers() {
         setLoading(true);
         try {
             const response = await userService.getUsersPaginated(pageIndex + 1, pageSize);
-            if (response.success && response.data) {
+            if (response.succeeded && response.data) {
                 setUsers(response.data.data || []);
                 setTotalCount(response.data.totalPages || 0);
             }
@@ -137,7 +137,7 @@ export default function AdminUsers() {
     const loadRoles = async () => {
         try {
             const response = await roleService.getAllRoles();
-            if (response.success && response.data) {
+            if (response.succeeded && response.data) {
                 const roleOptions = response.data.map((role: any) => ({
                     label: role.name,
                     value: role.id

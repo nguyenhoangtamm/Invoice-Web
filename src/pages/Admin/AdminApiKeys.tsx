@@ -41,7 +41,7 @@ const AdminApiKeys = () => {
 
         try {
             const response = await apiKeyService.getApiKeysPaginated(currentPage, pageSize);
-            if (response.success) {
+            if (response.succeeded) {
                 setApiKeys(response.data?.data || []);
                 setTotalPages(response.data?.totalPages || 1);
                 setTotalItems(response.data?.total || 0);
@@ -62,7 +62,7 @@ const AdminApiKeys = () => {
 
         try {
             const response = await apiKeyService.createApiKey(formData);
-            if (response.success) {
+            if (response.succeeded) {
                 setSuccess('Tạo API key thành công');
                 setShowCreateModal(false);
                 resetForm();
@@ -94,7 +94,7 @@ const AdminApiKeys = () => {
             };
 
             const response = await apiKeyService.updateApiKey(updateData);
-            if (response.success) {
+            if (response.succeeded) {
                 setSuccess('Cập nhật API key thành công');
                 setShowEditModal(false);
                 resetForm();
@@ -118,7 +118,7 @@ const AdminApiKeys = () => {
 
         try {
             const response = await apiKeyService.deleteApiKey(selectedApiKey.id);
-            if (response.success) {
+            if (response.succeeded) {
                 setSuccess('Xóa API key thành công');
                 setShowDeleteModal(false);
                 setSelectedApiKey(null);

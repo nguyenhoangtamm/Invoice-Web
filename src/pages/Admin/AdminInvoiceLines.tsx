@@ -137,7 +137,7 @@ export default function AdminInvoiceLines() {
         setLoading(true);
         try {
             const response = await invoiceLineService.getInvoiceLinesPaginated();
-            if (response.success && response.data) {
+            if (response.succeeded && response.data) {
                 setInvoiceLines(response.data.data);
             }
         } catch (error) {
@@ -164,14 +164,14 @@ export default function AdminInvoiceLines() {
                     ...calculatedData,
                 };
                 const response = await invoiceLineService.updateInvoiceLine(updateData);
-                if (response.success) {
+                if (response.succeeded) {
                     await loadInvoiceLines();
                     setShowModal(false);
                     resetForm();
                 }
             } else {
                 const response = await invoiceLineService.createInvoiceLine(calculatedData);
-                if (response.success) {
+                if (response.succeeded) {
                     await loadInvoiceLines();
                     setShowModal(false);
                     resetForm();
@@ -207,7 +207,7 @@ export default function AdminInvoiceLines() {
         setLoading(true);
         try {
             const response = await invoiceLineService.deleteInvoiceLine(deleteTargetId);
-            if (response.success) {
+            if (response.succeeded) {
                 await loadInvoiceLines();
             }
         } catch (error) {

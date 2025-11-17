@@ -1,5 +1,5 @@
-import type { AxiosRequestConfig } from "axios";
-import axiosClient from "../axiosClient";
+import { BaseApiClient } from "../baseApiClient";
+import type { ApiResponse } from "../../types/invoice";
 
 // Dashboard Stats DTO
 export type DashboardStatsDto = {
@@ -74,98 +74,6 @@ export type RecentActivityQueryParams = {
     endDate?: string; // ISO date
 };
 
-// Helper functions to clean parameters
-const cleanDashboardParams = (params: DashboardStatsQueryParams = {}) => {
-    const payload: Record<string, string> = {};
-    if (params.period) payload.period = params.period;
-    if (params.startDate) payload.startDate = params.startDate;
-    if (params.endDate) payload.endDate = params.endDate;
-    return payload;
-};
-
-const cleanRevenueChartParams = (params: RevenueChartQueryParams = {}) => {
-    const payload: Record<string, string> = {};
-    if (params.period) payload.period = params.period;
-    if (params.startDate) payload.startDate = params.startDate;
-    if (params.endDate) payload.endDate = params.endDate;
-    return payload;
-};
-
-const cleanTopCustomersParams = (params: TopCustomersQueryParams = {}) => {
-    const payload: Record<string, string | number> = {};
-    if (typeof params.limit === "number") payload.limit = params.limit;
-    if (params.period) payload.period = params.period;
-    if (params.sortBy) payload.sortBy = params.sortBy;
-    if (params.sortDirection) payload.sortDirection = params.sortDirection;
-    return payload;
-};
-
-const cleanRecentActivityParams = (params: RecentActivityQueryParams = {}) => {
-    const payload: Record<string, string | number> = {};
-    if (typeof params.limit === "number") payload.limit = params.limit;
-    if (params.type) payload.type = params.type;
-    if (params.startDate) payload.startDate = params.startDate;
-    if (params.endDate) payload.endDate = params.endDate;
-    return payload;
-};
-
-// API Functions
-export const getDashboardStats = async (
-    params: DashboardStatsQueryParams = {},
-    options?: Pick<AxiosRequestConfig, "signal">
-): Promise<DashboardStatsDto> => {
-    const response = await axiosClient.get<DashboardStatsDto>(
-        "dashboard/stats",
-        {
-            params: cleanDashboardParams(params),
-            signal: options?.signal,
-        }
-    );
-    return response.data;
-};
-
-export const getRevenueChart = async (
-    params: RevenueChartQueryParams = {},
-    options?: Pick<AxiosRequestConfig, "signal">
-): Promise<RevenueChartDataDto[]> => {
-    const response = await axiosClient.get<RevenueChartDataDto[]>(
-        "dashboard/revenue-chart",
-        {
-            params: cleanRevenueChartParams(params),
-            signal: options?.signal,
-        }
-    );
-    return response.data;
-};
-
-export const getTopCustomers = async (
-    params: TopCustomersQueryParams = {},
-    options?: Pick<AxiosRequestConfig, "signal">
-): Promise<TopCustomerDto[]> => {
-    const response = await axiosClient.get<TopCustomerDto[]>(
-        "dashboard/top-customers",
-        {
-            params: cleanTopCustomersParams(params),
-            signal: options?.signal,
-        }
-    );
-    return response.data;
-};
-
-export const getRecentActivity = async (
-    params: RecentActivityQueryParams = {},
-    options?: Pick<AxiosRequestConfig, "signal">
-): Promise<RecentActivityDto[]> => {
-    const response = await axiosClient.get<RecentActivityDto[]>(
-        "dashboard/recent-activity",
-        {
-            params: cleanRecentActivityParams(params),
-            signal: options?.signal,
-        }
-    );
-    return response.data;
-};
-
 // Company Info DTO
 export type CompanyInfoDto = {
     id: string;
@@ -179,15 +87,78 @@ export type CompanyInfoDto = {
     updated_at: string;
 };
 
-// Get Company Info function
-export const getCompanyInfo = async (
-    options?: Pick<AxiosRequestConfig, "signal">
-): Promise<CompanyInfoDto> => {
-    const response = await axiosClient.get<CompanyInfoDto>(
-        "company/info",
-        {
-            signal: options?.signal,
-        }
-    );
-    return response.data;
-};
+/**
+ * Dashboard Service
+ * Handles dashboard-related operations
+ */
+export class DashboardService extends BaseApiClient {
+    async getDashboardStats(
+        params: DashboardStatsQueryParams = {}
+    ): Promise<ApiResponse<DashboardStatsDto>> {
+        const queryParams = new URLSearchParams();
+        if (params.period) queryParams.append("period", params.period);
+        if (params.startDate) queryParams.append("startDate", params.startDate);
+        if (params.endDate) queryParams.append("endDate", params.endDate);
+
+        return this.get<DashboardStatsDto>(
+            `dashboard/stats${
+                queryParams.toString() ? `?${queryParams.toString()}` : ""
+            }`
+        );
+    }
+
+    async getRevenueChart(
+        params: RevenueChartQueryParams = {}
+    ): Promise<ApiResponse<RevenueChartDataDto[]>> {
+        const queryParams = new URLSearchParams();
+        if (params.period) queryParams.append("period", params.period);
+        if (params.startDate) queryParams.append("startDate", params.startDate);
+        if (params.endDate) queryParams.append("endDate", params.endDate);
+
+        return this.get<RevenueChartDataDto[]>(
+            `dashboard/revenue-chart${
+                queryParams.toString() ? `?${queryParams.toString()}` : ""
+            }`
+        );
+    }
+
+    async getTopCustomers(
+        params: TopCustomersQueryParams = {}
+    ): Promise<ApiResponse<TopCustomerDto[]>> {
+        const queryParams = new URLSearchParams();
+        if (params.limit) queryParams.append("limit", params.limit.toString());
+        if (params.period) queryParams.append("period", params.period);
+        if (params.sortBy) queryParams.append("sortBy", params.sortBy);
+        if (params.sortDirection)
+            queryParams.append("sortDirection", params.sortDirection);
+
+        return this.get<TopCustomerDto[]>(
+            `dashboard/top-customers${
+                queryParams.toString() ? `?${queryParams.toString()}` : ""
+            }`
+        );
+    }
+
+    async getRecentActivity(
+        params: RecentActivityQueryParams = {}
+    ): Promise<ApiResponse<RecentActivityDto[]>> {
+        const queryParams = new URLSearchParams();
+        if (params.limit) queryParams.append("limit", params.limit.toString());
+        if (params.type) queryParams.append("type", params.type);
+        if (params.startDate) queryParams.append("startDate", params.startDate);
+        if (params.endDate) queryParams.append("endDate", params.endDate);
+
+        return this.get<RecentActivityDto[]>(
+            `dashboard/recent-activity${
+                queryParams.toString() ? `?${queryParams.toString()}` : ""
+            }`
+        );
+    }
+
+    async getCompanyInfo(): Promise<ApiResponse<CompanyInfoDto>> {
+        return this.get<CompanyInfoDto>("company/info");
+    }
+}
+
+// Export singleton instance
+export const dashboardService = new DashboardService();

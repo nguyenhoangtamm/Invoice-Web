@@ -3,8 +3,10 @@ import { Home, FileText, Building2, Key, Settings, BarChart3, Users, CreditCard,
 import type { Invoice } from '../types/invoice';
 import { mockInvoices } from '../data/mockInvoice';
 import { invoiceService } from '../api/services/invoiceService';
-import { getDashboardStats, getCompanyInfo } from '../api/services/dashboardService';
-import type { DashboardStatsDto, CompanyInfoDto } from '../api/services/dashboardService';
+import { dashboardService } from '../api/services/dashboardService';
+import { organizationService } from '../api/services/organizationService';
+import type { DashboardStatsDto } from '../api/services/dashboardService';
+import type { Organization } from '../types/organization';
 import { useAuth } from '../contexts/AuthContext';
 import { InvoiceStatus } from '../enums/invoiceEnum';
 
@@ -15,7 +17,7 @@ const InvoiceDashboard = () => {
     const [apiKeys, setApiKeys] = useState([
         { id: 1, name: 'Production Key', key: 'ik_prod_a1b2c3d4e5f6g7h8', created: '2025-01-15', lastUsed: '2025-11-13' }
     ]);
-    const [organizations, setOrganizations] = useState<{ id: string | number; name: string; taxCode: string; status?: string; }[]>([]);
+    const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [recentInvoices, setRecentInvoices] = useState<Invoice[]>([]);
     const [invoiceList, setInvoiceList] = useState<Invoice[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -31,36 +33,52 @@ const InvoiceDashboard = () => {
         gasUsed: string;
     } | null>(null);
     const [dashboardStats, setDashboardStats] = useState<DashboardStatsDto | null>(null);
-    const [companyInfo, setCompanyInfo] = useState<CompanyInfoDto | null>(null);
 
-    const { logout } = useAuth();
-
-    useEffect(() => {
-        if (companyInfo) {
-            setOrganizations([
-                { id: companyInfo.id, name: companyInfo.name, taxCode: companyInfo.tax_code, status: 'active' }
-            ]);
-        }
-    }, [companyInfo]);
+    const { logout, user } = useAuth();
 
     useEffect(() => {
         // Fetch dashboard stats
         const fetchDashboardStats = async () => {
             try {
-                const stats = await getDashboardStats({});
-                setDashboardStats(stats);
+                const response = await dashboardService.getDashboardStats({});
+                if (response.succeeded && response.data) {
+                    setDashboardStats(response.data);
+                } else {
+                    console.error('Failed to fetch dashboard stats:', response.message);
+                }
             } catch (error) {
                 console.error('Error fetching dashboard stats:', error);
             }
         };
 
-        // Fetch company info
-        const fetchCompanyInfo = async () => {
+        // Fetch organizations
+        const fetchOrganizations = async () => {
+
             try {
-                const info = await getCompanyInfo();
-                setCompanyInfo(info);
+                const response = await organizationService.getOrganizationByMe();
+                if (response.succeeded && response.data) {
+                    // Transform GetByUserResponse to Organization format
+                    const orgData = response.data?.data;
+                    const organization: Organization = {
+                        id: orgData.id.toString(),
+                        name: orgData.organizationName,
+                        taxCode: orgData.organizationTaxId,
+                        address: orgData.organizationAddress,
+                        phone: orgData.organizationPhone,
+                        email: orgData.organizationEmail,
+                        isActive: true, // Assuming active since user has access
+                        createdAt: '', // Not provided in response
+                        updatedAt: ''  // Not provided in response
+                    };
+                    console.log('Fetched organization:', organization);
+                    setOrganizations([organization]);
+                } else {
+                    console.error('Failed to fetch organization:', response.message);
+                    setOrganizations([]);
+                }
             } catch (error) {
-                console.error('Error fetching company info:', error);
+                console.error('Error fetching organization:', error);
+                setOrganizations([]);
             }
         };
 
@@ -68,7 +86,7 @@ const InvoiceDashboard = () => {
         const fetchRecent = async () => {
             try {
                 const res = await invoiceService.getInvoicesPaginated(1, 4);
-                if (res.success && res.data) {
+                if (res.succeeded && res.data) {
                     setRecentInvoices(res.data.data);
                 } else {
                     setRecentInvoices([]);
@@ -81,13 +99,13 @@ const InvoiceDashboard = () => {
         };
 
         fetchDashboardStats();
-        fetchCompanyInfo();
+        fetchOrganizations();
         fetchRecent();
 
         // Lấy danh sách tất cả hóa đơn cho trang Invoices
         setInvoiceList(mockInvoices);
         setCurrentPage(1);
-    }, []);
+    }, [user]);
 
     const computedStats = useMemo(() => {
         const total = dashboardStats?.totalInvoices ?? 0;
@@ -106,7 +124,7 @@ const InvoiceDashboard = () => {
         return {
             total,
             thisMonth: thisMonthCount,
-            pending: 0, 
+            pending: 0,
             totalRevenue,
             totalCustomers,
             avgInvoiceValue
@@ -651,8 +669,11 @@ const InvoiceDashboard = () => {
                                         <h4 className="font-semibold text-gray-900">{org.name}</h4>
                                         <p className="text-sm text-gray-600 mt-1">MST: {org.taxCode}</p>
                                     </div>
-                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                                        Hoạt động
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${org.isActive
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-red-100 text-red-700'
+                                        }`}>
+                                        {org.isActive ? 'Hoạt động' : 'Không hoạt động'}
                                     </span>
                                 </div>
                             </div>
@@ -690,8 +711,11 @@ const InvoiceDashboard = () => {
                                     <p className="text-gray-600 mt-1">Mã số thuế: {org.taxCode}</p>
                                     <div className="flex items-center gap-4 mt-3">
                                         <span className="text-sm text-gray-500">ID: ORG-{org.id}</span>
-                                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                                            Hoạt động
+                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${org.isActive
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-700'
+                                            }`}>
+                                            {org.isActive ? 'Hoạt động' : 'Không hoạt động'}
                                         </span>
                                     </div>
                                 </div>

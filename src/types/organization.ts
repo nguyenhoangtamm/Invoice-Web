@@ -32,3 +32,14 @@ export interface UpdateOrganizationRequest {
     taxCode?: string;
     isActive: boolean;
 }
+
+export interface GetByUserResponse {
+    id: number;
+    organizationName: string;
+    organizationTaxId: string;
+    organizationAddress: string;
+    organizationPhone: string;
+    organizationEmail: string;
+    organizationBankAccount: string;
+    userId: number;
+}

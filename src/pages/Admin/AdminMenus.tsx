@@ -108,7 +108,7 @@ export default function AdminMenus() {
         setLoading(true);
         try {
             const response = await menuService.getMenusPaginated();
-           if (response.success && response.data) {
+           if (response.succeeded && response.data) {
                 setMenus(response.data.data);
             }
         } catch (error) {
@@ -149,14 +149,14 @@ export default function AdminMenus() {
                     ...formData,
                 };
                 const response = await menuService.updateMenu(updateData);
-                if (response.success) {
+                if (response.succeeded) {
                     await loadMenus();
                     setShowModal(false);
                     resetForm();
                 }
             } else {
                 const response = await menuService.createMenu(formData);
-                if (response.success) {
+                if (response.succeeded) {
                     await loadMenus();
                     setShowModal(false);
                     resetForm();
@@ -188,7 +188,7 @@ export default function AdminMenus() {
         setLoading(true);
         try {
             const response = await menuService.deleteMenu(deleteTargetId);
-            if (response.success) {
+            if (response.succeeded) {
                 await loadMenus();
             }
         } catch (error) {

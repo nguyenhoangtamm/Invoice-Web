@@ -122,7 +122,7 @@ export default function AdminOrganizations() {
         setLoading(true);
         try {
             const response = await organizationService.getOrganizationsPaginated(pageIndex + 1, pageSize);
-            if (response.success && response.data) {
+            if (response.succeeded && response.data) {
                 setOrganizations(response.data.data || []);
                 setTotalCount(response.data.totalPages || 0);
             }
@@ -144,14 +144,14 @@ export default function AdminOrganizations() {
                     ...formData,
                 };
                 const response = await organizationService.updateOrganization(updateData);
-                if (response.success) {
+                if (response.succeeded) {
                     await loadOrganizations();
                     setShowModal(false);
                     resetForm();
                 }
             } else {
                 const response = await organizationService.createOrganization(formData);
-                if (response.success) {
+                if (response.succeeded) {
                     await loadOrganizations();
                     setShowModal(false);
                     resetForm();
@@ -184,7 +184,7 @@ export default function AdminOrganizations() {
         setLoading(true);
         try {
             const response = await organizationService.deleteOrganization(deleteTargetId);
-            if (response.success) {
+            if (response.succeeded) {
                 await loadOrganizations();
             }
         } catch (error) {

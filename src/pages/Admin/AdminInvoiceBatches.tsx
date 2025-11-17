@@ -130,8 +130,8 @@ export default function AdminInvoiceBatches() {
         setLoading(true);
         try {
             const response = await invoiceBatchService.getInvoiceBatchesPaginated();
-            if (response.success && response.data) {
-                setBatches(response.data.data);
+            if (response.succeeded && response.data) {
+                setBatches(response.data);
             }
         } catch (error) {
             console.error('Error loading batches:', error);
@@ -155,7 +155,7 @@ export default function AdminInvoiceBatches() {
                     updatePayload.status = Number(updatePayload.status);
                 }
                 const response = await invoiceBatchService.updateInvoiceBatch(updatePayload as UpdateInvoiceBatchRequest);
-                if (response.success) {
+                if (response.succeeded) {
                     await loadBatches();
                     setShowModal(false);
                     resetForm();
@@ -169,7 +169,7 @@ export default function AdminInvoiceBatches() {
                     createPayload.status = Number(createPayload.status);
                 }
                 const response = await invoiceBatchService.createInvoiceBatch(createPayload as CreateInvoiceBatchRequest);
-                if (response.success) {
+                if (response.succeeded) {
                     await loadBatches();
                     setShowModal(false);
                     resetForm();
@@ -203,7 +203,7 @@ export default function AdminInvoiceBatches() {
         setLoading(true);
         try {
             const response = await invoiceBatchService.deleteInvoiceBatch(deleteTargetId);
-            if (response.success) {
+            if (response.succeeded) {
                 await loadBatches();
             }
         } catch (error) {

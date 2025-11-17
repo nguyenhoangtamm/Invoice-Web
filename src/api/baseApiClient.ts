@@ -51,28 +51,19 @@ export class BaseApiClient {
             const response = await fetch(url, config);
             const data = await response.json();
 
-            if (!response.ok) {
-                return {
-                    success: false,
-                    message:
-                        data.Message || data.message || "API request failed",
-                    errors: data.errors,
-                };
-            }
-
             return {
-                success: true,
-                data: data,
-                message: data.Message || data.message,
+                message: data.message || "Request completed",
+                succeeded: response.ok,
+                data: data.data || data,
+                code: response.status,
             };
         } catch (error) {
             console.error("API request error:", error);
             return {
-                success: false,
                 message: "Network error occurred",
-                errors: [
-                    error instanceof Error ? error.message : "Unknown error",
-                ],
+                succeeded: false,
+                data: null as T,
+                code: 0,
             };
         }
     }

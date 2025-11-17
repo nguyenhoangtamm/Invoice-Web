@@ -4,6 +4,7 @@ import type {
     Organization,
     CreateOrganizationRequest,
     UpdateOrganizationRequest,
+    GetByUserResponse,
 } from "../../types/organization";
 
 /**
@@ -20,10 +21,7 @@ export class OrganizationService extends BaseApiClient {
     async updateOrganization(
         data: UpdateOrganizationRequest
     ): Promise<ApiResponse<Organization>> {
-        return this.post<Organization>(
-            `Organizations/update/${data.id}`,
-            data
-        );
+        return this.post<Organization>(`Organizations/update/${data.id}`, data);
     }
 
     async deleteOrganization(id: string): Promise<ApiResponse<void>> {
@@ -34,8 +32,12 @@ export class OrganizationService extends BaseApiClient {
         return this.get<Organization>(`Organizations/get-by-id/${id}`);
     }
 
-    async getAllOrganizations(): Promise<ApiResponse<Organization[]>> {
-        return this.get<Organization[]>("Organizations/get-all");
+    async getAllOrganizations(): Promise<
+        ApiResponse<PaginatedResponse<Organization>>
+    > {
+        return this.get<PaginatedResponse<Organization>>(
+            "Organizations/get-all"
+        );
     }
 
     async getOrganizationsPaginated(
@@ -48,18 +50,26 @@ export class OrganizationService extends BaseApiClient {
     }
 
     async getOrganizationUsers(
-        organizationId: string
+        organizationId: number
     ): Promise<ApiResponse<any[]>> {
         return this.get<any[]>(`Organizations/${organizationId}/users`);
     }
 
     async updateOrganizationStatus(
-        id: string,
+        id: number,
         isActive: boolean
     ): Promise<ApiResponse<void>> {
         return this.post<void>(`Organizations/${id}/status`, {
             isActive,
         });
+    }
+    async getOrganizationByUserId(
+        userId: number
+    ): Promise<ApiResponse<GetByUserResponse>> {
+        return this.get<GetByUserResponse>(`Organizations/get-by-user/${userId}`);
+    }
+    async getOrganizationByMe(): Promise<ApiResponse<GetByUserResponse>> {
+        return this.get<GetByUserResponse>(`Organizations/me`);
     }
 }
 

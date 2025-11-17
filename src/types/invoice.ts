@@ -120,10 +120,10 @@ export interface Company {
 
 // API Response types
 export interface ApiResponse<T = any> {
-    success: boolean;
-    data?: T;
-    message?: string;
-    errors?: string[];
+    message: string;
+    succeeded: boolean;
+    data: T;
+    code: number;
 }
 
 export interface PaginatedResponse<T = any> {

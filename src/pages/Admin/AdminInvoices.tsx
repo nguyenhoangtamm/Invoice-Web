@@ -162,7 +162,7 @@ export default function AdminInvoices() {
         setLoading(true);
         try {
             const response = await invoiceService.getInvoicesPaginated(pageIndex + 1, pageSize);
-            if (response.success && response.data) {
+            if (response.succeeded && response.data) {
                 setInvoices(response.data.data || []);
                 setTotalCount(response.data.totalPages || 0);
             }
@@ -184,14 +184,14 @@ export default function AdminInvoices() {
                     ...formData,
                 };
                 const response = await invoiceService.updateInvoice(updateData);
-                if (response.success) {
+                if (response.succeeded) {
                     await loadInvoices();
                     setShowModal(false);
                     resetForm();
                 }
             } else {
                 const response = await invoiceService.createInvoice(formData);
-                if (response.success) {
+                if (response.succeeded) {
                     await loadInvoices();
                     setShowModal(false);
                     resetForm();
@@ -226,7 +226,7 @@ export default function AdminInvoices() {
         setLoading(true);
         try {
             const response = await invoiceService.deleteInvoice(deleteTargetId);
-            if (response.success) {
+            if (response.succeeded) {
                 await loadInvoices();
             }
         } catch (error) {

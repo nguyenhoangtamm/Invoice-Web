@@ -94,7 +94,7 @@ export default function AdminRoles() {
         setLoading(true);
         try {
             const response = await roleService.getRolesPaginated(pageIndex + 1, pageSize);
-            if (response.success && response.data) {
+            if (response.succeeded && response.data) {
                 setRoles(response.data.data || []);
                 setTotalCount(response.data.totalPages || 0);
             }
@@ -116,14 +116,14 @@ export default function AdminRoles() {
                     ...formData,
                 };
                 const response = await roleService.updateRole(updateData);
-                if (response.success) {
+                if (response.succeeded) {
                     await loadRoles();
                     setShowModal(false);
                     resetForm();
                 }
             } else {
                 const response = await roleService.createRole(formData);
-                if (response.success) {
+                if (response.succeeded) {
                     await loadRoles();
                     setShowModal(false);
                     resetForm();
@@ -152,7 +152,7 @@ export default function AdminRoles() {
         setLoading(true);
         try {
             const response = await roleService.deleteRole(deleteTargetId);
-            if (response.success) {
+            if (response.succeeded) {
                 await loadRoles();
             }
         } catch (error) {
