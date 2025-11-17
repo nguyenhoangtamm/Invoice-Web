@@ -1,11 +1,16 @@
 import React, { useState, useEffect, FC } from 'react';
-import { BaseApiClient } from '../../api/baseApiClient';
-import type { ApiResponse, Invoice, PaginatedResponse, CreateInvoiceRequest, UpdateInvoiceRequest } from '../../types/invoice';
+import type { Invoice, CreateInvoiceRequest, UpdateInvoiceRequest } from '../../types/invoice';
+import type { PaginatedResult } from '../../types/common';
 import { Button, Form, Modal, InputPicker, DatePicker } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import type { TableColumn } from '../../components/common/table';
-import { invoiceService } from '../../api/services/invoiceService';
+import {
+    getInvoicesPaginated,
+    createInvoice,
+    updateInvoice,
+    deleteInvoice
+} from '../../api/services/invoiceService';
 
 type Props = {
     open: boolean;
@@ -161,10 +166,10 @@ export default function AdminInvoices() {
     const loadInvoices = async () => {
         setLoading(true);
         try {
-            const response = await invoiceService.getInvoicesPaginated(pageIndex + 1, pageSize);
+            const response = await getInvoicesPaginated(pageIndex + 1, pageSize);
             if (response.succeeded && response.data) {
-                setInvoices(response.data.data || []);
-                setTotalCount(response.data.totalPages || 0);
+                setInvoices(response.data || []);
+                setTotalCount(response.totalPages || 0);
             }
         } catch (error) {
             console.error('Error loading invoices:', error);
@@ -183,15 +188,15 @@ export default function AdminInvoices() {
                     id: editingInvoice.invoiceNumber || 'unknown',
                     ...formData,
                 };
-                const response = await invoiceService.updateInvoice(updateData);
-                if (response.succeeded) {
+                const response = await updateInvoice(updateData);
+                if (response) {
                     await loadInvoices();
                     setShowModal(false);
                     resetForm();
                 }
             } else {
-                const response = await invoiceService.createInvoice(formData);
-                if (response.succeeded) {
+                const response = await createInvoice(formData);
+                if (response) {
                     await loadInvoices();
                     setShowModal(false);
                     resetForm();
@@ -225,10 +230,8 @@ export default function AdminInvoices() {
         setDeleteLoading(true);
         setLoading(true);
         try {
-            const response = await invoiceService.deleteInvoice(deleteTargetId);
-            if (response.succeeded) {
-                await loadInvoices();
-            }
+            await deleteInvoice(deleteTargetId);
+            await loadInvoices();
         } catch (error) {
             console.error('Error deleting invoice:', error);
         } finally {

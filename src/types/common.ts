@@ -1,4 +1,22 @@
-// Pagination and common types
+// Common API Response Types
+export interface Result<T> {
+    message: string;
+    succeeded: boolean;
+    data: T;
+    code: number;
+}
+
+export interface PaginatedResult<T> {
+    message: string;
+    succeeded: boolean;
+    data: T[];
+    code: number;
+    totalPages: number;
+    totalCount: number;
+    pageSize: number;
+}
+
+// Pagination request parameters
 export interface PaginationRequest {
     page: number;
     pageSize: number;
@@ -7,6 +25,7 @@ export interface PaginationRequest {
     sortOrder?: "asc" | "desc";
 }
 
+// Legacy interfaces (keep for backward compatibility)
 export interface PaginationResponse<T> {
     data: T[];
     totalCount: number;

@@ -2,13 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Home, FileText, Building2, Key, Settings, BarChart3, Users, CreditCard, Menu, X, Plus, Copy, Eye, EyeOff, Trash2, Download, Search, Filter, ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle, Share2, FileJson, ArrowLeft, LogOut } from 'lucide-react';
 import type { Invoice } from '../types/invoice';
 import { mockInvoices } from '../data/mockInvoice';
-import { invoiceService } from '../api/services/invoiceService';
-import { dashboardService } from '../api/services/dashboardService';
-import { organizationService } from '../api/services/organizationService';
-import type { DashboardStatsDto } from '../api/services/dashboardService';
+import { getDashboardStats, type DashboardStatsDto } from '../api/services/dashboardService';
 import type { Organization } from '../types/organization';
 import { useAuth } from '../contexts/AuthContext';
 import { InvoiceStatus } from '../enums/invoiceEnum';
+import { getOrganizationByMe } from '../api/services/organizationService';
+import { getInvoicesPaginated } from '../api/services/invoiceService';
 
 const InvoiceDashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -40,7 +39,7 @@ const InvoiceDashboard = () => {
         // Fetch dashboard stats
         const fetchDashboardStats = async () => {
             try {
-                const response = await dashboardService.getDashboardStats({});
+                const response = await getDashboardStats({});
                 if (response.succeeded && response.data) {
                     setDashboardStats(response.data);
                 } else {
@@ -55,10 +54,10 @@ const InvoiceDashboard = () => {
         const fetchOrganizations = async () => {
 
             try {
-                const response = await organizationService.getOrganizationByMe();
+                const response = await getOrganizationByMe();
                 if (response.succeeded && response.data) {
                     // Transform GetByUserResponse to Organization format
-                    const orgData = response.data?.data;
+                    const orgData = response.data;
                     const organization: Organization = {
                         id: orgData.id.toString(),
                         name: orgData.organizationName,
@@ -85,9 +84,9 @@ const InvoiceDashboard = () => {
         // Lấy 4 hóa đơn gần đây từ API
         const fetchRecent = async () => {
             try {
-                const res = await invoiceService.getInvoicesPaginated(1, 4);
+                const res = await getInvoicesPaginated(1, 4);
                 if (res.succeeded && res.data) {
-                    setRecentInvoices(res.data.data);
+                    setRecentInvoices(res.data);
                 } else {
                     setRecentInvoices([]);
                 }

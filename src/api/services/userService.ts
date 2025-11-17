@@ -1,5 +1,5 @@
-import { BaseApiClient } from "../baseApiClient";
-import type { ApiResponse, PaginatedResponse } from "../../types/invoice";
+import apiClient from "../apiClient";
+import type { Result, PaginatedResult } from "../../types/common";
 import type {
     AdminUserDto,
     RoleInfoDto,
@@ -14,103 +14,138 @@ import type {
  * User Management Service
  * Handles all user-related operations
  */
-export class UserService extends BaseApiClient {
-    async fetchUsers(
-        params: UsersQueryParams
-    ): Promise<ApiResponse<UsersQueryResponse>> {
-        const queryParams = new URLSearchParams();
-        queryParams.append("page", params.page.toString());
-        queryParams.append("pageSize", params.pageSize.toString());
-        if (params.searchTerm)
-            queryParams.append("searchTerm", params.searchTerm);
-        if (params.status) queryParams.append("status", params.status);
-        if (params.organizationId)
-            queryParams.append("organizationId", params.organizationId);
-        if (params.roleId) queryParams.append("roleId", params.roleId);
-        if (typeof params.emailVerified === "boolean")
-            queryParams.append(
-                "emailVerified",
-                params.emailVerified.toString()
-            );
-        if (params.sortColumn)
-            queryParams.append("sortColumn", params.sortColumn);
-        if (params.sortDirection)
-            queryParams.append("sortDirection", params.sortDirection);
 
-        return this.get<UsersQueryResponse>(
-            `users?${queryParams.toString()}`
-        );
-    }
+const cleanUserParams = (params: UsersQueryParams) => {
+    const queryParams: Record<string, string | number> = {
+        page: params.page,
+        pageSize: params.pageSize,
+    };
+    if (params.searchTerm) queryParams.searchTerm = params.searchTerm;
+    if (params.status) queryParams.status = params.status;
+    if (params.organizationId)
+        queryParams.organizationId = params.organizationId;
+    if (params.roleId) queryParams.roleId = params.roleId;
+    if (typeof params.emailVerified === "boolean")
+        queryParams.emailVerified = params.emailVerified.toString();
+    if (params.sortColumn) queryParams.sortColumn = params.sortColumn;
+    if (params.sortDirection) queryParams.sortDirection = params.sortDirection;
+    return queryParams;
+};
 
-    async getUser(id: string): Promise<ApiResponse<AdminUserDto>> {
-        return this.get<AdminUserDto>(`users/${id}`);
-    }
+export const fetchUsers = async (
+    params: UsersQueryParams
+): Promise<Result<UsersQueryResponse>> => {
+    const cleanedParams = cleanUserParams(params);
+    const response = await apiClient.get<Result<UsersQueryResponse>>("/users", {
+        params: cleanedParams,
+    });
+    return response.data;
+};
 
-    async getUserProfile(): Promise<ApiResponse<AdminUserDto>> {
-        return this.get<AdminUserDto>("users/profile");
-    }
+export const getUser = async (id: string): Promise<Result<AdminUserDto>> => {
+    const response = await apiClient.get<Result<AdminUserDto>>(`/users/${id}`);
+    return response.data;
+};
 
-    async createUser(payload: UserPayload): Promise<ApiResponse<AdminUserDto>> {
-        return this.post<AdminUserDto>("users", payload);
-    }
+export const getUserProfile = async (): Promise<Result<AdminUserDto>> => {
+    const response = await apiClient.get<Result<AdminUserDto>>(
+        "/users/profile"
+    );
+    return response.data;
+};
 
-    async updateUser(
-        id: string,
-        payload: Partial<UserPayload>
-    ): Promise<ApiResponse<AdminUserDto>> {
-        return this.put<AdminUserDto>(`users/${id}`, payload);
-    }
+export const createUser = async (
+    payload: UserPayload
+): Promise<Result<AdminUserDto>> => {
+    const response = await apiClient.post<Result<AdminUserDto>>(
+        "/users",
+        payload
+    );
+    return response.data;
+};
 
-    async updateUserProfile(
-        payload: UpdateProfilePayload
-    ): Promise<ApiResponse<AdminUserDto>> {
-        return this.put<AdminUserDto>("users/profile", payload);
-    }
+export const updateUser = async (
+    id: string,
+    payload: Partial<UserPayload>
+): Promise<Result<AdminUserDto>> => {
+    const response = await apiClient.put<Result<AdminUserDto>>(
+        `/users/${id}`,
+        payload
+    );
+    return response.data;
+};
 
-    async deleteUser(id: string): Promise<ApiResponse<void>> {
-        return this.delete<void>(`users/${id}`);
-    }
+export const updateUserProfile = async (
+    payload: UpdateProfilePayload
+): Promise<Result<AdminUserDto>> => {
+    const response = await apiClient.put<Result<AdminUserDto>>(
+        "/users/profile",
+        payload
+    );
+    return response.data;
+};
 
-    async changeUserPassword(
-        payload: ChangeUserPasswordPayload
-    ): Promise<ApiResponse<{ message: string }>> {
-        return this.post<{ message: string }>(
-            "users/change-password",
-            payload
-        );
-    }
+export const deleteUser = async (id: string): Promise<Result<void>> => {
+    const response = await apiClient.delete<Result<void>>(`/users/${id}`);
+    return response.data;
+};
 
-    async resetUserPassword(
-        userId: string
-    ): Promise<ApiResponse<{ message: string; temporaryPassword: string }>> {
-        return this.post<{ message: string; temporaryPassword: string }>(
-            `users/${userId}/reset-password`
-        );
-    }
+export const changeUserPassword = async (
+    payload: ChangeUserPasswordPayload
+): Promise<Result<{ message: string }>> => {
+    const response = await apiClient.post<Result<{ message: string }>>(
+        "/users/change-password",
+        payload
+    );
+    return response.data;
+};
 
-    async toggleUserStatus(
-        id: string,
-        status: "active" | "inactive" | "suspended"
-    ): Promise<ApiResponse<AdminUserDto>> {
-        return this.patch<AdminUserDto>(`users/${id}/status`, { status });
-    }
+export const resetUserPassword = async (
+    userId: string
+): Promise<Result<{ message: string; temporaryPassword: string }>> => {
+    const response = await apiClient.post<
+        Result<{ message: string; temporaryPassword: string }>
+    >(`/users/${userId}/reset-password`);
+    return response.data;
+};
 
-    async bulkDeleteUsers(
-        ids: string[]
-    ): Promise<ApiResponse<{ message: string }>> {
-        return this.post<{ message: string }>("users/bulk-delete", {
+export const toggleUserStatus = async (
+    id: string,
+    status: "active" | "inactive" | "suspended"
+): Promise<Result<AdminUserDto>> => {
+    const response = await apiClient.patch<Result<AdminUserDto>>(
+        `/users/${id}/status`,
+        { status }
+    );
+    return response.data;
+};
+
+export const bulkDeleteUsers = async (
+    ids: string[]
+): Promise<Result<{ message: string }>> => {
+    const response = await apiClient.post<Result<{ message: string }>>(
+        "/users/bulk-delete",
+        {
             ids,
-        });
-    }
+        }
+    );
+    return response.data;
+};
 
-    async getUsersPaginated(
-        page: number = 1,
-        pageSize: number = 10
-    ): Promise<ApiResponse<PaginatedResponse<AdminUserDto>>> {
-        return this.get<PaginatedResponse<AdminUserDto>>(
-            `users/get-pagination?page=${page}&pageSize=${pageSize}`
-        );
-    }
-}
+const cleanPaginationParams = (page: number = 1, pageSize: number = 10) => {
+    return { page, pageSize };
+};
 
-export const userService = new UserService();
+export const getUsersPaginated = async (
+    page: number = 1,
+    pageSize: number = 10
+): Promise<PaginatedResult<AdminUserDto>> => {
+    const params = cleanPaginationParams(page, pageSize);
+    const response = await apiClient.get<PaginatedResult<AdminUserDto>>(
+        "/users/get-pagination",
+        {
+            params,
+        }
+    );
+    return response.data;
+};

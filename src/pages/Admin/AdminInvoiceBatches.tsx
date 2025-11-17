@@ -1,10 +1,10 @@
 import React, { useState, useEffect, FC } from 'react';
-import { invoiceBatchService } from '../../api/services/invoiceBatchService';
 import type { InvoiceBatch, CreateInvoiceBatchRequest, UpdateInvoiceBatchRequest } from '../../types/invoiceBatch';
 import { Button, Form, Modal, InputPicker, DatePicker } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import type { TableColumn } from '../../components/common/table';
+import { createInvoiceBatch, deleteInvoiceBatch, getInvoiceBatchesPaginated, updateInvoiceBatch } from '../../api/services/invoiceBatchService';
 
 type Props = {
     open: boolean;
@@ -129,7 +129,7 @@ export default function AdminInvoiceBatches() {
     const loadBatches = async () => {
         setLoading(true);
         try {
-            const response = await invoiceBatchService.getInvoiceBatchesPaginated();
+            const response = await getInvoiceBatchesPaginated();
             if (response.succeeded && response.data) {
                 setBatches(response.data);
             }
@@ -154,7 +154,7 @@ export default function AdminInvoiceBatches() {
                 if (typeof updatePayload.status === 'string' && !isNaN(Number(updatePayload.status))) {
                     updatePayload.status = Number(updatePayload.status);
                 }
-                const response = await invoiceBatchService.updateInvoiceBatch(updatePayload as UpdateInvoiceBatchRequest);
+                const response = await updateInvoiceBatch(updatePayload as UpdateInvoiceBatchRequest);
                 if (response.succeeded) {
                     await loadBatches();
                     setShowModal(false);
@@ -168,7 +168,7 @@ export default function AdminInvoiceBatches() {
                 if (typeof createPayload.status === 'string' && !isNaN(Number(createPayload.status))) {
                     createPayload.status = Number(createPayload.status);
                 }
-                const response = await invoiceBatchService.createInvoiceBatch(createPayload as CreateInvoiceBatchRequest);
+                const response = await createInvoiceBatch(createPayload as CreateInvoiceBatchRequest);
                 if (response.succeeded) {
                     await loadBatches();
                     setShowModal(false);
@@ -202,7 +202,7 @@ export default function AdminInvoiceBatches() {
         setDeleteLoading(true);
         setLoading(true);
         try {
-            const response = await invoiceBatchService.deleteInvoiceBatch(deleteTargetId);
+            const response = await deleteInvoiceBatch(deleteTargetId);
             if (response.succeeded) {
                 await loadBatches();
             }

@@ -132,6 +132,7 @@ export interface PaginatedResponse<T = any> {
     page: number;
     limit: number;
     totalPages: number;
+    succeeded: boolean;
 }
 
 // Dashboard stats

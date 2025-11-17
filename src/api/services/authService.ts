@@ -1,16 +1,6 @@
 import type { AxiosRequestConfig } from "axios";
-import axiosClient from "../axiosClient";
-
-// Helper to unwrap API responses that may be wrapped in { success, data, message }
-function unwrapResponse<T>(resp: any): T {
-    if (resp && typeof resp === "object") {
-        // If server uses the ApiResponse wrapper
-        if ("success" in resp && "data" in resp) {
-            return resp.data as T;
-        }
-    }
-    return resp as T;
-}
+import apiClient from "../apiClient";
+import type { Result } from "../../types/common";
 
 // Auth DTOs
 export type LoginDto = {
@@ -77,17 +67,16 @@ export type ChangePasswordDto = {
 export const login = async (
     payload: LoginDto,
     options?: Pick<AxiosRequestConfig, "signal">
-): Promise<AuthResponseDto> => {
-    const response = await axiosClient.post<AuthResponseDto>(
-        "auth/login",
+): Promise<Result<AuthResponseDto>> => {
+    const response = await apiClient.post<Result<AuthResponseDto>>(
+        "/auth/login",
         payload,
         {
             signal: options?.signal,
         }
     );
 
-    // Some backends (and our mock) wrap the real payload as { success, data }
-    const payloadData = unwrapResponse<AuthResponseDto>(response.data);
+    const payloadData = response.data.data;
 
     // Store token in localStorage (both legacy and context keys are handled by AuthContext)
     if (payloadData?.accessToken) {
@@ -99,22 +88,22 @@ export const login = async (
         }
     }
 
-    return payloadData;
+    return response.data;
 };
 
 export const register = async (
     payload: RegisterDto,
     options?: Pick<AxiosRequestConfig, "signal">
-): Promise<AuthResponseDto> => {
-    const response = await axiosClient.post<AuthResponseDto>(
-        "auth/register",
+): Promise<Result<AuthResponseDto>> => {
+    const response = await apiClient.post<Result<AuthResponseDto>>(
+        "/auth/register",
         payload,
         {
             signal: options?.signal,
         }
     );
 
-    const payloadData = unwrapResponse<AuthResponseDto>(response.data);
+    const payloadData = response.data.data;
 
     if (payloadData?.accessToken) {
         try {
@@ -123,14 +112,14 @@ export const register = async (
         } catch (e) {}
     }
 
-    return payloadData;
+    return response.data;
 };
 
 export const logout = async (
     options?: Pick<AxiosRequestConfig, "signal">
-): Promise<{ message: string }> => {
-    const response = await axiosClient.post<{ message: string }>(
-        "auth/logout",
+): Promise<Result<{ message: string }>> => {
+    const response = await apiClient.post<Result<{ message: string }>>(
+        "/auth/logout",
         {},
         {
             signal: options?.signal,
@@ -147,16 +136,16 @@ export const logout = async (
 export const refreshToken = async (
     payload: RefreshTokenDto,
     options?: Pick<AxiosRequestConfig, "signal">
-): Promise<AuthResponseDto> => {
-    const response = await axiosClient.post<AuthResponseDto>(
-        "auth/refresh",
+): Promise<Result<AuthResponseDto>> => {
+    const response = await apiClient.post<Result<AuthResponseDto>>(
+        "/auth/refresh",
         payload,
         {
             signal: options?.signal,
         }
     );
 
-    const payloadData = unwrapResponse<AuthResponseDto>(response.data);
+    const payloadData = response.data.data;
 
     if (payloadData?.accessToken) {
         try {
@@ -165,24 +154,24 @@ export const refreshToken = async (
         } catch (e) {}
     }
 
-    return payloadData;
+    return response.data;
 };
 
 export const getCurrentUser = async (
     options?: Pick<AxiosRequestConfig, "signal">
-): Promise<UserDto> => {
-    const response = await axiosClient.get<UserDto>("auth/me", {
+): Promise<Result<UserDto>> => {
+    const response = await apiClient.get<Result<UserDto>>("/auth/me", {
         signal: options?.signal,
     });
-    return unwrapResponse<UserDto>(response.data);
+    return response.data;
 };
 
 export const forgotPassword = async (
     payload: ForgotPasswordDto,
     options?: Pick<AxiosRequestConfig, "signal">
-): Promise<{ message: string }> => {
-    const response = await axiosClient.post<{ message: string }>(
-        "auth/forgot-password",
+): Promise<Result<{ message: string }>> => {
+    const response = await apiClient.post<Result<{ message: string }>>(
+        "/auth/forgot-password",
         payload,
         {
             signal: options?.signal,
@@ -194,9 +183,9 @@ export const forgotPassword = async (
 export const resetPassword = async (
     payload: ResetPasswordDto,
     options?: Pick<AxiosRequestConfig, "signal">
-): Promise<{ message: string }> => {
-    const response = await axiosClient.post<{ message: string }>(
-        "auth/reset-password",
+): Promise<Result<{ message: string }>> => {
+    const response = await apiClient.post<Result<{ message: string }>>(
+        "/auth/reset-password",
         payload,
         {
             signal: options?.signal,
@@ -208,9 +197,9 @@ export const resetPassword = async (
 export const changePassword = async (
     payload: ChangePasswordDto,
     options?: Pick<AxiosRequestConfig, "signal">
-): Promise<{ message: string }> => {
-    const response = await axiosClient.post<{ message: string }>(
-        "auth/change-password",
+): Promise<Result<{ message: string }>> => {
+    const response = await apiClient.post<Result<{ message: string }>>(
+        "/auth/change-password",
         payload,
         {
             signal: options?.signal,
@@ -222,9 +211,9 @@ export const changePassword = async (
 export const verifyEmail = async (
     token: string,
     options?: Pick<AxiosRequestConfig, "signal">
-): Promise<{ message: string }> => {
-    const response = await axiosClient.post<{ message: string }>(
-        `auth/verify-email/${token}`,
+): Promise<Result<{ message: string }>> => {
+    const response = await apiClient.post<Result<{ message: string }>>(
+        `/auth/verify-email/${token}`,
         {},
         {
             signal: options?.signal,

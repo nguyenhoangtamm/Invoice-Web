@@ -1,12 +1,16 @@
 import React, { useState, useEffect, FC } from 'react';
-import { BaseApiClient } from '../../api/baseApiClient';
-import type { ApiResponse, PaginatedResponse } from '../../types/invoice';
+import type { PaginatedResult } from '../../types/common';
 import { Button, Form, Modal, InputPicker, InputNumber } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import type { TableColumn } from '../../components/common/table';
 import { CreateInvoiceLineRequest, InvoiceLine, UpdateInvoiceLineRequest } from '../../types/invoiceLine';
-import { invoiceLineService } from '../../api/services/invoiceLineService';
+import {
+    getInvoiceLinesPaginated,
+    updateInvoiceLine,
+    createInvoiceLine,
+    deleteInvoiceLine
+} from '../../api/services/invoiceLineService';
 
 type Props = {
     open: boolean;
@@ -136,9 +140,9 @@ export default function AdminInvoiceLines() {
     const loadInvoiceLines = async () => {
         setLoading(true);
         try {
-            const response = await invoiceLineService.getInvoiceLinesPaginated();
+            const response = await getInvoiceLinesPaginated();
             if (response.succeeded && response.data) {
-                setInvoiceLines(response.data.data);
+                setInvoiceLines(response.data);
             }
         } catch (error) {
             console.error('Error loading invoice lines:', error);
@@ -163,15 +167,15 @@ export default function AdminInvoiceLines() {
                     id: editingLine.id,
                     ...calculatedData,
                 };
-                const response = await invoiceLineService.updateInvoiceLine(updateData);
-                if (response.succeeded) {
+                const response = await updateInvoiceLine(updateData);
+                if (response) {
                     await loadInvoiceLines();
                     setShowModal(false);
                     resetForm();
                 }
             } else {
-                const response = await invoiceLineService.createInvoiceLine(calculatedData);
-                if (response.succeeded) {
+                const response = await createInvoiceLine(calculatedData);
+                if (response) {
                     await loadInvoiceLines();
                     setShowModal(false);
                     resetForm();
@@ -206,10 +210,8 @@ export default function AdminInvoiceLines() {
         setDeleteLoading(true);
         setLoading(true);
         try {
-            const response = await invoiceLineService.deleteInvoiceLine(deleteTargetId);
-            if (response.succeeded) {
-                await loadInvoiceLines();
-            }
+            await deleteInvoiceLine(deleteTargetId);
+            await loadInvoiceLines();
         } catch (error) {
             console.error('Error deleting invoice line:', error);
         } finally {

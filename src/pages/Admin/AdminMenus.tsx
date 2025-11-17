@@ -1,9 +1,13 @@
 import React, { useState, useEffect, FC } from 'react';
-import { BaseApiClient } from '../../api/baseApiClient';
 import type { Menu, CreateMenuRequest, UpdateMenuRequest } from '../../types/menu';
-import type { ApiResponse, PaginatedResponse } from '../../types/invoice';
+import type { PaginatedResult } from '../../types/common';
 import { Button, Form, Modal, InputPicker, InputNumber } from 'rsuite';
-import { menuService } from '../../api/services/menuService';
+import {
+    getMenusPaginated,
+    createMenu,
+    updateMenu,
+    deleteMenu
+} from '../../api/services/menuService';
 
 type Props = {
     open: boolean;
@@ -107,9 +111,9 @@ export default function AdminMenus() {
     const loadMenus = async () => {
         setLoading(true);
         try {
-            const response = await menuService.getMenusPaginated();
-           if (response.succeeded && response.data) {
-                setMenus(response.data.data);
+            const response = await getMenusPaginated();
+            if (response.succeeded && response.data) {
+                setMenus(response.data);
             }
         } catch (error) {
             console.error('Error loading menus:', error);
@@ -148,14 +152,14 @@ export default function AdminMenus() {
                     id: editingMenu.id,
                     ...formData,
                 };
-                const response = await menuService.updateMenu(updateData);
+                const response = await updateMenu(updateData);
                 if (response.succeeded) {
                     await loadMenus();
                     setShowModal(false);
                     resetForm();
                 }
             } else {
-                const response = await menuService.createMenu(formData);
+                const response = await createMenu(formData);
                 if (response.succeeded) {
                     await loadMenus();
                     setShowModal(false);
@@ -187,7 +191,7 @@ export default function AdminMenus() {
         setDeleteLoading(true);
         setLoading(true);
         try {
-            const response = await menuService.deleteMenu(deleteTargetId);
+            const response = await deleteMenu(deleteTargetId);
             if (response.succeeded) {
                 await loadMenus();
             }

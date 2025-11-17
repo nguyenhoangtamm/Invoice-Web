@@ -1,5 +1,5 @@
-import { BaseApiClient } from "../baseApiClient";
-import type { ApiResponse } from "../../types/invoice";
+import apiClient from "../apiClient";
+import type { Result } from "../../types/common";
 
 // Dashboard Stats DTO
 export type DashboardStatsDto = {
@@ -91,74 +91,96 @@ export type CompanyInfoDto = {
  * Dashboard Service
  * Handles dashboard-related operations
  */
-export class DashboardService extends BaseApiClient {
-    async getDashboardStats(
-        params: DashboardStatsQueryParams = {}
-    ): Promise<ApiResponse<DashboardStatsDto>> {
-        const queryParams = new URLSearchParams();
-        if (params.period) queryParams.append("period", params.period);
-        if (params.startDate) queryParams.append("startDate", params.startDate);
-        if (params.endDate) queryParams.append("endDate", params.endDate);
 
-        return this.get<DashboardStatsDto>(
-            `dashboard/stats${
-                queryParams.toString() ? `?${queryParams.toString()}` : ""
-            }`
-        );
-    }
+const cleanDashboardParams = (params: DashboardStatsQueryParams = {}) => {
+    const queryParams: Record<string, string> = {};
+    if (params.period) queryParams.period = params.period;
+    if (params.startDate) queryParams.startDate = params.startDate;
+    if (params.endDate) queryParams.endDate = params.endDate;
+    return queryParams;
+};
 
-    async getRevenueChart(
-        params: RevenueChartQueryParams = {}
-    ): Promise<ApiResponse<RevenueChartDataDto[]>> {
-        const queryParams = new URLSearchParams();
-        if (params.period) queryParams.append("period", params.period);
-        if (params.startDate) queryParams.append("startDate", params.startDate);
-        if (params.endDate) queryParams.append("endDate", params.endDate);
+const cleanRevenueParams = (params: RevenueChartQueryParams = {}) => {
+    const queryParams: Record<string, string> = {};
+    if (params.period) queryParams.period = params.period;
+    if (params.startDate) queryParams.startDate = params.startDate;
+    if (params.endDate) queryParams.endDate = params.endDate;
+    return queryParams;
+};
 
-        return this.get<RevenueChartDataDto[]>(
-            `dashboard/revenue-chart${
-                queryParams.toString() ? `?${queryParams.toString()}` : ""
-            }`
-        );
-    }
+const cleanCustomersParams = (params: TopCustomersQueryParams = {}) => {
+    const queryParams: Record<string, string | number> = {};
+    if (params.limit) queryParams.limit = params.limit;
+    if (params.period) queryParams.period = params.period;
+    if (params.sortBy) queryParams.sortBy = params.sortBy;
+    if (params.sortDirection) queryParams.sortDirection = params.sortDirection;
+    return queryParams;
+};
 
-    async getTopCustomers(
-        params: TopCustomersQueryParams = {}
-    ): Promise<ApiResponse<TopCustomerDto[]>> {
-        const queryParams = new URLSearchParams();
-        if (params.limit) queryParams.append("limit", params.limit.toString());
-        if (params.period) queryParams.append("period", params.period);
-        if (params.sortBy) queryParams.append("sortBy", params.sortBy);
-        if (params.sortDirection)
-            queryParams.append("sortDirection", params.sortDirection);
+const cleanActivityParams = (params: RecentActivityQueryParams = {}) => {
+    const queryParams: Record<string, string | number> = {};
+    if (params.limit) queryParams.limit = params.limit;
+    if (params.type) queryParams.type = params.type;
+    if (params.startDate) queryParams.startDate = params.startDate;
+    if (params.endDate) queryParams.endDate = params.endDate;
+    return queryParams;
+};
 
-        return this.get<TopCustomerDto[]>(
-            `dashboard/top-customers${
-                queryParams.toString() ? `?${queryParams.toString()}` : ""
-            }`
-        );
-    }
+export const getDashboardStats = async (
+    params: DashboardStatsQueryParams = {}
+): Promise<Result<DashboardStatsDto>> => {
+    const queryParams = cleanDashboardParams(params);
+    const response = await apiClient.get<Result<DashboardStatsDto>>(
+        "/dashboard/stats",
+        {
+            params: queryParams,
+        }
+    );
+    return response.data;
+};
 
-    async getRecentActivity(
-        params: RecentActivityQueryParams = {}
-    ): Promise<ApiResponse<RecentActivityDto[]>> {
-        const queryParams = new URLSearchParams();
-        if (params.limit) queryParams.append("limit", params.limit.toString());
-        if (params.type) queryParams.append("type", params.type);
-        if (params.startDate) queryParams.append("startDate", params.startDate);
-        if (params.endDate) queryParams.append("endDate", params.endDate);
+export const getRevenueChart = async (
+    params: RevenueChartQueryParams = {}
+): Promise<Result<RevenueChartDataDto[]>> => {
+    const queryParams = cleanRevenueParams(params);
+    const response = await apiClient.get<Result<RevenueChartDataDto[]>>(
+        "/dashboard/revenue-chart",
+        {
+            params: queryParams,
+        }
+    );
+    return response.data;
+};
 
-        return this.get<RecentActivityDto[]>(
-            `dashboard/recent-activity${
-                queryParams.toString() ? `?${queryParams.toString()}` : ""
-            }`
-        );
-    }
+export const getTopCustomers = async (
+    params: TopCustomersQueryParams = {}
+): Promise<Result<TopCustomerDto[]>> => {
+    const queryParams = cleanCustomersParams(params);
+    const response = await apiClient.get<Result<TopCustomerDto[]>>(
+        "/dashboard/top-customers",
+        {
+            params: queryParams,
+        }
+    );
+    return response.data;
+};
 
-    async getCompanyInfo(): Promise<ApiResponse<CompanyInfoDto>> {
-        return this.get<CompanyInfoDto>("company/info");
-    }
-}
+export const getRecentActivity = async (
+    params: RecentActivityQueryParams = {}
+): Promise<Result<RecentActivityDto[]>> => {
+    const queryParams = cleanActivityParams(params);
+    const response = await apiClient.get<Result<RecentActivityDto[]>>(
+        "/dashboard/recent-activity",
+        {
+            params: queryParams,
+        }
+    );
+    return response.data;
+};
 
-// Export singleton instance
-export const dashboardService = new DashboardService();
+export const getCompanyInfo = async (): Promise<Result<CompanyInfoDto>> => {
+    const response = await apiClient.get<Result<CompanyInfoDto>>(
+        "/company/info"
+    );
+    return response.data;
+};

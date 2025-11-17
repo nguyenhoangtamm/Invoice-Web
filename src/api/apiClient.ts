@@ -1,18 +1,42 @@
-/**
- * @deprecated This file is deprecated. Use the new modular API services instead.
- * Import from './services/index' for better organization.
- */
+import axios from "axios";
+import { API_CONFIG } from "./config";
 
-// Re-export the combined API client for backward compatibility
-export { apiClient } from "./services/index";
+const apiClient = axios.create({
+    baseURL: API_CONFIG.BASE_URL,
+    withCredentials: false,
+    headers: {
+        "Content-Type": "application/json",
+    },
+});
 
-// Also export individual services for direct use
-export {
-    authApiService,
-    userApiService,
-    invoiceApiService,
-    companyApiService,
-} from "./services/index";
+// Request interceptor to add auth token
+apiClient.interceptors.request.use(
+    (config) => {
+        const token =
+            localStorage.getItem("authToken") ||
+            localStorage.getItem("invoice_access_token");
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
 
-// Export default for backward compatibility
-export { apiClient as default } from "./services/index";
+// Response interceptor for global error handling
+apiClient.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem("authToken");
+            localStorage.removeItem("invoice_access_token");
+        }
+        return Promise.reject(error);
+    }
+);
+
+export default apiClient;

@@ -1,132 +1,166 @@
-import { BaseApiClient } from "../baseApiClient";
+import apiClient from "../apiClient";
 import { API_CONFIG, USE_MOCK_API } from "../config";
-import type { Company, ApiResponse } from "../../types/invoice";
+import type { Company } from "../../types/invoice";
+import type { Result, PaginatedResult } from "../../types/common";
 
 /**
  * Company API Service
  * Handles all company-related API calls
  */
-export class CompanyApiService extends BaseApiClient {
-    async getCompanyInfo(): Promise<ApiResponse<Company>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                data: {
-                    id: "123",
-                    name: "Mock Company",
-                    address: "123 Mock Street",
-                    tax_code: "0123456789",
-                    phone: "0123456789",
-                    email: "mock@company.com",
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                } as Company,
-                message: "Lấy thông tin công ty thành công",
-            };
-        }
 
-        return this.get<Company>(API_CONFIG.ENDPOINTS.COMPANY);
+export const getCompanyInfo = async (): Promise<Result<Company>> => {
+    if (USE_MOCK_API) {
+        // Mock implementation - wrap in Result structure
+        const mockData = {
+            id: "123",
+            name: "Mock Company",
+            address: "123 Mock Street",
+            tax_code: "0123456789",
+            phone: "0123456789",
+            email: "mock@company.com",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        } as Company;
+
+        return {
+            message: "Success",
+            succeeded: true,
+            data: mockData,
+            code: 200,
+        };
     }
 
-    async updateCompanyInfo(
-        companyData: Partial<Company>
-    ): Promise<ApiResponse<Company>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                data: { ...companyData } as Company,
-                message: "Cập nhật thông tin công ty thành công",
-            };
-        }
+    const response = await apiClient.get<Result<Company>>(
+        `/${API_CONFIG.ENDPOINTS.COMPANY}`
+    );
+    return response.data;
+};
 
-        return this.put<Company>(API_CONFIG.ENDPOINTS.COMPANY, companyData);
+export const updateCompanyInfo = async (
+    companyData: Partial<Company>
+): Promise<Result<Company>> => {
+    if (USE_MOCK_API) {
+        // Mock implementation - wrap in Result structure
+        const mockData = { ...companyData } as Company;
+
+        return {
+            message: "Success",
+            succeeded: true,
+            data: mockData,
+            code: 200,
+        };
     }
 
-    async getCompanyStats(): Promise<ApiResponse<any>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                data: {
-                    totalInvoices: 150,
-                    totalRevenue: 5000000,
-                    totalCustomers: 45,
-                    avgInvoiceValue: 33333,
-                },
-                message: "Lấy thống kê công ty thành công",
-            };
-        }
+    const response = await apiClient.put<Result<Company>>(
+        `/${API_CONFIG.ENDPOINTS.COMPANY}`,
+        companyData
+    );
+    return response.data;
+};
 
-        return this.get<any>(API_CONFIG.ENDPOINTS.COMPANY_STATS);
+export const getCompanyStats = async (): Promise<Result<any>> => {
+    if (USE_MOCK_API) {
+        // Mock implementation - wrap in Result structure
+        const mockData = {
+            totalInvoices: 150,
+            totalRevenue: 5000000,
+            totalCustomers: 45,
+            avgInvoiceValue: 33333,
+        };
+
+        return {
+            message: "Success",
+            succeeded: true,
+            data: mockData,
+            code: 200,
+        };
     }
 
-    async getCompanies(
-        page = 1,
-        limit = 10
-    ): Promise<
-        ApiResponse<{
+    const response = await apiClient.get<Result<any>>(
+        `/${API_CONFIG.ENDPOINTS.COMPANY_STATS}`
+    );
+    return response.data;
+};
+
+const cleanCompaniesParams = (page: number = 1, limit: number = 10) => {
+    return { page, limit };
+};
+
+export const getCompanies = async (
+    page: number = 1,
+    limit: number = 10
+): Promise<
+    Result<{
+        data: Company[];
+        total: number;
+        page: number;
+        limit: number;
+    }>
+> => {
+    if (USE_MOCK_API) {
+        // Mock implementation - wrap in Result structure
+        const mockData = {
+            data: [],
+            total: 0,
+            page: 1,
+            limit: 10,
+        };
+
+        return {
+            message: "Success",
+            succeeded: true,
+            data: mockData,
+            code: 200,
+        };
+    }
+
+    const params = cleanCompaniesParams(page, limit);
+    const response = await apiClient.get<
+        Result<{
             data: Company[];
             total: number;
             page: number;
             limit: number;
         }>
-    > {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                data: {
-                    data: [],
-                    total: 0,
-                    page: 1,
-                    limit: 10,
-                },
-                message: "Lấy danh sách công ty thành công",
-            };
-        }
+    >(`/${API_CONFIG.ENDPOINTS.COMPANY}`, { params });
+    return response.data;
+};
 
-        const params = new URLSearchParams({
-            page: page.toString(),
-            limit: limit.toString(),
-        });
+export const createCompany = async (
+    companyData: Partial<Company>
+): Promise<Result<Company>> => {
+    if (USE_MOCK_API) {
+        // Mock implementation - wrap in Result structure
+        const mockData = { ...companyData } as Company;
 
-        return this.get<{
-            data: Company[];
-            total: number;
-            page: number;
-            limit: number;
-        }>(`${API_CONFIG.ENDPOINTS.COMPANY}?${params.toString()}`);
+        return {
+            message: "Success",
+            succeeded: true,
+            data: mockData,
+            code: 200,
+        };
     }
 
-    async createCompany(
-        companyData: Partial<Company>
-    ): Promise<ApiResponse<Company>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                data: { ...companyData } as Company,
-                message: "Tạo công ty thành công",
-            };
-        }
+    const response = await apiClient.post<Result<Company>>(
+        `/${API_CONFIG.ENDPOINTS.COMPANY}`,
+        companyData
+    );
+    return response.data;
+};
 
-        return this.post<Company>(API_CONFIG.ENDPOINTS.COMPANY, companyData);
+export const deleteCompany = async (id: string): Promise<Result<void>> => {
+    if (USE_MOCK_API) {
+        // Mock implementation - wrap in Result structure
+        return {
+            message: "Success",
+            succeeded: true,
+            data: undefined as void,
+            code: 200,
+        };
     }
 
-    async deleteCompany(id: string): Promise<ApiResponse<void>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                message: "Xóa công ty thành công",
-            };
-        }
-
-        return this.delete<void>(`${API_CONFIG.ENDPOINTS.COMPANY}/${id}`);
-    }
-}
-
-// Export singleton instance
-export const companyApiService = new CompanyApiService();
+    const response = await apiClient.delete<Result<void>>(
+        `/${API_CONFIG.ENDPOINTS.COMPANY}/${id}`
+    );
+    return response.data;
+};

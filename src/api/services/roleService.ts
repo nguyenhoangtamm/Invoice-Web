@@ -1,5 +1,5 @@
-import { BaseApiClient } from "../baseApiClient";
-import type { ApiResponse, PaginatedResponse } from "../../types/invoice";
+import apiClient from "../apiClient";
+import type { Result, PaginatedResult } from "../../types/common";
 import type {
     Role,
     CreateRoleRequest,
@@ -10,44 +10,68 @@ import type {
  * Role Management Service
  * Handles all role-related operations
  */
-export class RoleService extends BaseApiClient {
-    async createRole(data: CreateRoleRequest): Promise<ApiResponse<Role>> {
-        return this.post<Role>("Roles/create", data);
-    }
 
-    async updateRole(data: UpdateRoleRequest): Promise<ApiResponse<Role>> {
-        return this.post<Role>(`Roles/update/${data.id}`, data);
-    }
+export const createRole = async (
+    data: CreateRoleRequest
+): Promise<Result<Role>> => {
+    const response = await apiClient.post<Result<Role>>("/Roles/create", data);
+    return response.data;
+};
 
-    async deleteRole(id: string): Promise<ApiResponse<void>> {
-        return this.post<void>(`Roles/delete/${id}`);
-    }
+export const updateRole = async (
+    data: UpdateRoleRequest
+): Promise<Result<Role>> => {
+    const response = await apiClient.post<Result<Role>>(
+        `/Roles/update/${data.id}`,
+        data
+    );
+    return response.data;
+};
 
-    async getRoleById(id: string): Promise<ApiResponse<Role>> {
-        return this.get<Role>(`Roles/get-by-id/${id}`);
-    }
+export const deleteRole = async (id: string): Promise<Result<void>> => {
+    const response = await apiClient.post<Result<void>>(`/Roles/delete/${id}`);
+    return response.data;
+};
 
-    async getAllRoles(): Promise<ApiResponse<Role[]>> {
-        return this.get<Role[]>("Roles/get-all");
-    }
+export const getRoleById = async (id: string): Promise<Result<Role>> => {
+    const response = await apiClient.get<Result<Role>>(
+        `/Roles/get-by-id/${id}`
+    );
+    return response.data;
+};
 
-    async getRolesPaginated(
-        page: number = 1,
-        pageSize: number = 10
-    ): Promise<ApiResponse<PaginatedResponse<Role>>> {
-        return this.get<PaginatedResponse<Role>>(
-            `Roles/get-pagination?page=${page}&pageSize=${pageSize}`
-        );
-    }
+export const getAllRoles = async (): Promise<Result<Role[]>> => {
+    const response = await apiClient.get<Result<Role[]>>("/Roles/get-all");
+    return response.data;
+};
 
-    async assignPermissionsToRole(
-        roleId: string,
-        permissions: string[]
-    ): Promise<ApiResponse<void>> {
-        return this.post<void>(`Roles/${roleId}/permissions`, {
+const cleanPaginationParams = (page: number = 1, pageSize: number = 10) => {
+    return { page, pageSize };
+};
+
+export const getRolesPaginated = async (
+    page: number = 1,
+    pageSize: number = 10
+): Promise<PaginatedResult<Role>> => {
+    const params = cleanPaginationParams(page, pageSize);
+    const response = await apiClient.get<PaginatedResult<Role>>(
+        "/Roles/get-pagination",
+        {
+            params,
+        }
+    );
+    return response.data;
+};
+
+export const assignPermissionsToRole = async (
+    roleId: string,
+    permissions: string[]
+): Promise<Result<void>> => {
+    const response = await apiClient.post<Result<void>>(
+        `/Roles/${roleId}/permissions`,
+        {
             permissions,
-        });
-    }
-}
-
-export const roleService = new RoleService();
+        }
+    );
+    return response.data;
+};

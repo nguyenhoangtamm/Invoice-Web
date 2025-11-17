@@ -1,6 +1,6 @@
-import { BaseApiClient } from "../baseApiClient";
+import apiClient from "../apiClient";
 import { API_CONFIG, USE_MOCK_API } from "../config";
-import type { ApiResponse, PaginatedResponse } from "../../types/invoice";
+import type { Result, PaginatedResult } from "../../types/common";
 import type {
     ApiKey,
     CreateApiKeyRequest,
@@ -11,156 +11,107 @@ import type {
  * API Key Management Service
  * Handles all API key-related operations
  */
-export class ApiKeyService extends BaseApiClient {
-    async createApiKey(
-        data: CreateApiKeyRequest
-    ): Promise<ApiResponse<ApiKey>> {
-        return this.post<ApiKey>("ApiKeys/create", data);
+
+export const createApiKey = async (
+    data: CreateApiKeyRequest
+): Promise<Result<ApiKey>> => {
+    const response = await apiClient.post<Result<ApiKey>>(
+        "/ApiKeys/create",
+        data
+    );
+    return response.data;
+};
+
+export const updateApiKey = async (
+    data: UpdateApiKeyRequest
+): Promise<Result<ApiKey>> => {
+    if (USE_MOCK_API) {
+        // Mock implementation - wrap in Result structure
+        const mockData = {
+            ...data,
+            keyValue: `ak_${Math.random().toString(36).substring(2, 15)}`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        } as ApiKey;
+
+        return {
+            message: "Success",
+            succeeded: true,
+            data: mockData,
+            code: 200,
+        };
     }
 
-    async updateApiKey(
-        data: UpdateApiKeyRequest
-    ): Promise<ApiResponse<ApiKey>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                data: {
-                    ...data,
-                    keyValue: `ak_${Math.random()
-                        .toString(36)
-                        .substring(2, 15)}`,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                } as ApiKey,
-                message: "Cập nhật API key thành công",
-            };
+    const response = await apiClient.put<Result<ApiKey>>(
+        `/ApiKeys/update/${data.id}`,
+        data
+    );
+    return response.data;
+};
+
+export const deleteApiKey = async (id: string): Promise<Result<void>> => {
+    if (USE_MOCK_API) {
+        // Mock implementation - wrap in Result structure
+        return {
+            message: "Success",
+            succeeded: true,
+            data: undefined as void,
+            code: 200,
+        };
+    }
+
+    const response = await apiClient.delete<Result<void>>(
+        `/ApiKeys/delete/${id}`
+    );
+    return response.data;
+};
+
+export const getApiKeyById = async (id: string): Promise<Result<ApiKey>> => {
+    if (USE_MOCK_API) {
+        // Mock implementation - wrap in Result structure
+        const mockData = {
+            id,
+            name: "Mock API Key",
+            keyValue: `ak_${Math.random().toString(36).substring(2, 15)}`,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            permissions: ["read", "write"],
+        } as ApiKey;
+
+        return {
+            message: "Success",
+            succeeded: true,
+            data: mockData,
+            code: 200,
+        };
+    }
+
+    const response = await apiClient.get<Result<ApiKey>>(
+        `/ApiKeys/get-by-id/${id}`
+    );
+    return response.data;
+};
+
+export const getAllApiKeys = async (): Promise<Result<ApiKey[]>> => {
+    const response = await apiClient.get<Result<ApiKey[]>>("/ApiKeys/get-all");
+    return response.data;
+};
+
+const cleanPaginationParams = (page: number = 1, pageSize: number = 10) => {
+    return { page, pageSize };
+};
+
+export const getApiKeysPaginated = async (
+    page: number = 1,
+    pageSize: number = 10
+): Promise<PaginatedResult<ApiKey>> => {
+    const params = cleanPaginationParams(page, pageSize);
+    const response = await apiClient.get<PaginatedResult<ApiKey>>(
+        "/ApiKeys/get-pagination",
+        {
+            params,
         }
-
-        return this.put<ApiKey>(`ApiKeys/update/${data.id}`, data);
-    }
-
-    async deleteApiKey(id: string): Promise<ApiResponse<void>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                message: "Xóa API key thành công",
-            };
-        }
-
-        return this.delete<void>(`ApiKeys/delete/${id}`);
-    }
-
-    async getApiKeyById(id: string): Promise<ApiResponse<ApiKey>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            return {
-                success: true,
-                data: {
-                    id,
-                    name: "Mock API Key",
-                    keyValue: `ak_${Math.random()
-                        .toString(36)
-                        .substring(2, 15)}`,
-                    isActive: true,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                    permissions: ["read", "write"],
-                } as ApiKey,
-                message: "Lấy thông tin API key thành công",
-            };
-        }
-
-        return this.get<ApiKey>(`ApiKeys/get-by-id/${id}`);
-    }
-
-    async getAllApiKeys(): Promise<ApiResponse<ApiKey[]>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            const mockKeys: ApiKey[] = [
-                {
-                    id: "1",
-                    name: "Production API Key",
-                    keyValue: "ak_prod_123456789",
-                    isActive: true,
-                    createdAt: "2025-01-01T00:00:00Z",
-                    updatedAt: "2025-01-01T00:00:00Z",
-                    lastUsed: "2025-11-14T10:00:00Z",
-                    permissions: ["read", "write", "delete"],
-                },
-                {
-                    id: "2",
-                    name: "Development API Key",
-                    keyValue: "ak_dev_987654321",
-                    isActive: true,
-                    createdAt: "2025-01-02T00:00:00Z",
-                    updatedAt: "2025-01-02T00:00:00Z",
-                    lastUsed: "2025-11-13T15:30:00Z",
-                    permissions: ["read", "write"],
-                },
-            ];
-
-            return {
-                success: true,
-                data: mockKeys,
-                message: "Lấy danh sách API key thành công",
-            };
-        }
-
-        return this.get<ApiKey[]>("ApiKeys/get-all");
-    }
-
-    async getApiKeysPaginated(
-        page: number = 1,
-        pageSize: number = 10
-    ): Promise<ApiResponse<PaginatedResponse<ApiKey>>> {
-        if (USE_MOCK_API) {
-            // Mock implementation
-            const mockKeys: ApiKey[] = [
-                {
-                    id: "1",
-                    name: "Production API Key",
-                    keyValue: "ak_prod_***hidden***",
-                    isActive: true,
-                    createdAt: "2025-01-01T00:00:00Z",
-                    updatedAt: "2025-01-01T00:00:00Z",
-                    lastUsed: "2025-11-14T10:00:00Z",
-                    permissions: ["read", "write", "delete"],
-                },
-                {
-                    id: "2",
-                    name: "Development API Key",
-                    keyValue: "ak_dev_***hidden***",
-                    isActive: true,
-                    createdAt: "2025-01-02T00:00:00Z",
-                    updatedAt: "2025-01-02T00:00:00Z",
-                    lastUsed: "2025-11-13T15:30:00Z",
-                    permissions: ["read", "write"],
-                },
-            ];
-
-            return {
-                success: true,
-                data: {
-                    data: mockKeys.slice(
-                        (page - 1) * pageSize,
-                        page * pageSize
-                    ),
-                    total: mockKeys.length,
-                    page,
-                    limit: pageSize,
-                    totalPages: Math.ceil(mockKeys.length / pageSize),
-                },
-                message: "Lấy danh sách API key thành công",
-            };
-        }
-
-        return this.get<PaginatedResponse<ApiKey>>(
-            `ApiKeys/get-pagination?page=${page}&pageSize=${pageSize}`
-        );
-    }
-}
-
-// Export singleton instance
-export const apiKeyService = new ApiKeyService();
+    );
+    return response.data;
+};

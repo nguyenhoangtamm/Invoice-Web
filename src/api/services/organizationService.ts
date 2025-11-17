@@ -1,5 +1,5 @@
-import { BaseApiClient } from "../baseApiClient";
-import type { ApiResponse, PaginatedResponse } from "../../types/invoice";
+import apiClient from "../apiClient";
+import type { Result, PaginatedResult } from "../../types/common";
 import type {
     Organization,
     CreateOrganizationRequest,
@@ -11,66 +11,102 @@ import type {
  * Organization Management Service
  * Handles all organization-related operations
  */
-export class OrganizationService extends BaseApiClient {
-    async createOrganization(
-        data: CreateOrganizationRequest
-    ): Promise<ApiResponse<Organization>> {
-        return this.post<Organization>("Organizations/create", data);
-    }
 
-    async updateOrganization(
-        data: UpdateOrganizationRequest
-    ): Promise<ApiResponse<Organization>> {
-        return this.post<Organization>(`Organizations/update/${data.id}`, data);
-    }
+export const createOrganization = async (
+    data: CreateOrganizationRequest
+): Promise<Result<Organization>> => {
+    const response = await apiClient.post<Result<Organization>>(
+        "/Organizations/create",
+        data
+    );
+    return response.data;
+};
 
-    async deleteOrganization(id: string): Promise<ApiResponse<void>> {
-        return this.post<void>(`Organizations/delete/${id}`);
-    }
+export const updateOrganization = async (
+    data: UpdateOrganizationRequest
+): Promise<Result<Organization>> => {
+    const response = await apiClient.post<Result<Organization>>(
+        `/Organizations/update/${data.id}`,
+        data
+    );
+    return response.data;
+};
 
-    async getOrganizationById(id: string): Promise<ApiResponse<Organization>> {
-        return this.get<Organization>(`Organizations/get-by-id/${id}`);
-    }
+export const deleteOrganization = async (id: string): Promise<Result<void>> => {
+    const response = await apiClient.post<Result<void>>(
+        `/Organizations/delete/${id}`
+    );
+    return response.data;
+};
 
-    async getAllOrganizations(): Promise<
-        ApiResponse<PaginatedResponse<Organization>>
-    > {
-        return this.get<PaginatedResponse<Organization>>(
-            "Organizations/get-all"
-        );
-    }
+export const getOrganizationById = async (
+    id: string
+): Promise<Result<Organization>> => {
+    const response = await apiClient.get<Result<Organization>>(
+        `/Organizations/get-by-id/${id}`
+    );
+    return response.data;
+};
 
-    async getOrganizationsPaginated(
-        page: number = 1,
-        pageSize: number = 10
-    ): Promise<ApiResponse<PaginatedResponse<Organization>>> {
-        return this.get<PaginatedResponse<Organization>>(
-            `Organizations/get-pagination?page=${page}&pageSize=${pageSize}`
-        );
-    }
+export const getAllOrganizations = async (): Promise<Result<Organization[]>> => {
+    const response = await apiClient.get<Result<Organization[]>>(
+        "/Organizations/get-all"
+    );
+    return response.data;
+};
 
-    async getOrganizationUsers(
-        organizationId: number
-    ): Promise<ApiResponse<any[]>> {
-        return this.get<any[]>(`Organizations/${organizationId}/users`);
-    }
+const cleanPaginationParams = (page: number = 1, pageSize: number = 10) => {
+    return { page, pageSize };
+};
 
-    async updateOrganizationStatus(
-        id: number,
-        isActive: boolean
-    ): Promise<ApiResponse<void>> {
-        return this.post<void>(`Organizations/${id}/status`, {
+export const getOrganizationsPaginated = async (
+    page: number = 1,
+    pageSize: number = 10
+): Promise<PaginatedResult<Organization>> => {
+    const params = cleanPaginationParams(page, pageSize);
+    const response = await apiClient.get<PaginatedResult<Organization>>(
+        "/Organizations/get-pagination",
+        {
+            params,
+        }
+    );
+    return response.data;
+};
+
+export const getOrganizationUsers = async (
+    organizationId: number
+): Promise<Result<any[]>> => {
+    const response = await apiClient.get<Result<any[]>>(
+        `/Organizations/${organizationId}/users`
+    );
+    return response.data;
+};
+
+export const updateOrganizationStatus = async (
+    id: number,
+    isActive: boolean
+): Promise<Result<void>> => {
+    const response = await apiClient.post<Result<void>>(
+        `/Organizations/${id}/status`,
+        {
             isActive,
-        });
-    }
-    async getOrganizationByUserId(
-        userId: number
-    ): Promise<ApiResponse<GetByUserResponse>> {
-        return this.get<GetByUserResponse>(`Organizations/get-by-user/${userId}`);
-    }
-    async getOrganizationByMe(): Promise<ApiResponse<GetByUserResponse>> {
-        return this.get<GetByUserResponse>(`Organizations/me`);
-    }
-}
+        }
+    );
+    return response.data;
+};
 
-export const organizationService = new OrganizationService();
+export const getOrganizationByUserId = async (
+    userId: number
+): Promise<Result<GetByUserResponse>> => {
+    const response = await apiClient.get<Result<GetByUserResponse>>(
+        `/Organizations/get-by-user/${userId}`
+    );
+    return response.data;
+};
+
+export const getOrganizationByMe = async (): Promise<Result<GetByUserResponse>> => {
+    const response = await apiClient.get<Result<GetByUserResponse>>(
+        "/Organizations/me"
+    );
+    return response.data;
+};

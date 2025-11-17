@@ -1,12 +1,11 @@
 import React, { useState, useEffect, FC } from 'react';
-import { BaseApiClient } from '../../api/baseApiClient';
 import type { Organization, CreateOrganizationRequest, UpdateOrganizationRequest } from '../../types/organization';
-import type { ApiResponse, PaginatedResponse } from '../../types/invoice';
+import type { PaginatedResult } from '../../types/common';
 import { Button, Form, Modal, Checkbox } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import type { TableColumn } from '../../components/common/table';
-import { organizationService } from '../../api/services/organizationService';
+import { createOrganization, deleteOrganization, getOrganizationsPaginated, updateOrganization } from '../../api/services/organizationService';
 
 type Props = {
     open: boolean;
@@ -121,10 +120,10 @@ export default function AdminOrganizations() {
     const loadOrganizations = async () => {
         setLoading(true);
         try {
-            const response = await organizationService.getOrganizationsPaginated(pageIndex + 1, pageSize);
+            const response = await getOrganizationsPaginated(pageIndex + 1, pageSize);
             if (response.succeeded && response.data) {
-                setOrganizations(response.data.data || []);
-                setTotalCount(response.data.totalPages || 0);
+                setOrganizations(response.data || []);
+                setTotalCount(response.totalPages || 0);
             }
         } catch (error) {
             console.error('Error loading organizations:', error);
@@ -143,14 +142,14 @@ export default function AdminOrganizations() {
                     id: editingOrganization.id,
                     ...formData,
                 };
-                const response = await organizationService.updateOrganization(updateData);
+                const response = await updateOrganization(updateData);
                 if (response.succeeded) {
                     await loadOrganizations();
                     setShowModal(false);
                     resetForm();
                 }
             } else {
-                const response = await organizationService.createOrganization(formData);
+                const response = await createOrganization(formData);
                 if (response.succeeded) {
                     await loadOrganizations();
                     setShowModal(false);
@@ -183,7 +182,7 @@ export default function AdminOrganizations() {
         setDeleteLoading(true);
         setLoading(true);
         try {
-            const response = await organizationService.deleteOrganization(deleteTargetId);
+            const response = await deleteOrganization(deleteTargetId);
             if (response.succeeded) {
                 await loadOrganizations();
             }

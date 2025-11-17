@@ -1,12 +1,16 @@
 import React, { useState, useEffect, FC } from 'react';
-import { BaseApiClient } from '../../api/baseApiClient';
 import type { Role, CreateRoleRequest, UpdateRoleRequest } from '../../types/role';
-import type { ApiResponse, PaginatedResponse } from '../../types/invoice';
+import type { PaginatedResult } from '../../types/common';
 import { Button, Form, Modal, Checkbox } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import type { TableColumn } from '../../components/common/table';
-import { roleService } from '../../api/services/roleService';
+import {
+    getRolesPaginated,
+    createRole,
+    updateRole,
+    deleteRole
+} from '../../api/services/roleService';
 
 type Props = {
     open: boolean;
@@ -93,10 +97,10 @@ export default function AdminRoles() {
     const loadRoles = async () => {
         setLoading(true);
         try {
-            const response = await roleService.getRolesPaginated(pageIndex + 1, pageSize);
+            const response = await getRolesPaginated(pageIndex + 1, pageSize);
             if (response.succeeded && response.data) {
-                setRoles(response.data.data || []);
-                setTotalCount(response.data.totalPages || 0);
+                setRoles(response.data || []);
+                setTotalCount(response.totalPages || 0);
             }
         } catch (error) {
             console.error('Error loading roles:', error);
@@ -115,14 +119,14 @@ export default function AdminRoles() {
                     id: editingRole.id,
                     ...formData,
                 };
-                const response = await roleService.updateRole(updateData);
+                const response = await updateRole(updateData);
                 if (response.succeeded) {
                     await loadRoles();
                     setShowModal(false);
                     resetForm();
                 }
             } else {
-                const response = await roleService.createRole(formData);
+                const response = await createRole(formData);
                 if (response.succeeded) {
                     await loadRoles();
                     setShowModal(false);
@@ -151,7 +155,7 @@ export default function AdminRoles() {
         setDeleteLoading(true);
         setLoading(true);
         try {
-            const response = await roleService.deleteRole(deleteTargetId);
+            const response = await deleteRole(deleteTargetId);
             if (response.succeeded) {
                 await loadRoles();
             }

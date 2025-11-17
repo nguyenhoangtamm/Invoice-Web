@@ -1,5 +1,5 @@
-import { BaseApiClient } from "../baseApiClient";
-import type { ApiResponse, PaginatedResponse } from "../../types/invoice";
+import apiClient from "../apiClient";
+import type { Result, PaginatedResult } from "../../types/common";
 import type {
     Menu,
     CreateMenuRequest,
@@ -10,53 +10,83 @@ import type {
  * Menu Management Service
  * Handles all menu-related operations
  */
-export class MenuService extends BaseApiClient {
-    async createMenu(data: CreateMenuRequest): Promise<ApiResponse<Menu>> {
-        return this.post<Menu>("Menus/create", data);
-    }
 
-    async updateMenu(data: UpdateMenuRequest): Promise<ApiResponse<Menu>> {
-        return this.post<Menu>(`Menus/update/${data.id}`, data);
-    }
+export const createMenu = async (
+    data: CreateMenuRequest
+): Promise<Result<Menu>> => {
+    const response = await apiClient.post<Result<Menu>>("/Menus/create", data);
+    return response.data;
+};
 
-    async deleteMenu(id: string): Promise<ApiResponse<void>> {
-        return this.post<void>(`Menus/delete/${id}`);
-    }
+export const updateMenu = async (
+    data: UpdateMenuRequest
+): Promise<Result<Menu>> => {
+    const response = await apiClient.post<Result<Menu>>(
+        `/Menus/update/${data.id}`,
+        data
+    );
+    return response.data;
+};
 
-    async getMenuById(id: string): Promise<ApiResponse<Menu>> {
-        return this.get<Menu>(`Menus/get-by-id/${id}`);
-    }
+export const deleteMenu = async (id: string): Promise<Result<void>> => {
+    const response = await apiClient.post<Result<void>>(`/Menus/delete/${id}`);
+    return response.data;
+};
 
-    async getAllMenus(): Promise<ApiResponse<Menu[]>> {
-        return this.get<Menu[]>("Menus/get-all");
-    }
+export const getMenuById = async (id: string): Promise<Result<Menu>> => {
+    const response = await apiClient.get<Result<Menu>>(
+        `/Menus/get-by-id/${id}`
+    );
+    return response.data;
+};
 
-    async getMenuTree(): Promise<ApiResponse<Menu[]>> {
-        return this.get<Menu[]>("Menus/tree");
-    }
+export const getAllMenus = async (): Promise<Result<Menu[]>> => {
+    const response = await apiClient.get<Result<Menu[]>>("/Menus/get-all");
+    return response.data;
+};
 
-    async getMenusPaginated(
-        page: number = 1,
-        pageSize: number = 10
-    ): Promise<ApiResponse<PaginatedResponse<Menu>>> {
-        return this.get<PaginatedResponse<Menu>>(
-            `Menus/get-pagination?page=${page}&pageSize=${pageSize}`
-        );
-    }
+export const getMenuTree = async (): Promise<Result<Menu[]>> => {
+    const response = await apiClient.get<Result<Menu[]>>("/Menus/tree");
+    return response.data;
+};
 
-    async assignMenuToRole(
-        roleId: string,
-        menuIds: string[]
-    ): Promise<ApiResponse<void>> {
-        return this.post<void>("Menus/assign-to-role", {
+const cleanPaginationParams = (page: number = 1, pageSize: number = 10) => {
+    return { page, pageSize };
+};
+
+export const getMenusPaginated = async (
+    page: number = 1,
+    pageSize: number = 10
+): Promise<PaginatedResult<Menu>> => {
+    const params = cleanPaginationParams(page, pageSize);
+    const response = await apiClient.get<PaginatedResult<Menu>>(
+        "/Menus/get-pagination",
+        {
+            params,
+        }
+    );
+    return response.data;
+};
+
+export const assignMenuToRole = async (
+    roleId: string,
+    menuIds: string[]
+): Promise<Result<void>> => {
+    const response = await apiClient.post<Result<void>>(
+        "/Menus/assign-to-role",
+        {
             roleId,
             menuIds,
-        });
-    }
+        }
+    );
+    return response.data;
+};
 
-    async getMenusByRole(roleId: string): Promise<ApiResponse<Menu[]>> {
-        return this.get<Menu[]>(`Menus/by-role/${roleId}`);
-    }
-}
-
-export const menuService = new MenuService();
+export const getMenusByRole = async (
+    roleId: string
+): Promise<Result<Menu[]>> => {
+    const response = await apiClient.get<Result<Menu[]>>(
+        `/Menus/by-role/${roleId}`
+    );
+    return response.data;
+};

@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { userService } from '../../api/services/userService';
+import {
+    getUsersPaginated,
+    createUser,
+    updateUser,
+    deleteUser
+} from '../../api/services/userService';
 import type { AdminUserDto, UserPayload } from '../../types/user';
 import { Button, Form, Modal, InputPicker } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import type { TableColumn } from '../../components/common/table';
-import { roleService } from '../../api/services/roleService';
+import { getAllRoles } from '../../api/services/roleService';
 
 interface Props {
     open: boolean;
@@ -122,10 +127,10 @@ export default function AdminUsers() {
     const loadUsers = async () => {
         setLoading(true);
         try {
-            const response = await userService.getUsersPaginated(pageIndex + 1, pageSize);
+            const response = await getUsersPaginated(pageIndex + 1, pageSize);
             if (response.succeeded && response.data) {
-                setUsers(response.data.data || []);
-                setTotalCount(response.data.totalPages || 0);
+                setUsers(response.data || []);
+                setTotalCount(response.totalPages || 0);
             }
         } catch (error) {
             console.error('Error loading users:', error);
@@ -136,8 +141,8 @@ export default function AdminUsers() {
 
     const loadRoles = async () => {
         try {
-            const response = await roleService.getAllRoles();
-            if (response.succeeded && response.data) {
+            const response = await getAllRoles();
+            if (response) {
                 const roleOptions = response.data.map((role: any) => ({
                     label: role.name,
                     value: role.id
@@ -155,9 +160,9 @@ export default function AdminUsers() {
 
         try {
             if (editingUser) {
-                await userService.updateUser(editingUser.id, formData);
+                await updateUser(editingUser.id, formData);
             } else {
-                await userService.createUser(formData);
+                await createUser(formData);
             }
             await loadUsers();
             setShowModal(false);
@@ -190,7 +195,7 @@ export default function AdminUsers() {
         setDeleteLoading(true);
         setLoading(true);
         try {
-            await userService.deleteUser(deleteTargetId);
+            await deleteUser(deleteTargetId);
             await loadUsers();
         } catch (error) {
             console.error('Error deleting user:', error);

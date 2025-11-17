@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Key, Edit2, Trash2, Eye, EyeOff, Copy, Search, Filter, RefreshCw } from 'lucide-react';
 import { ApiKey, CreateApiKeyRequest, UpdateApiKeyRequest } from '../../types/apiKey';
-import { apiKeyService } from '../../api/services/apiKeyService';
+import { createApiKey, deleteApiKey, getApiKeysPaginated, updateApiKey } from '../../api/services/apiKeyService';
 
 const AdminApiKeys = () => {
     const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
@@ -40,11 +40,11 @@ const AdminApiKeys = () => {
         setError('');
 
         try {
-            const response = await apiKeyService.getApiKeysPaginated(currentPage, pageSize);
+            const response = await getApiKeysPaginated(currentPage, pageSize);
             if (response.succeeded) {
-                setApiKeys(response.data?.data || []);
-                setTotalPages(response.data?.totalPages || 1);
-                setTotalItems(response.data?.total || 0);
+                setApiKeys(response.data || []);
+                setTotalPages(response.totalPages || 1);
+                setTotalItems(response.totalCount || 0);
             } else {
                 setError(response.message || 'Không thể tải danh sách API key');
             }
@@ -61,7 +61,7 @@ const AdminApiKeys = () => {
         setError('');
 
         try {
-            const response = await apiKeyService.createApiKey(formData);
+            const response = await createApiKey(formData);
             if (response.succeeded) {
                 setSuccess('Tạo API key thành công');
                 setShowCreateModal(false);
@@ -93,7 +93,7 @@ const AdminApiKeys = () => {
                 expiresAt: formData.expiresAt,
             };
 
-            const response = await apiKeyService.updateApiKey(updateData);
+            const response = await updateApiKey(updateData);
             if (response.succeeded) {
                 setSuccess('Cập nhật API key thành công');
                 setShowEditModal(false);
@@ -117,7 +117,7 @@ const AdminApiKeys = () => {
         setError('');
 
         try {
-            const response = await apiKeyService.deleteApiKey(selectedApiKey.id);
+            const response = await deleteApiKey(selectedApiKey.id);
             if (response.succeeded) {
                 setSuccess('Xóa API key thành công');
                 setShowDeleteModal(false);

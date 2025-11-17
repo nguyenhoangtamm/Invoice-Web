@@ -1,5 +1,5 @@
-import { BaseApiClient } from "../baseApiClient";
-import type { ApiResponse, PaginatedResponse } from "../../types/invoice";
+import apiClient from "../apiClient";
+import type { Result, PaginatedResult } from "../../types/common";
 import type {
     InvoiceLine,
     CreateInvoiceLineRequest,
@@ -10,50 +10,73 @@ import type {
  * Invoice Line Management Service
  * Handles all invoice line-related operations
  */
-export class InvoiceLineService extends BaseApiClient {
-    async createInvoiceLine(
-        data: CreateInvoiceLineRequest
-    ): Promise<ApiResponse<InvoiceLine>> {
-        return this.post<InvoiceLine>("InvoiceLines/create", data);
-    }
 
-    async updateInvoiceLine(
-        data: UpdateInvoiceLineRequest
-    ): Promise<ApiResponse<InvoiceLine>> {
-        return this.post<InvoiceLine>(
-            `InvoiceLines/update/${data.id}`,
-            data
-        );
-    }
+export const createInvoiceLine = async (
+    data: CreateInvoiceLineRequest
+): Promise<Result<InvoiceLine>> => {
+    const response = await apiClient.post<Result<InvoiceLine>>(
+        "/InvoiceLines/create",
+        data
+    );
+    return response.data;
+};
 
-    async deleteInvoiceLine(id: string): Promise<ApiResponse<void>> {
-        return this.post<void>(`InvoiceLines/delete/${id}`);
-    }
+export const updateInvoiceLine = async (
+    data: UpdateInvoiceLineRequest
+): Promise<Result<InvoiceLine>> => {
+    const response = await apiClient.post<Result<InvoiceLine>>(
+        `/InvoiceLines/update/${data.id}`,
+        data
+    );
+    return response.data;
+};
 
-    async getInvoiceLineById(id: string): Promise<ApiResponse<InvoiceLine>> {
-        return this.get<InvoiceLine>(`InvoiceLines/get-by-id/${id}`);
-    }
+export const deleteInvoiceLine = async (id: string): Promise<Result<void>> => {
+    const response = await apiClient.post<Result<void>>(
+        `/InvoiceLines/delete/${id}`
+    );
+    return response.data;
+};
 
-    async getAllInvoiceLines(): Promise<ApiResponse<InvoiceLine[]>> {
-        return this.get<InvoiceLine[]>("InvoiceLines/get-all");
-    }
+export const getInvoiceLineById = async (
+    id: string
+): Promise<Result<InvoiceLine>> => {
+    const response = await apiClient.get<Result<InvoiceLine>>(
+        `/InvoiceLines/get-by-id/${id}`
+    );
+    return response.data;
+};
 
-    async getInvoiceLinesPaginated(
-        page: number = 1,
-        pageSize: number = 10
-    ): Promise<ApiResponse<PaginatedResponse<InvoiceLine>>> {
-        return this.get<PaginatedResponse<InvoiceLine>>(
-            `InvoiceLines/get-pagination?page=${page}&pageSize=${pageSize}`
-        );
-    }
+export const getAllInvoiceLines = async (): Promise<Result<InvoiceLine[]>> => {
+    const response = await apiClient.get<Result<InvoiceLine[]>>(
+        "/InvoiceLines/get-all"
+    );
+    return response.data;
+};
 
-    async getInvoiceLinesByInvoiceId(
-        invoiceId: string
-    ): Promise<ApiResponse<InvoiceLine[]>> {
-        return this.get<InvoiceLine[]>(
-            `InvoiceLines/by-invoice/${invoiceId}`
-        );
-    }
-}
+const cleanPaginationParams = (page: number = 1, pageSize: number = 10) => {
+    return { page, pageSize };
+};
 
-export const invoiceLineService = new InvoiceLineService();
+export const getInvoiceLinesPaginated = async (
+    page: number = 1,
+    pageSize: number = 10
+): Promise<PaginatedResult<InvoiceLine>> => {
+    const params = cleanPaginationParams(page, pageSize);
+    const response = await apiClient.get<PaginatedResult<InvoiceLine>>(
+        "/InvoiceLines/get-pagination",
+        {
+            params,
+        }
+    );
+    return response.data;
+};
+
+export const getInvoiceLinesByInvoiceId = async (
+    invoiceId: string
+): Promise<Result<InvoiceLine[]>> => {
+    const response = await apiClient.get<Result<InvoiceLine[]>>(
+        `/InvoiceLines/by-invoice/${invoiceId}`
+    );
+    return response.data;
+};

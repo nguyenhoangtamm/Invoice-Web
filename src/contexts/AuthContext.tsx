@@ -152,11 +152,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await loginApi(credentials);
 
-      storeAuthData(response);
+      // Extract data from Result wrapper
+      const authData = response.data || response;
+
+      storeAuthData(authData);
       // Get additional user info after login
       await getCurrentUser();
 
-      return response;
+      return authData;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -174,11 +177,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await registerApi(userData);
 
-      storeAuthData(response);
+      // Extract data from Result wrapper
+      const authData = response.data || response;
+
+      storeAuthData(authData);
       // Get additional user info after registration
       await getCurrentUser();
 
-      return response;
+      return authData;
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -217,7 +223,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await refreshTokenApi({ refreshToken });
 
-      storeAuthData(response);
+      // Extract data from Result wrapper
+      const authData = response.data || response;
+
+      storeAuthData(authData);
       return true;
     } catch (error) {
       console.error('Token refresh error:', error);
@@ -235,14 +244,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await getCurrentUserApi();
 
+      // Extract data from Result wrapper
+      const userData = response.data || response;
+
       // Ensure we populate both the minimal `user` used for auth checks
       // and the `currentUserInfo` used for richer profile data.
       // Some backends return the user only via the /me endpoint and the
       // login response may not include a `user` field, so set both here.
-      setUser(response as UserDto);
-      setCurrentUserInfo(response);
-      localStorage.setItem(LOCAL_STORAGE_KEYS.USER, JSON.stringify(response));
-      localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_USER_INFO, JSON.stringify(response));
+      setUser(userData);
+      setCurrentUserInfo(userData);
+      localStorage.setItem(LOCAL_STORAGE_KEYS.USER, JSON.stringify(userData));
+      localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_USER_INFO, JSON.stringify(userData));
     } catch (error) {
       console.error('Get current user error:', error);
       // Don't clear auth data on this error, just log it
