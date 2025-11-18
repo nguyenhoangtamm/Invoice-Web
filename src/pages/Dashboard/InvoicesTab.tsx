@@ -55,8 +55,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
         return invoiceList.filter(inv => {
             const matchesSearch = (inv.invoiceNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (inv.customerName || '').toLowerCase().includes(searchTerm.toLowerCase());
-            const statusVal = inv.status != null ? String(inv.status) : '';
-            const matchesStatus = statusFilter === 'all' || statusVal.toLowerCase().includes(statusFilter.toLowerCase());
+            const matchesStatus = statusFilter === 'all' || (inv.status != null && inv.status === Number(statusFilter));
             return matchesSearch && matchesStatus;
         });
     }, [invoiceList, searchTerm, statusFilter]);
@@ -77,6 +76,31 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
     const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setStatusFilter(e.target.value);
         setCurrentPage(1);
+    };
+
+    // Map InvoiceStatus enum to human-friendly Vietnamese labels and CSS classes
+    const statusOptions = [
+        { value: InvoiceStatus.Uploaded, label: 'Đã upload' },
+        { value: InvoiceStatus.IpfsStored, label: 'Đã lưu trên IPFS' },
+        { value: InvoiceStatus.Batched, label: 'Đã tạo batch' },
+        { value: InvoiceStatus.BlockchainConfirmed, label: 'Đã xác nhận trên blockchain' },
+        { value: InvoiceStatus.Finalized, label: 'Hoàn tất' },
+        { value: InvoiceStatus.IpfsFailed, label: 'Upload IPFS thất bại' },
+        { value: InvoiceStatus.BlockchainFailed, label: 'Ghi blockchain thất bại' },
+    ];
+
+    const getStatusLabel = (status?: number) => {
+        if (status == null) return '-';
+        const opt = statusOptions.find(o => o.value === status);
+        return opt ? opt.label : String(status);
+    };
+
+    const getStatusClass = (status?: number) => {
+        if (status == null) return 'bg-gray-100 text-gray-700';
+        if (status === InvoiceStatus.BlockchainConfirmed || status === InvoiceStatus.Finalized) return 'bg-green-100 text-green-700';
+        if (status === InvoiceStatus.Uploaded || status === InvoiceStatus.IpfsStored || status === InvoiceStatus.Batched) return 'bg-yellow-100 text-yellow-700';
+        if (status === InvoiceStatus.IpfsFailed || status === InvoiceStatus.BlockchainFailed) return 'bg-red-100 text-red-700';
+        return 'bg-gray-100 text-gray-700';
     };
 
     if (loading) {
@@ -116,9 +140,9 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="all">Tất cả trạng thái</option>
-                        <option value="Đã phát hành">Đã phát hành</option>
-                        <option value="Chờ xác nhận">Chờ xác nhận</option>
-                        <option value="Quá hạn">Quá hạn</option>
+                        {statusOptions.map(opt => (
+                            <option key={opt.value} value={String(opt.value)}>{opt.label}</option>
+                        ))}
                     </select>
                 </div>
             </div>
@@ -149,11 +173,8 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
                                                 {invoice.totalAmount?.toLocaleString('vi-VN')} {invoice.currency || 'VND'}
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${invoice.status === InvoiceStatus.BlockchainConfirmed ? 'bg-green-100 text-green-700' :
-                                                    invoice.status === InvoiceStatus.Uploaded ? 'bg-yellow-100 text-yellow-700' :
-                                                        'bg-red-100 text-red-700'
-                                                    }`}>
-                                                    {invoice.status || '-'}
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(invoice.status)}`}>
+                                                    {getStatusLabel(invoice.status)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm">

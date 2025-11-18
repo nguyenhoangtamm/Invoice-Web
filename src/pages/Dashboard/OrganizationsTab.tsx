@@ -19,7 +19,7 @@ const OrganizationsTab: React.FC = () => {
                     const orgData = response.data;
                     const organization: Organization = {
                         id: orgData.id.toString(),
-                        name: orgData.organizationName,
+                        organizationName: orgData.organizationName,
                         taxCode: orgData.organizationTaxId,
                         address: orgData.organizationAddress,
                         phone: orgData.organizationPhone,
@@ -71,7 +71,7 @@ const OrganizationsTab: React.FC = () => {
                                     <Building2 className="text-blue-600" size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">{org.name}</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900">{org.organizationName}</h3>
                                     <p className="text-gray-600 mt-1">Mã số thuế: {org.taxCode}</p>
                                     <div className="flex items-center gap-4 mt-3">
                                         <span className="text-sm text-gray-500">ID: ORG-{org.id}</span>

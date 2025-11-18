@@ -1,7 +1,7 @@
 // Organization types
 export interface Organization {
     id: string;
-    name: string;
+    organizationName: string;
     description?: string;
     address?: string;
     phone?: string;

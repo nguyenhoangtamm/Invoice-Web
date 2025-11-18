@@ -32,7 +32,7 @@ const DashboardTab: React.FC = () => {
                     const orgData = orgResponse.data;
                     const organization: Organization = {
                         id: orgData.id.toString(),
-                        name: orgData.organizationName,
+                        organizationName: orgData.organizationName,
                         taxCode: orgData.organizationTaxId,
                         address: orgData.organizationAddress,
                         phone: orgData.organizationPhone,
@@ -186,7 +186,7 @@ const DashboardTab: React.FC = () => {
                             <div key={org.id} className="p-4 bg-gray-50 rounded-lg">
                                 <div className="flex items-start justify-between">
                                     <div>
-                                        <h4 className="font-semibold text-gray-900">{org.name}</h4>
+                                        <h4 className="font-semibold text-gray-900">{org.organizationName}</h4>
                                         <p className="text-sm text-gray-600 mt-1">MST: {org.taxCode}</p>
                                     </div>
                                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${org.isActive

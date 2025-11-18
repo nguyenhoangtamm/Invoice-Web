@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Key, Edit2, Trash2, Eye, EyeOff, Copy, Search, Filter, RefreshCw } from 'lucide-react';
 import { ApiKey, CreateApiKeyRequest, UpdateApiKeyRequest } from '../../types/apiKey';
 import { createApiKey, deleteApiKey, getApiKeysPaginated, updateApiKey } from '../../api/services/apiKeyService';
+import { getAllOrganizations } from '../../api/services/organizationService';
 
 const AdminApiKeys = () => {
     const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
@@ -27,13 +28,30 @@ const AdminApiKeys = () => {
     // Form data
     const [formData, setFormData] = useState<CreateApiKeyRequest>({
         name: '',
-        permissions: [],
-        expiresAt: '',
+        active: true,
+        organizationId: 0,
+        expirationDays: 30,
     });
+    const [organizations, setOrganizations] = useState<Array<{ id: number, name: string }>>([]);
 
     useEffect(() => {
         loadApiKeys();
+        fetchOrganizations();
     }, [currentPage, searchTerm, statusFilter]);
+
+    const fetchOrganizations = async () => {
+        try {
+            const response = await getAllOrganizations();
+            if (response.succeeded && response.data) {
+                setOrganizations(response.data.map(org => ({
+                    id: parseInt(org.id),
+                    name: org.name
+                })));
+            }
+        } catch (err) {
+            console.error('Error fetching organizations:', err);
+        }
+    };
 
     const loadApiKeys = async () => {
         setLoading(true);
@@ -88,9 +106,9 @@ const AdminApiKeys = () => {
             const updateData: UpdateApiKeyRequest = {
                 id: selectedApiKey.id,
                 name: formData.name,
-                isActive: selectedApiKey.isActive,
-                permissions: formData.permissions,
-                expiresAt: formData.expiresAt,
+                active: formData.active,
+                organizationId: formData.organizationId,
+                expirationDays: formData.expirationDays,
             };
 
             const response = await updateApiKey(updateData);
@@ -136,8 +154,9 @@ const AdminApiKeys = () => {
     const resetForm = () => {
         setFormData({
             name: '',
-            permissions: [],
-            expiresAt: '',
+            active: true,
+            organizationId: 0,
+            expirationDays: 30,
         });
     };
 
@@ -145,8 +164,9 @@ const AdminApiKeys = () => {
         setSelectedApiKey(apiKey);
         setFormData({
             name: apiKey.name,
-            permissions: apiKey.permissions || [],
-            expiresAt: apiKey.expiresAt || '',
+            active: apiKey.active,
+            organizationId: apiKey.organizationId,
+            expirationDays: apiKey.expirationDays,
         });
         setShowEditModal(true);
     };
@@ -272,13 +292,13 @@ const AdminApiKeys = () => {
                                     API Key
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Quyền
+                                    Tổ chức / Hết hạn
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Trạng thái
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Lần cuối sử dụng
+                                    Cập nhật lần cuối
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Hành động
@@ -311,7 +331,7 @@ const AdminApiKeys = () => {
                                             <div className="flex items-center gap-2">
                                                 <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">
                                                     {visibleKeys.has(apiKey.id)
-                                                        ? apiKey.keyValue
+                                                        ? apiKey.key
                                                         : '••••••••••••••••'
                                                     }
                                                 </code>
@@ -326,7 +346,7 @@ const AdminApiKeys = () => {
                                                     )}
                                                 </button>
                                                 <button
-                                                    onClick={() => copyToClipboard(apiKey.keyValue)}
+                                                    onClick={() => copyToClipboard(apiKey.key)}
                                                     className="text-gray-400 hover:text-gray-600"
                                                 >
                                                     <Copy className="w-4 h-4" />
@@ -334,22 +354,18 @@ const AdminApiKeys = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex flex-wrap gap-1">
-                                                {(apiKey.permissions || []).map((permission, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs"
-                                                    >
-                                                        {permission}
-                                                    </span>
-                                                ))}
+                                            <div className="text-sm text-gray-900">
+                                                Tổ chức: {apiKey.organizationId}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                Hết hạn sau: {apiKey.expirationDays} ngày
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            {getStatusBadge(apiKey.isActive)}
+                                            {getStatusBadge(apiKey.active)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {apiKey.lastUsed ? formatDate(apiKey.lastUsed) : 'Chưa sử dụng'}
+                                            {formatDate(apiKey.updatedAt)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex items-center gap-2">
@@ -464,45 +480,47 @@ const AdminApiKeys = () => {
 
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Quyền hạn
+                                        Tổ chức
                                     </label>
-                                    <div className="space-y-2">
-                                        {['read', 'write', 'delete'].map((permission) => (
-                                            <label key={permission} className="flex items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={(formData.permissions || []).includes(permission)}
-                                                    onChange={(e) => {
-                                                        if (e.target.checked) {
-                                                            setFormData({
-                                                                ...formData,
-                                                                permissions: [...(formData.permissions || []), permission]
-                                                            });
-                                                        } else {
-                                                            setFormData({
-                                                                ...formData,
-                                                                permissions: (formData.permissions || []).filter(p => p !== permission)
-                                                            });
-                                                        }
-                                                    }}
-                                                    className="mr-2"
-                                                />
-                                                {permission}
-                                            </label>
+                                    <select
+                                        value={formData.organizationId}
+                                        onChange={(e) => setFormData({ ...formData, organizationId: parseInt(e.target.value) })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                        required
+                                    >
+                                        <option value={0}>Chọn tổ chức</option>
+                                        {organizations.map((org) => (
+                                            <option key={org.id} value={org.id}>
+                                                {org.name}
+                                            </option>
                                         ))}
-                                    </div>
+                                    </select>
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Số ngày hết hạn
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={formData.expirationDays}
+                                        onChange={(e) => setFormData({ ...formData, expirationDays: parseInt(e.target.value) || 0 })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                        min="1"
+                                        required
+                                    />
                                 </div>
 
                                 <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Ngày hết hạn (tùy chọn)
+                                    <label className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.active}
+                                            onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                                            className="mr-2"
+                                        />
+                                        Kích hoạt API Key
                                     </label>
-                                    <input
-                                        type="datetime-local"
-                                        value={formData.expiresAt}
-                                        onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                    />
                                 </div>
 
                                 <div className="flex gap-3">
@@ -554,45 +572,47 @@ const AdminApiKeys = () => {
 
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Quyền hạn
+                                        Tổ chức
                                     </label>
-                                    <div className="space-y-2">
-                                        {['read', 'write', 'delete'].map((permission) => (
-                                            <label key={permission} className="flex items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={(formData.permissions || []).includes(permission)}
-                                                    onChange={(e) => {
-                                                        if (e.target.checked) {
-                                                            setFormData({
-                                                                ...formData,
-                                                                permissions: [...(formData.permissions || []), permission]
-                                                            });
-                                                        } else {
-                                                            setFormData({
-                                                                ...formData,
-                                                                permissions: (formData.permissions || []).filter(p => p !== permission)
-                                                            });
-                                                        }
-                                                    }}
-                                                    className="mr-2"
-                                                />
-                                                {permission}
-                                            </label>
+                                    <select
+                                        value={formData.organizationId}
+                                        onChange={(e) => setFormData({ ...formData, organizationId: parseInt(e.target.value) })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                        required
+                                    >
+                                        <option value={0}>Chọn tổ chức</option>
+                                        {organizations.map((org) => (
+                                            <option key={org.id} value={org.id}>
+                                                {org.name}
+                                            </option>
                                         ))}
-                                    </div>
+                                    </select>
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Số ngày hết hạn
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={formData.expirationDays}
+                                        onChange={(e) => setFormData({ ...formData, expirationDays: parseInt(e.target.value) || 0 })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                        min="1"
+                                        required
+                                    />
                                 </div>
 
                                 <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Ngày hết hạn (tùy chọn)
+                                    <label className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.active}
+                                            onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                                            className="mr-2"
+                                        />
+                                        Kích hoạt API Key
                                     </label>
-                                    <input
-                                        type="datetime-local"
-                                        value={formData.expiresAt}
-                                        onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                    />
                                 </div>
 
                                 <div className="flex gap-3">
