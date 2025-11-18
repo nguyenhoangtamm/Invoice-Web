@@ -116,3 +116,12 @@ export const getInvoicesByOrganization = async (
     );
     return response.data;
 };
+
+export const getInvoiceByLookup = async (
+    lookup: string
+): Promise<Result<Invoice>> => {
+    const response = await apiClient.get<Result<Invoice>>(
+        `/Invoices/lookup/${lookup}`
+    );
+    return response.data;
+};
