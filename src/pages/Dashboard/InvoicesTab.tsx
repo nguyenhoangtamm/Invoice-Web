@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Plus, Eye, Download, Trash2, Search, Filter, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
-import type { Invoice } from '../../types/invoice';
+import type { Invoice, CreateInvoiceRequest } from '../../types/invoice';
 import { InvoiceStatus } from '../../enums/invoiceEnum';
-import { getInvoicesPaginated } from '../../api/services/invoiceService';
+import { getInvoicesPaginated, createInvoice } from '../../api/services/invoiceService';
 import { mockInvoices } from '../../data/mockInvoice';
 import { useAuth } from '../../contexts/AuthContext';
+import CreateInvoiceModal from '../../components/CreateInvoiceModal';
 
 interface InvoicesTabProps {
     onSelectInvoice: (invoice: Invoice) => void;
@@ -19,6 +20,8 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
     const [currentPage, setCurrentPage] = useState(1);
     const [invoicesPerPage] = useState(10);
     const [loading, setLoading] = useState(true);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [creating, setCreating] = useState(false);
 
     const { user } = useAuth();
 
@@ -50,6 +53,28 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
     const deleteInvoice = (invoiceNumber: string | undefined) => {
         if (!invoiceNumber) return;
         setInvoiceList(prev => prev.filter(inv => inv.invoiceNumber !== invoiceNumber));
+    };
+
+    const handleCreateInvoice = async (invoiceData: CreateInvoiceRequest) => {
+        setCreating(true);
+        try {
+            const response = await createInvoice(invoiceData);
+            if (response.succeeded && response.data) {
+                // Add new invoice to the list
+                setInvoiceList(prev => [response.data, ...prev]);
+                setShowCreateModal(false);
+                // Show success message (you can implement a toast notification here)
+                alert('Tạo hóa đơn thành công!');
+            } else {
+                // Show error message
+                alert('Có lỗi xảy ra khi tạo hóa đơn: ' + (response.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error creating invoice:', error);
+            alert('Có lỗi xảy ra khi tạo hóa đơn');
+        } finally {
+            setCreating(false);
+        }
     };
     const filteredInvoices = useMemo(() => {
         return invoiceList.filter(inv => {
@@ -115,10 +140,19 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold text-gray-900">Quản lý Hóa đơn</h1>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
-                    <Plus size={20} />
-                    Tải hóa đơn mới
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+                    >
+                        <Plus size={20} />
+                        Tạo hóa đơn mới
+                    </button>
+                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                        <FileText size={20} />
+                        Tải hóa đơn từ file
+                    </button>
+                </div>
             </div>
 
             {/* Search and Filter Bar */}
@@ -248,6 +282,14 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
                     </div>
                 )}
             </div>
+
+            {/* Create Invoice Modal */}
+            <CreateInvoiceModal
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                onSubmit={handleCreateInvoice}
+                loading={creating}
+            />
         </div>
     );
 };

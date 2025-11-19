@@ -104,8 +104,8 @@ export const getOrganizationByUserId = async (
     return response.data;
 };
 
-export const getOrganizationByMe = async (): Promise<Result<GetByUserResponse>> => {
-    const response = await apiClient.get<Result<GetByUserResponse>>(
+export const getOrganizationByMe = async (): Promise<Result<GetByUserResponse[]>> => {
+    const response = await apiClient.get<Result<GetByUserResponse[]>>(
         "/Organizations/me"
     );
     return response.data;

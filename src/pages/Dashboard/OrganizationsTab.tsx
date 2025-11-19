@@ -16,19 +16,22 @@ const OrganizationsTab: React.FC = () => {
             try {
                 const response = await getOrganizationByMe();
                 if (response.succeeded && response.data) {
-                    const orgData = response.data;
-                    const organization: Organization = {
-                        id: orgData.id.toString(),
-                        organizationName: orgData.organizationName,
-                        taxCode: orgData.organizationTaxId,
-                        address: orgData.organizationAddress,
-                        phone: orgData.organizationPhone,
-                        email: orgData.organizationEmail,
-                        isActive: true,
-                        createdAt: '',
-                        updatedAt: ''
-                    };
-                    setOrganizations([organization]);
+                    const orgDatas = response.data;
+                    orgDatas.forEach((orgData) => {
+                        const organization: Organization = {
+                            id: orgData.id.toString(),
+                            organizationName: orgData.organizationName,
+                            taxCode: orgData.organizationTaxId,
+                            address: orgData.organizationAddress,
+                            phone: orgData.organizationPhone,
+                            email: orgData.organizationEmail,
+                            isActive: true,
+                            createdAt: '',
+                            updatedAt: ''
+                        };
+                        setOrganizations([organization]);
+                    }
+                );
                 } else {
                     setOrganizations([]);
                 }

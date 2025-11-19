@@ -149,19 +149,43 @@ export interface DashboardStats {
 export interface InvoiceDetail extends Invoice {}
 
 // Request types for Invoice operations
+export interface CreateInvoiceLineRequest {
+    invoiceId?: number;
+    lineNumber: number;
+    description: string;
+    unit: string;
+    quantity: number;
+    unitPrice: number;
+    discount: number;
+    taxRate: number;
+    taxAmount: number;
+    lineTotal: number;
+}
+
 export interface CreateInvoiceRequest {
     invoiceNumber: string;
+    formNumber: string;
+    serial: string;
     organizationId: number;
-    customerId?: number;
-    sellerId?: number;
-    issueDate: string;
-    dueDate?: string;
-    totalAmount: number;
-    taxAmount?: number;
-    discountAmount?: number;
+    sellerName: string;
+    sellerTaxId: string;
+    sellerAddress: string;
+    sellerPhone: string;
+    sellerEmail: string;
+    customerName: string;
+    customerTaxId: string;
+    customerAddress: string;
+    customerPhone: string;
+    customerEmail: string;
     status: number;
-    notes?: string;
-    batchId?: number;
+    issuedDate: string;
+    subTotal: number;
+    taxAmount: number;
+    discountAmount: number;
+    totalAmount: number;
+    currency: string;
+    note: string;
+    lines: CreateInvoiceLineRequest[];
 }
 
 export interface UpdateInvoiceRequest extends CreateInvoiceRequest {

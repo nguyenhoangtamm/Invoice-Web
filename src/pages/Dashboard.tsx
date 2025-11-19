@@ -84,15 +84,7 @@ const InvoiceDashboard = () => {
 
                 {sidebarOpen && (
                     <div className="absolute bottom-0 w-64 p-4 border-t border-gray-200 bg-white">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                                PA
-                            </div>
-                            <div>
-                                <p className="font-medium text-gray-900">Premium User</p>
-                                <p className="text-sm text-gray-500">0 API Credits</p>
-                            </div>
-                        </div>
+                        
                         <button
                             onClick={logout}
                             className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
