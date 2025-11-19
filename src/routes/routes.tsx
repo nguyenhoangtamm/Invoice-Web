@@ -8,6 +8,7 @@ import Terms from '../pages/Terms';
 import Privacy from '../pages/Privacy';
 import ForgotPassword from '../pages/ForgotPassword';
 import AdminLayout from '../layouts/AdminLayout';
+import DashboardLayout from '../layouts/DashboardLayout';
 import AdminDashboard from '../pages/Admin/AdminDashboard';
 import AdminUsers from '../pages/Admin/AdminUsers';
 import AdminInvoices from '../pages/Admin/AdminInvoices';
@@ -19,7 +20,14 @@ import AdminInvoiceBatches from '../pages/Admin/AdminInvoiceBatches';
 import AdminInvoiceLines from '../pages/Admin/AdminInvoiceLines';
 import AdminGuard from '../components/common/AdminGuard';
 import AuthGuard from '../components/common/AuthGuard';
-import InvoiceDashboard from '../pages/Dashboard';
+import {
+    DashboardPage,
+    InvoicesPage,
+    OrganizationsPage,
+    ApiKeysPage,
+    AnalyticsPage,
+    SettingsPage
+} from '../pages/DashboardPages';
 
 export const routes: RouteObject[] = [
     {
@@ -28,8 +36,24 @@ export const routes: RouteObject[] = [
         children: [
             { index: true, element: <Navigate to="/lookup" replace /> },
             { path: 'lookup', element: <Lookup /> },
-            { path: 'dashboard', element: <AuthGuard><InvoiceDashboard /></AuthGuard> },
             { path: '*', element: <Lookup /> },
+        ]
+    },
+    // Dashboard routes with layout
+    {
+        path: '/dashboard',
+        element: (
+            <AuthGuard>
+                <DashboardLayout />
+            </AuthGuard>
+        ),
+        children: [
+            { index: true, element: <DashboardPage /> },
+            { path: 'invoices', element: <InvoicesPage /> },
+            { path: 'organizations', element: <OrganizationsPage /> },
+            { path: 'api-keys', element: <ApiKeysPage /> },
+            { path: 'analytics', element: <AnalyticsPage /> },
+            { path: 'settings', element: <SettingsPage /> }
         ]
     },
     // Admin routes with separate layout
