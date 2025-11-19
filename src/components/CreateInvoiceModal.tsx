@@ -22,8 +22,9 @@ import {
 } from 'rsuite';
 import TrashIcon from '@rsuite/icons/Trash';
 import PlusIcon from '@rsuite/icons/Plus';
-import type { CreateInvoiceRequest, CreateInvoiceLineRequest } from '../types/invoice';
+import type { CreateInvoiceRequest, CreateInvoiceLineRequest, Invoice } from '../types/invoice';
 import { getAllOrganizations } from '../api/services/organizationService';
+import { createInvoice } from '../api/services/invoiceService';
 import type { Organization } from '../types/organization';
 const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<typeof Input>>(
     (props, ref) => <Input {...props} as="textarea" ref={ref} />
@@ -32,8 +33,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<type
 interface CreateInvoiceModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (invoice: CreateInvoiceRequest) => void;
-    loading?: boolean;
+    onSuccess: (invoice: Invoice) => void;
 }
 
 interface FormErrors {
@@ -43,8 +43,7 @@ interface FormErrors {
 const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     isOpen,
     onClose,
-    onSubmit,
-    loading = false
+    onSuccess
 }) => {
     const [formData, setFormData] = useState<CreateInvoiceRequest>({
         invoiceNumber: '',
@@ -88,6 +87,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     const [formError, setFormError] = useState({});
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [loadingOrganizations, setLoadingOrganizations] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -246,7 +246,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
         customerEmail: Schema.Types.StringType().isEmail('Email khách hàng không hợp lệ')
     });
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!formRef.current.check()) {
             toaster.push(
                 <Message type="error" showIcon>
@@ -304,7 +304,38 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             issuedDate: new Date(formData.issuedDate).toISOString(),
             lines: lines
         };
-        onSubmit(invoiceData);
+
+        setLoading(true);
+        try {
+            const response = await createInvoice(invoiceData);
+            if (response.succeeded && response.data) {
+                // Show success message
+                toaster.push(
+                    <Message type="success" showIcon>
+                        Tạo hóa đơn thành công!
+                    </Message>
+                );
+                // Call success callback
+                onSuccess(response.data);
+                onClose();
+            } else {
+                // Show error message
+                toaster.push(
+                    <Message type="error" showIcon>
+                        Có lỗi xảy ra khi tạo hóa đơn: {response.message || 'Unknown error'}
+                    </Message>
+                );
+            }
+        } catch (error) {
+            console.error('Error creating invoice:', error);
+            toaster.push(
+                <Message type="error" showIcon>
+                    Có lỗi xảy ra khi tạo hóa đơn
+                </Message>
+            );
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

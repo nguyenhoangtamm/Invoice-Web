@@ -7,12 +7,14 @@ import { getOrganizationByMe } from '../../api/services/organizationService';
 import { getInvoicesPaginated } from '../../api/services/invoiceService';
 import { mockInvoices } from '../../data/mockInvoice';
 import { useAuth } from '../../contexts/AuthContext';
+import CreateInvoiceModal from '../../components/CreateInvoiceModal';
 
 const DashboardTab: React.FC = () => {
     const [dashboardStats, setDashboardStats] = useState<DashboardStatsDto | null>(null);
     const [recentInvoices, setRecentInvoices] = useState<Invoice[]>([]);
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showCreateModal, setShowCreateModal] = useState(false);
 
     const { user } = useAuth();
 
@@ -29,19 +31,21 @@ const DashboardTab: React.FC = () => {
                 // Fetch organizations
                 const orgResponse = await getOrganizationByMe();
                 if (orgResponse.succeeded && orgResponse.data) {
-                    const orgData = orgResponse.data;
-                    const organization: Organization = {
-                        id: orgData.id.toString(),
-                        organizationName: orgData.organizationName,
-                        taxCode: orgData.organizationTaxId,
-                        address: orgData.organizationAddress,
-                        phone: orgData.organizationPhone,
-                        email: orgData.organizationEmail,
-                        isActive: true,
-                        createdAt: '',
-                        updatedAt: ''
-                    };
-                    setOrganizations([organization]);
+                    const orgDatas = orgResponse.data;
+                    orgDatas.forEach((orgData) => {
+                        const organization: Organization = {
+                            id: orgData.id.toString(),
+                            organizationName: orgData.organizationName,
+                            taxCode: orgData.organizationTaxId,
+                            address: orgData.organizationAddress,
+                            phone: orgData.organizationPhone,
+                            email: orgData.organizationEmail,
+                            isActive: true,
+                            createdAt: '',
+                            updatedAt: ''
+                        };
+                        setOrganizations([organization]);
+                    })
                 }
 
                 // Fetch recent invoices
@@ -65,7 +69,9 @@ const DashboardTab: React.FC = () => {
             fetchData();
         }
     }, [user]);
-
+    const handleCreateSuccess = (newInvoice: Invoice) => {
+        setShowCreateModal(false);
+    };
     const computedStats = useMemo(() => {
         const total = dashboardStats?.totalInvoices ?? 0;
         const totalRevenue = dashboardStats?.totalRevenue ?? 0;
@@ -101,7 +107,8 @@ const DashboardTab: React.FC = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                    onClick={() => setShowCreateModal(true)}>
                     <Plus size={20} />
                     Tải hóa đơn mới
                 </button>
@@ -205,6 +212,12 @@ const DashboardTab: React.FC = () => {
                     </div>
                 </div>
             </div>
+            {/* Create Invoice Modal */}
+            <CreateInvoiceModal
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                onSuccess={handleCreateSuccess}
+            />
         </div>
     );
 };

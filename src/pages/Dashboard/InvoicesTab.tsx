@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Plus, Eye, Download, Trash2, Search, Filter, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import type { Invoice, CreateInvoiceRequest } from '../../types/invoice';
 import { InvoiceStatus } from '../../enums/invoiceEnum';
-import { getInvoicesPaginated, createInvoice } from '../../api/services/invoiceService';
+import { getInvoicesPaginated } from '../../api/services/invoiceService';
 import { mockInvoices } from '../../data/mockInvoice';
 import { useAuth } from '../../contexts/AuthContext';
 import CreateInvoiceModal from '../../components/CreateInvoiceModal';
@@ -21,7 +21,6 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
     const [invoicesPerPage] = useState(10);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [creating, setCreating] = useState(false);
 
     const { user } = useAuth();
 
@@ -55,26 +54,10 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
         setInvoiceList(prev => prev.filter(inv => inv.invoiceNumber !== invoiceNumber));
     };
 
-    const handleCreateInvoice = async (invoiceData: CreateInvoiceRequest) => {
-        setCreating(true);
-        try {
-            const response = await createInvoice(invoiceData);
-            if (response.succeeded && response.data) {
-                // Add new invoice to the list
-                setInvoiceList(prev => [response.data, ...prev]);
-                setShowCreateModal(false);
-                // Show success message (you can implement a toast notification here)
-                alert('Tạo hóa đơn thành công!');
-            } else {
-                // Show error message
-                alert('Có lỗi xảy ra khi tạo hóa đơn: ' + (response.message || 'Unknown error'));
-            }
-        } catch (error) {
-            console.error('Error creating invoice:', error);
-            alert('Có lỗi xảy ra khi tạo hóa đơn');
-        } finally {
-            setCreating(false);
-        }
+    const handleCreateSuccess = (newInvoice: Invoice) => {
+        // Add new invoice to the list
+        setInvoiceList(prev => [newInvoice, ...prev]);
+        setShowCreateModal(false);
     };
     const filteredInvoices = useMemo(() => {
         return invoiceList.filter(inv => {
@@ -287,8 +270,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
             <CreateInvoiceModal
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
-                onSubmit={handleCreateInvoice}
-                loading={creating}
+                onSuccess={handleCreateSuccess}
             />
         </div>
     );
