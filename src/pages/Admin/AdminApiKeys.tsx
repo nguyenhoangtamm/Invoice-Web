@@ -45,7 +45,7 @@ const AdminApiKeys = () => {
             if (response.succeeded && response.data) {
                 setOrganizations(response.data.map(org => ({
                     id: parseInt(org.id),
-                    name: org.name
+                    name: org.organizationName
                 })));
             }
         } catch (err) {
@@ -324,33 +324,7 @@ const AdminApiKeys = () => {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="font-medium text-gray-900">{apiKey.name}</div>
                                             <div className="text-sm text-gray-500">
-                                                Tạo: {formatDate(apiKey.createdAt)}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-2">
-                                                <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">
-                                                    {visibleKeys.has(apiKey.id)
-                                                        ? apiKey.key
-                                                        : '••••••••••••••••'
-                                                    }
-                                                </code>
-                                                <button
-                                                    onClick={() => toggleKeyVisibility(apiKey.id)}
-                                                    className="text-gray-400 hover:text-gray-600"
-                                                >
-                                                    {visibleKeys.has(apiKey.id) ? (
-                                                        <EyeOff className="w-4 h-4" />
-                                                    ) : (
-                                                        <Eye className="w-4 h-4" />
-                                                    )}
-                                                </button>
-                                                <button
-                                                    onClick={() => copyToClipboard(apiKey.key)}
-                                                    className="text-gray-400 hover:text-gray-600"
-                                                >
-                                                    <Copy className="w-4 h-4" />
-                                                </button>
+                                                Tạo: {formatDate(apiKey.createdAt??'')}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -365,7 +339,7 @@ const AdminApiKeys = () => {
                                             {getStatusBadge(apiKey.active)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {formatDate(apiKey.updatedAt)}
+                                            {formatDate(apiKey. updatedAt??'')}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex items-center gap-2">

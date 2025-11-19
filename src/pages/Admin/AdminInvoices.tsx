@@ -45,12 +45,12 @@ const InvoiceModal: FC<Props> = ({ open, onClose, loading, editingInvoice, formV
                         </Form.Group>
 
                         <Form.Group controlId="formNumber">
-                            <Form.ControlLabel>Số biểu mẫu</Form.ControlLabel>
+                            <Form.ControlLabel>Số biểu mẫu *</Form.ControlLabel>
                             <Form.Control name="formNumber" />
                         </Form.Group>
 
                         <Form.Group controlId="serial">
-                            <Form.ControlLabel>Số seri</Form.ControlLabel>
+                            <Form.ControlLabel>Số seri *</Form.ControlLabel>
                             <Form.Control name="serial" />
                         </Form.Group>
 
@@ -73,40 +73,98 @@ const InvoiceModal: FC<Props> = ({ open, onClose, loading, editingInvoice, formV
 
                     <div className="grid grid-cols-2 gap-4">
                         <Form.Group controlId="sellerName">
-                            <Form.ControlLabel>Tên người bán</Form.ControlLabel>
+                            <Form.ControlLabel>Tên người bán *</Form.ControlLabel>
                             <Form.Control name="sellerName" />
                         </Form.Group>
 
                         <Form.Group controlId="customerName">
-                            <Form.ControlLabel>Tên khách hàng</Form.ControlLabel>
+                            <Form.ControlLabel>Tên khách hàng *</Form.ControlLabel>
                             <Form.Control name="customerName" />
                         </Form.Group>
 
                         <Form.Group controlId="sellerTaxId">
-                            <Form.ControlLabel>Mã số thuế người bán</Form.ControlLabel>
+                            <Form.ControlLabel>Mã số thuế người bán *</Form.ControlLabel>
                             <Form.Control name="sellerTaxId" />
                         </Form.Group>
 
                         <Form.Group controlId="customerTaxId">
-                            <Form.ControlLabel>Mã số thuế khách hàng</Form.ControlLabel>
+                            <Form.ControlLabel>Mã số thuế khách hàng *</Form.ControlLabel>
                             <Form.Control name="customerTaxId" />
                         </Form.Group>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <Form.Group controlId="sellerAddress">
+                            <Form.ControlLabel>Địa chỉ người bán *</Form.ControlLabel>
+                            <Form.Control name="sellerAddress" />
+                        </Form.Group>
+
+                        <Form.Group controlId="customerAddress">
+                            <Form.ControlLabel>Địa chỉ khách hàng *</Form.ControlLabel>
+                            <Form.Control name="customerAddress" />
+                        </Form.Group>
+
+                        <Form.Group controlId="sellerPhone">
+                            <Form.ControlLabel>Điện thoại người bán *</Form.ControlLabel>
+                            <Form.Control name="sellerPhone" />
+                        </Form.Group>
+
+                        <Form.Group controlId="customerPhone">
+                            <Form.ControlLabel>Điện thoại khách hàng *</Form.ControlLabel>
+                            <Form.Control name="customerPhone" />
+                        </Form.Group>
+
+                        <Form.Group controlId="sellerEmail">
+                            <Form.ControlLabel>Email người bán *</Form.ControlLabel>
+                            <Form.Control name="sellerEmail" type="email" />
+                        </Form.Group>
+
+                        <Form.Group controlId="customerEmail">
+                            <Form.ControlLabel>Email khách hàng *</Form.ControlLabel>
+                            <Form.Control name="customerEmail" type="email" />
+                        </Form.Group>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-4">
                         <Form.Group controlId="subTotal">
-                            <Form.ControlLabel>Tổng phụ</Form.ControlLabel>
+                            <Form.ControlLabel>Tổng phụ *</Form.ControlLabel>
                             <Form.Control name="subTotal" type="number" step="0.01" />
                         </Form.Group>
 
                         <Form.Group controlId="taxAmount">
-                            <Form.ControlLabel>Tiền thuế</Form.ControlLabel>
+                            <Form.ControlLabel>Tiền thuế *</Form.ControlLabel>
                             <Form.Control name="taxAmount" type="number" step="0.01" />
                         </Form.Group>
 
+                        <Form.Group controlId="discountAmount">
+                            <Form.ControlLabel>Tiền giảm giá *</Form.ControlLabel>
+                            <Form.Control name="discountAmount" type="number" step="0.01" />
+                        </Form.Group>
+
                         <Form.Group controlId="totalAmount">
-                            <Form.ControlLabel>Tổng tiền</Form.ControlLabel>
+                            <Form.ControlLabel>Tổng tiền *</Form.ControlLabel>
                             <Form.Control name="totalAmount" type="number" step="0.01" />
+                        </Form.Group>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <Form.Group controlId="currency">
+                            <Form.ControlLabel>Tiền tệ *</Form.ControlLabel>
+                            <Form.Control
+                                name="currency"
+                                accepter={InputPicker}
+                                data={[
+                                    { label: 'VND', value: 'VND' },
+                                    { label: 'USD', value: 'USD' },
+                                    { label: 'EUR', value: 'EUR' },
+                                ]}
+                                style={{ width: '100%' }}
+                            />
+                        </Form.Group>
+
+                        <Form.Group controlId="issuedDate">
+                            <Form.ControlLabel>Ngày phát hành *</Form.ControlLabel>
+                            <Form.Control name="issuedDate" accepter={DatePicker} style={{ width: '100%' }} />
                         </Form.Group>
                     </div>
 
@@ -146,10 +204,28 @@ export default function AdminInvoices() {
     const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
     const [formData, setFormData] = useState<CreateInvoiceRequest>({
         invoiceNumber: '',
+        formNumber: '',
+        serial: '',
         organizationId: 1,
+        sellerName: '',
+        sellerTaxId: '',
+        sellerAddress: '',
+        sellerPhone: '',
+        sellerEmail: '',
+        customerName: '',
+        customerTaxId: '',
+        customerAddress: '',
+        customerPhone: '',
+        customerEmail: '',
         status: 1,
-        issueDate: new Date().toISOString(),
+        issuedDate: new Date().toISOString(),
+        subTotal: 0,
+        taxAmount: 0,
+        discountAmount: 0,
         totalAmount: 0,
+        currency: 'VND',
+        note: '',
+        lines: []
     });
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -169,7 +245,7 @@ export default function AdminInvoices() {
             const response = await getInvoicesPaginated(pageIndex + 1, pageSize);
             if (response.succeeded && response.data) {
                 setInvoices(response.data || []);
-                setTotalCount(response.totalPages || 0);
+                setTotalCount(response.totalCount || 0);
             }
         } catch (error) {
             console.error('Error loading invoices:', error);
@@ -185,18 +261,18 @@ export default function AdminInvoices() {
         try {
             if (editingInvoice) {
                 const updateData: UpdateInvoiceRequest = {
-                    id: editingInvoice.invoiceNumber || 'unknown',
+                    id: editingInvoice.id.toString(),
                     ...formData,
                 };
                 const response = await updateInvoice(updateData);
-                if (response) {
+                if (response.succeeded) {
                     await loadInvoices();
                     setShowModal(false);
                     resetForm();
                 }
             } else {
                 const response = await createInvoice(formData);
-                if (response) {
+                if (response.succeeded) {
                     await loadInvoices();
                     setShowModal(false);
                     resetForm();
@@ -213,14 +289,39 @@ export default function AdminInvoices() {
         setEditingInvoice(invoice);
         setFormData({
             invoiceNumber: invoice.invoiceNumber || '',
+            formNumber: invoice.formNumber || '',
+            serial: invoice.serial || '',
             organizationId: invoice.organizationId || 1,
-            issueDate: invoice.issuedDate || new Date().toISOString(),
-            totalAmount: invoice.totalAmount || 0,
+            sellerName: invoice.sellerName || '',
+            sellerTaxId: invoice.sellerTaxId || '',
+            sellerAddress: invoice.sellerAddress || '',
+            sellerPhone: invoice.sellerPhone || '',
+            sellerEmail: invoice.sellerEmail || '',
+            customerName: invoice.customerName || '',
+            customerTaxId: invoice.customerTaxId || '',
+            customerAddress: invoice.customerAddress || '',
+            customerPhone: invoice.customerPhone || '',
+            customerEmail: invoice.customerEmail || '',
+            status: invoice.status,
+            issuedDate: invoice.issuedDate || new Date().toISOString(),
+            subTotal: invoice.subTotal || 0,
             taxAmount: invoice.taxAmount || 0,
             discountAmount: invoice.discountAmount || 0,
-            status: invoice.status,
-            notes: invoice.note || '',
-            batchId: invoice.batchId || undefined,
+            totalAmount: invoice.totalAmount || 0,
+            currency: invoice.currency || 'VND',
+            note: invoice.note || '',
+            lines: (invoice.lines || []).map(line => ({
+                invoiceId: line.invoiceId,
+                lineNumber: line.lineNumber,
+                description: line.description,
+                unit: line.unit || '',
+                quantity: line.quantity,
+                unitPrice: line.unitPrice,
+                discount: line.discount,
+                taxRate: line.taxRate,
+                taxAmount: line.taxAmount,
+                lineTotal: line.lineTotal
+            }))
         });
         setShowModal(true);
     };
@@ -230,8 +331,10 @@ export default function AdminInvoices() {
         setDeleteLoading(true);
         setLoading(true);
         try {
-            await deleteInvoice(deleteTargetId);
-            await loadInvoices();
+            const response = await deleteInvoice(deleteTargetId);
+            if (response.succeeded) {
+                await loadInvoices();
+            }
         } catch (error) {
             console.error('Error deleting invoice:', error);
         } finally {
@@ -244,10 +347,28 @@ export default function AdminInvoices() {
     const resetForm = () => {
         setFormData({
             invoiceNumber: '',
+            formNumber: '',
+            serial: '',
             organizationId: 1,
+            sellerName: '',
+            sellerTaxId: '',
+            sellerAddress: '',
+            sellerPhone: '',
+            sellerEmail: '',
+            customerName: '',
+            customerTaxId: '',
+            customerAddress: '',
+            customerPhone: '',
+            customerEmail: '',
             status: 1,
-            issueDate: new Date().toISOString(),
+            issuedDate: new Date().toISOString(),
+            subTotal: 0,
+            taxAmount: 0,
+            discountAmount: 0,
             totalAmount: 0,
+            currency: 'VND',
+            note: '',
+            lines: []
         });
         setEditingInvoice(null);
     };

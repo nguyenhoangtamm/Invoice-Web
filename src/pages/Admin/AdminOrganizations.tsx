@@ -166,7 +166,7 @@ export default function AdminOrganizations() {
     const handleEdit = (organization: Organization) => {
         setEditingOrganization(organization);
         setFormData({
-            name: organization.name || '',
+            name: organization.organizationName || '',
             description: organization.description || '',
             address: organization.address || '',
             phone: organization.phone || '',
