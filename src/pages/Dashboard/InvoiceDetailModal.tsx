@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowLeft, X, CheckCircle, Clock, AlertCircle, FileJson } from 'lucide-react';
 import type { Invoice } from '../../types/invoice';
+import { useNavigate } from 'react-router-dom';
+
 
 interface InvoiceDetailModalProps {
     invoice: Invoice;
@@ -11,6 +13,7 @@ const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
     invoice,
     onClose,
 }) => {
+    const navigate = useNavigate();
     const [blockchainStatus, setBlockchainStatus] = useState<'verified' | 'pending' | 'failed' | null>(null);
     const [blockchainDetails, setBlockchainDetails] = useState<{
         transactionHash: string;
@@ -46,7 +49,10 @@ const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
         setBlockchainDetails(null);
         onClose();
     };
-
+    const handleBlockchainVerification = () => {
+        navigate(`/blockchain-verify/${invoice.id}`);
+        onClose(); // Close the modal
+    };
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -197,7 +203,7 @@ const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
                         {/* Verification Status */}
                         {blockchainStatus === null ? (
                             <button
-                                onClick={verifyBlockchain}
+                                onClick={handleBlockchainVerification}
                                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition flex items-center justify-center gap-2"
                             >
                                 <CheckCircle size={20} />

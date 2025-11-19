@@ -20,6 +20,7 @@ import AdminInvoiceBatches from '../pages/Admin/AdminInvoiceBatches';
 import AdminInvoiceLines from '../pages/Admin/AdminInvoiceLines';
 import AdminGuard from '../components/common/AdminGuard';
 import AuthGuard from '../components/common/AuthGuard';
+import BlockchainVerificationPage from '../pages/BlockchainVerification';
 import {
     DashboardPage,
     InvoicesPage,
@@ -82,5 +83,7 @@ export const routes: RouteObject[] = [
     { path: '/register', element: <Register /> },
     { path: '/forgot-password', element: <ForgotPassword /> },
     { path: '/terms', element: <Terms /> },
-    { path: '/privacy', element: <Privacy /> }
+    { path: '/privacy', element: <Privacy /> },
+    // Blockchain verification route
+    { path: '/blockchain-verify/:id', element: <BlockchainVerificationPage /> }
 ];

@@ -55,7 +55,6 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
     };
 
     const handleCreateSuccess = (newInvoice: Invoice) => {
-        // Add new invoice to the list
         setInvoiceList(prev => [newInvoice, ...prev]);
         setShowCreateModal(false);
     };
