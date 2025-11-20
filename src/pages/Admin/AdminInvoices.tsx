@@ -313,7 +313,7 @@ export default function AdminInvoices() {
             lines: (invoice.lines || []).map(line => ({
                 invoiceId: line.invoiceId,
                 lineNumber: line.lineNumber,
-                description: line.description,
+                name: line.name,
                 unit: line.unit || '',
                 quantity: line.quantity,
                 unitPrice: line.unitPrice,

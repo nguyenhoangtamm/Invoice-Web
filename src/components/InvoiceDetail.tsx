@@ -101,7 +101,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
         ...line,
         // Simulate some small differences in on-chain data
         unitPrice: index === 0 ? line.unitPrice + 1000 : line.unitPrice, // First item has price difference
-        description: index === 1 ? line.description + ' (Blockchain)' : line.description // Second item has description difference
+        name: index === 1 ? line.name + ' (Blockchain)' : line.name // Second item has name difference
       })) || []
     };
 
@@ -195,12 +195,12 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
         const onLine = onChainLines[index];
         const linePrefix = `Dòng ${index + 1}:`;
 
-        // Description comparison
+        // name comparison
         comparisonData.push({
-          field: `${linePrefix} Mô tả`,
-          offChain: offLine.description || '-',
-          onChain: onLine?.description || '-',
-          comparison: compareField(offLine.description, onLine?.description)
+          field: `${linePrefix} Tên`,
+          offChain: offLine.name || '-',
+          onChain: onLine?.name || '-',
+          comparison: compareField(offLine.name, onLine?.name)
         });
 
         // Quantity comparison
@@ -418,7 +418,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
                     </Table.Column>
                     <Table.Column width={200}>
                       <Table.HeaderCell>Tên hàng hóa/Dịch vụ</Table.HeaderCell>
-                      <Table.Cell dataKey="description" />
+                      <Table.Cell dataKey="name" />
                     </Table.Column>
                     <Table.Column width={80} align="center">
                       <Table.HeaderCell>ĐVT</Table.HeaderCell>

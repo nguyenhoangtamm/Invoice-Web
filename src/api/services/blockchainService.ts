@@ -41,7 +41,7 @@ export interface BlockchainVerificationResponse {
                 id: number;
                 invoiceId: number;
                 lineNumber: number;
-                description: string;
+                name: string;
                 quantity: number;
                 unit: string;
                 unitPrice: number;
@@ -86,7 +86,7 @@ export interface BlockchainVerificationResponse {
                 id: number;
                 invoiceId: number;
                 lineNumber: number;
-                description: string;
+                name: string;
                 quantity: number;
                 unit: string;
                 unitPrice: number;

@@ -73,7 +73,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
 
     const [lines, setLines] = useState<CreateInvoiceLineRequest[]>([{
         lineNumber: 1,
-        description: '',
+        name: '',
         unit: '',
         quantity: 1,
         unitPrice: 0,
@@ -136,7 +136,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             });
             setLines([{
                 lineNumber: 1,
-                description: '',
+                name: '',
                 unit: '',
                 quantity: 1,
                 unitPrice: 0,
@@ -208,7 +208,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     const addLine = () => {
         const newLine: CreateInvoiceLineRequest = {
             lineNumber: lines.length + 1,
-            description: '',
+            name: '',
             unit: '',
             quantity: 1,
             unitPrice: 0,
@@ -246,7 +246,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
         customerEmail: Schema.Types.StringType().isEmail('Email khách hàng không hợp lệ')
     });
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (status: number = 1) => {
         if (!formRef.current.check()) {
             toaster.push(
                 <Message type="error" showIcon>
@@ -268,10 +268,10 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
 
         let hasLineError = false;
         lines.forEach((line, index) => {
-            if (!line.description.trim()) {
+            if (!line.name.trim()) {
                 toaster.push(
                     <Message type="error" showIcon>
-                        Mô tả hàng hóa dòng {index + 1} là bắt buộc
+                        Tên hàng hóa dòng {index + 1} là bắt buộc
                     </Message>
                 );
                 hasLineError = true;
@@ -301,6 +301,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
 
         const invoiceData: CreateInvoiceRequest = {
             ...formData,
+            status: status,
             issuedDate: new Date(formData.issuedDate).toISOString(),
             lines: lines
         };
@@ -312,7 +313,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 // Show success message
                 toaster.push(
                     <Message type="success" showIcon>
-                        Tạo hóa đơn thành công!
+                        {status === 0 ? 'Tạo bản nháp thành công!' : 'Tạo hóa đơn thành công!'}
                     </Message>
                 );
                 // Call success callback
@@ -342,7 +343,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
         <Modal
             open={isOpen}
             onClose={onClose}
-            size="lg"
+            size={1200}
         >
             <Modal.Header>
                 <Modal.Title>Tạo hóa đơn mới</Modal.Title>
@@ -357,7 +358,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                     formError={formError}
                 >
                     {/* Invoice Basic Info */}
-                    <Panel header="Thông tin cơ bản hóa đơn" bordered>
+                    <Panel header="Thông tin cơ bản hóa đơn" bordered >
                         <FlexboxGrid justify="space-between">
                             <FlexboxGrid.Item colspan={7}>
                                 <Form.Group controlId="invoiceNumber">
@@ -559,23 +560,6 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                 </Form.Group>
                             </FlexboxGrid.Item>
                             <FlexboxGrid.Item colspan={7}>
-                                <Form.Group controlId="status">
-                                    <Form.ControlLabel>Trạng thái</Form.ControlLabel>
-                                    <Form.Control
-                                        name="status"
-                                        accepter={SelectPicker}
-                                        data={[
-                                            { label: 'Nháp', value: 1 },
-                                            { label: 'Đã phát hành', value: 2 },
-                                            { label: 'Đã hủy', value: 3 }
-                                        ]}
-                                        searchable={false}
-                                        style={{ width: '100%' }}
-                                        placeholder="Chọn trạng thái"
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                            <FlexboxGrid.Item colspan={7}>
                                 <Form.Group controlId="currency">
                                     <Form.ControlLabel>Tiền tệ</Form.ControlLabel>
                                     <Form.Control
@@ -632,15 +616,15 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                 </Table.Cell>
                             </Table.Column>
 
-                            <Table.Column width={200} resizable>
-                                <Table.HeaderCell>Mô tả *</Table.HeaderCell>
+                            <Table.Column width={200} resizable flexGrow={1}>
+                                <Table.HeaderCell>Tên sản phẩm *</Table.HeaderCell>
                                 <Table.Cell>
                                     {(rowData, rowIndex) => (
                                         rowIndex !== undefined && (
                                             <Input
-                                                value={rowData.description}
-                                                placeholder="Mô tả sản phẩm"
-                                                onChange={(value) => handleLineChange(rowIndex, 'description', value)}
+                                                value={rowData.name}
+                                                placeholder="Tên sản phẩm"
+                                                onChange={(value) => handleLineChange(rowIndex, 'name', value)}
                                                 size="sm"
                                             />
                                         )
@@ -805,8 +789,15 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                         Hủy
                     </Button>
                     <Button
+                        appearance="default"
+                        onClick={() => handleSubmit(0)}
+                        disabled={loading}
+                    >
+                        Tạo bản nháp
+                    </Button>
+                    <Button
                         appearance="primary"
-                        onClick={handleSubmit}
+                        onClick={() => handleSubmit(1)}
                         disabled={loading}
                         loading={loading}
                     >

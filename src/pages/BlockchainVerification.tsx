@@ -93,7 +93,7 @@ const InvoiceComparison: React.FC<InvoiceComparisonProps> = ({ title, invoice, v
                         <table className="w-full text-xs">
                             <thead className="bg-gray-100">
                                 <tr>
-                                    <th className="text-left p-2">Mô tả</th>
+                                    <th className="text-left p-2">Tên</th>
                                     <th className="text-right p-2">SL</th>
                                     <th className="text-right p-2">Đơn giá</th>
                                     <th className="text-right p-2">Thành tiền</th>
@@ -102,7 +102,7 @@ const InvoiceComparison: React.FC<InvoiceComparisonProps> = ({ title, invoice, v
                             <tbody>
                                 {invoice.lines.map((line: any, index: number) => (
                                     <tr key={index} className="border-b border-gray-200">
-                                        <td className="p-2">{line.description}</td>
+                                        <td className="p-2">{line.name}</td>
                                         <td className="text-right p-2">{line.quantity} {line.unit}</td>
                                         <td className="text-right p-2">{line.unitPrice?.toLocaleString('vi-VN')}</td>
                                         <td className="text-right p-2">{line.lineTotal?.toLocaleString('vi-VN')}</td>

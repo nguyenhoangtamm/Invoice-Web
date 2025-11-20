@@ -50,10 +50,10 @@ const InvoiceLineModal: FC<Props> = ({ open, onClose, loading, editingLine, form
                         </Form.Group>
                     </div>
 
-                    <Form.Group controlId="description">
-                        <Form.ControlLabel>Mô tả</Form.ControlLabel>
+                    <Form.Group controlId="name">
+                        <Form.ControlLabel>Tên</Form.ControlLabel>
                         <Form.Control
-                            name="description"
+                            name="name"
                             componentClass="textarea"
                             rows={3}
                         />
@@ -193,7 +193,7 @@ export default function AdminInvoiceLines() {
         setFormData({
             invoiceId: line.invoiceId,
             lineNumber: line.lineNumber,
-            description: line.description || '',
+            name: line.name || '',
             unit: line.unit || '',
             quantity: line.quantity,
             unitPrice: line.unitPrice,
@@ -262,11 +262,11 @@ export default function AdminInvoiceLines() {
             dataKey: 'lineNumber',
         },
         {
-            key: 'description',
-            label: 'Mô tả',
+            key: 'name',
+            label: 'Tên',
             render: (row: any) => (
-                <div className="truncate max-w-xs" title={row.description}>
-                    {row.description || '-'}
+                <div className="truncate max-w-xs" title={row.name}>
+                    {row.name || '-'}
                 </div>
             ),
         },
