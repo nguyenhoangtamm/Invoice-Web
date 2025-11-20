@@ -17,7 +17,7 @@ export default function Navbar() {
                     />
 
                     <div>
-                        <div className="text-gray-700 font-semibold">Tra cứu hóa đơn điện tử</div>
+                        <div className="text-gray-700 font-semibold">TrustInvoice</div>
                         <div className="text-xs text-gray-500">Tra cứu nhanh - hiển thị chi tiết hóa đơn</div>
                     </div>
                 </Link>

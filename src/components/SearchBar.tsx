@@ -63,7 +63,7 @@ export default function SearchBar({ onResult }: Props) {
       }}
     >
       <div className="container mx-auto px-6 text-center">
-        <h1 className="text-4xl font-bold mb-4">Tra cứu hóa đơn điện tử</h1>
+        <h1 className="text-4xl font-bold mb-4">TrustInvoice</h1>
         <p className="mb-6 opacity-90">
           Nhập mã tra cứu hoặc upload file XML để xem chi tiết
         </p>
@@ -71,31 +71,28 @@ export default function SearchBar({ onResult }: Props) {
         <div className="mb-6 inline-flex rounded-md bg-white/10 p-1">
           <button
             onClick={() => setMode("code")}
-            className={`px-4 py-2 rounded-l-md ${
-              mode === "code"
+            className={`px-4 py-2 rounded-l-md ${mode === "code"
                 ? "bg-white text-blue-700"
                 : "text-white/90 hover:text-white"
-            }`}
+              }`}
           >
             Theo mã tra cứu
           </button>
           <button
             onClick={() => setMode("xml")}
-            className={`px-4 py-2 ${
-              mode === "xml"
+            className={`px-4 py-2 ${mode === "xml"
                 ? "bg-white text-blue-700"
                 : "text-white/90 hover:text-white"
-            }`}
+              }`}
           >
             Theo file XML
           </button>
           <button
             onClick={() => setMode("contact")}
-            className={`px-4 py-2 rounded-r-md ${
-              mode === "contact"
+            className={`px-4 py-2 rounded-r-md ${mode === "contact"
                 ? "bg-white text-blue-700"
                 : "text-white/90 hover:text-white"
-            }`}
+              }`}
           >
             Theo email / SĐT
           </button>

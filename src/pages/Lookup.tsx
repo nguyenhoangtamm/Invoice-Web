@@ -62,7 +62,7 @@ export default function Lookup() {
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-3 bg-white/15 backdrop-blur-sm px-5 py-3 rounded-full mb-6 border border-white/30 hover:bg-white/20 transition-colors">
                 <Search size={20} className="text-blue-100" />
-                <span className="text-blue-100 text-sm font-semibold">Tra Cứu Hóa Đơn Điện Tử</span>
+                <span className="text-blue-100 text-sm font-semibold">TrustInvoice</span>
               </div>
               <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 leading-tight">Tìm Kiếm Hóa Đơn</h1>
               <p className="text-blue-100 text-xl md:text-2xl font-light">Tra cứu thông tin hóa đơn của bạn một cách nhanh chóng, dễ dàng và an toàn</p>

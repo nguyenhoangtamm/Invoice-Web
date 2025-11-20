@@ -10,7 +10,7 @@ export default function App() {
         <Outlet />
       </main>
       {/* <footer className="text-center py-6 text-sm text-gray-500">
-        © 2025 Tra cứu hóa đơn điện tử — Demo
+        © 2025 TrustInvoice — Demo
       </footer> */}
     </div>
   );

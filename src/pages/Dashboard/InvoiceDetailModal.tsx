@@ -180,25 +180,6 @@ const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
 
                     {/* Blockchain Verification */}
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                                    <FileJson size={20} className="text-white" />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-bold text-gray-900">Xác thực Blockchain</h3>
-                                    <p className="text-sm text-gray-600">Xác minh tính xác thực của hóa đơn trên blockchain</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Hash Display */}
-                        <div className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-                            <p className="text-xs font-semibold text-gray-600 mb-2">Mã hash hóa đơn:</p>
-                            <p className="text-xs font-mono text-gray-900 break-all bg-gray-50 p-3 rounded border border-gray-200">
-                                {invoice.immutableHash}
-                            </p>
-                        </div>
 
                         {/* Verification Status */}
                         {blockchainStatus === null ? (
@@ -245,16 +226,6 @@ const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
                                 <span className="text-red-700 font-medium">Xác thực thất bại. Vui lòng thử lại.</span>
                             </div>
                         )}
-
-                        <button
-                            onClick={() => {
-                                setBlockchainStatus(null);
-                                setBlockchainDetails(null);
-                            }}
-                            className="w-full mt-4 border border-gray-300 text-gray-700 font-medium py-2 rounded-lg hover:bg-gray-50 transition"
-                        >
-                            Xoá Kết quả
-                        </button>
                     </div>
 
                     {/* Additional Notes */}
