@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Plus, Eye, Download, Trash2, Search, Filter, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import type { Invoice, CreateInvoiceRequest } from '../../types/invoice';
 import { InvoiceStatus } from '../../enums/invoiceEnum';
-import { getInvoicesPaginated } from '../../api/services/invoiceService';
+import { getInvoicesPaginatedByUser } from '../../api/services/invoiceService';
 import { mockInvoices } from '../../data/mockInvoice';
 import { useAuth } from '../../contexts/AuthContext';
 import CreateInvoiceModal from '../../components/CreateInvoiceModal';
@@ -28,7 +28,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
         const fetchInvoices = async () => {
             setLoading(true);
             try {
-                const response = await getInvoicesPaginated(1, 100); // Lấy nhiều hơn để có thể filter/search
+                const response = await getInvoicesPaginatedByUser(1, 100); // Lấy nhiều hơn để có thể filter/search
                 if (response.succeeded && response.data) {
                     setInvoiceList(response.data);
                 } else {

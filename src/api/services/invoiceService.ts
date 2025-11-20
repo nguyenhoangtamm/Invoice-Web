@@ -5,6 +5,7 @@ import type {
     InvoiceDetail,
     CreateInvoiceRequest,
     UpdateInvoiceRequest,
+    InvoiceLookUp,
 } from "../../types/invoice";
 
 /**
@@ -74,6 +75,37 @@ export const getInvoicesPaginated = async (
     const params = cleanInvoiceParams(page, pageSize, status, search);
     const response = await apiClient.get<PaginatedResult<Invoice>>(
         "/Invoices/get-pagination",
+        {
+            params,
+        }
+    );
+    return response.data;
+};
+export const getInvoicesPaginatedByUser = async (
+    page: number = 1,
+    pageSize: number = 10,
+    status?: string,
+    search?: string
+): Promise<PaginatedResult<Invoice>> => {
+    const params = cleanInvoiceParams(page, pageSize, status, search);
+    const response = await apiClient.get<PaginatedResult<Invoice>>(
+        "/Invoices/get-by-user",
+        {
+            params,
+        }
+    );
+    return response.data;
+};
+
+export const getInvoicesPaginatedLookUp = async (
+    page: number = 1,
+    pageSize: number = 6,
+    code?: string
+): Promise<PaginatedResult<InvoiceLookUp>> => {
+    const params: Record<string, string | number> = { page, pageSize };
+    if (code) params.code = code;
+    const response = await apiClient.get<PaginatedResult<InvoiceLookUp>>(
+        "/Invoices/lookup",
         {
             params,
         }

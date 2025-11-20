@@ -45,6 +45,41 @@ export interface Invoice {
     lines: InvoiceLine[];
 }
 
+export interface InvoiceLookUp {
+    id: number;
+    invoiceNumber: string;
+    formNumber: string;
+    serial: string;
+    organizationId: number;
+    issuedByUserId: number;
+    sellerName: string;
+    sellerTaxId: string;
+    sellerAddress?: string;
+    sellerPhone?: string;
+    sellerEmail?: string;
+    customerName: string;
+    customerTaxId: string;
+    customerAddress?: string;
+    customerPhone?: string;
+    customerEmail?: string;
+    status: number;
+    issuedDate: string;
+    subTotal: number;
+    taxAmount: number;
+    discountAmount: number;
+    totalAmount: number;
+    currency: string;
+    note?: string;
+    batchId: number;
+    immutableHash?: string;
+    cid?: string;
+    cidHash?: string;
+    merkleProof?: string;
+    isExactMatch?: boolean;
+    lines: InvoiceLine[];
+}
+
+
 // User types
 export interface User {
     id: string;
