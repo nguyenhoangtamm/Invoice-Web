@@ -287,30 +287,14 @@ export default function Lookup() {
       </main>
 
       {/* Modal */}
-      {isModalOpen && selectedInvoice && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CheckCircle size={28} className="text-green-500" />
-                <h2 className="text-2xl font-bold text-gray-900">Chi Tiết Hóa Đơn</h2>
-              </div>
-              <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setSelectedInvoice(null);
-                }}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-6">
-              <InvoiceDetail data={selectedInvoice} />
-            </div>
-          </div>
-        </div>
-      )}
+      <InvoiceDetail
+        data={selectedInvoice}
+        open={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedInvoice(null);
+        }}
+      />
     </div>
   );
 }

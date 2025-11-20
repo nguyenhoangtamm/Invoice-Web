@@ -8,7 +8,7 @@ import OrganizationsTab from './Dashboard/OrganizationsTab';
 import ApiKeysTab from './Dashboard/ApiKeysTab';
 import AnalyticsTab from './Dashboard/AnalyticsTab';
 import SettingsTab from './Dashboard/SettingsTab';
-import InvoiceDetailModal from './Dashboard/InvoiceDetailModal';
+import InvoiceDetail from '../components/InvoiceDetail';
 
 const InvoiceDashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -28,7 +28,7 @@ const InvoiceDashboard = () => {
 
     const renderInvoiceDetail = () => {
         if (!selectedInvoice) return null;
-        return <InvoiceDetailModal invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />;
+        return <InvoiceDetail data={selectedInvoice} open={!!selectedInvoice} onClose={() => setSelectedInvoice(null)} />;
     };
 
     const renderContent = () => {
@@ -84,7 +84,7 @@ const InvoiceDashboard = () => {
 
                 {sidebarOpen && (
                     <div className="absolute bottom-0 w-64 p-4 border-t border-gray-200 bg-white">
-                        
+
                         <button
                             onClick={logout}
                             className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
