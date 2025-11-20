@@ -14,14 +14,14 @@ import type {
  */
 
 const cleanInvoiceParams = (
-    page: number = 1,
+    pageNumber: number = 1,
     pageSize: number = 10,
     status?: string,
-    search?: string
+    Keyword?: string
 ) => {
-    const params: Record<string, string | number> = { page, pageSize };
+    const params: Record<string, string | number> = { pageNumber, pageSize };
     if (status) params.status = status;
-    if (search) params.search = search;
+    if (Keyword) params.Keyword = Keyword;
     return params;
 };
 
@@ -67,12 +67,12 @@ export const getAllInvoices = async (): Promise<Result<Invoice[]>> => {
 };
 
 export const getInvoicesPaginated = async (
-    page: number = 1,
+    pageNumber: number = 1,
     pageSize: number = 10,
     status?: string,
-    search?: string
+    Keyword?: string
 ): Promise<PaginatedResult<Invoice>> => {
-    const params = cleanInvoiceParams(page, pageSize, status, search);
+    const params = cleanInvoiceParams(pageNumber, pageSize, status, Keyword);
     const response = await apiClient.get<PaginatedResult<Invoice>>(
         "/Invoices/get-pagination",
         {
@@ -82,12 +82,12 @@ export const getInvoicesPaginated = async (
     return response.data;
 };
 export const getInvoicesPaginatedByUser = async (
-    page: number = 1,
+    pageNumber: number = 1,
     pageSize: number = 10,
     status?: string,
-    search?: string
+    Keyword?: string
 ): Promise<PaginatedResult<Invoice>> => {
-    const params = cleanInvoiceParams(page, pageSize, status, search);
+    const params = cleanInvoiceParams(pageNumber, pageSize, status, Keyword);
     const response = await apiClient.get<PaginatedResult<Invoice>>(
         "/Invoices/get-by-user",
         {
@@ -98,11 +98,11 @@ export const getInvoicesPaginatedByUser = async (
 };
 
 export const getInvoicesPaginatedLookUp = async (
-    page: number = 1,
+    pageNumber: number = 1,
     pageSize: number = 6,
     code?: string
 ): Promise<PaginatedResult<InvoiceLookUp>> => {
-    const params: Record<string, string | number> = { page, pageSize };
+    const params: Record<string, string | number> = { pageNumber, pageSize };
     if (code) params.code = code;
     const response = await apiClient.get<PaginatedResult<InvoiceLookUp>>(
         "/Invoices/lookup",

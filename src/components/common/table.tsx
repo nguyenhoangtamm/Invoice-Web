@@ -144,7 +144,7 @@ const Table: React.FC<TableProps> = ({
                 onRowClick={onRowClick}
                 bordered
                 wordWrap
-                height={pageSize * 40}
+                height={pageSize * 46}
                 virtualized
                 affixHeader
             >

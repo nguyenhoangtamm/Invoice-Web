@@ -1,11 +1,14 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { Plus, Eye, Download, Trash2, Search, Filter, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { Plus, Eye, Download, Trash2, Search, Filter, FileText } from 'lucide-react';
+import { Input, SelectPicker } from 'rsuite';
 import type { Invoice, CreateInvoiceRequest } from '../../types/invoice';
 import { InvoiceStatus } from '../../enums/invoiceEnum';
 import { getInvoicesPaginatedByUser } from '../../api/services/invoiceService';
 import { mockInvoices } from '../../data/mockInvoice';
 import { useAuth } from '../../contexts/AuthContext';
 import CreateInvoiceModal from '../../components/CreateInvoiceModal';
+import Table, { TableColumn } from '../../components/common/table';
+import { debounce } from '../../utils/helpers';
 
 interface InvoicesTabProps {
     onSelectInvoice: (invoice: Invoice) => void;
@@ -17,10 +20,11 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
     const [invoiceList, setInvoiceList] = useState<Invoice[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(0); // 0-based index for table component
     const [invoicesPerPage] = useState(10);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [totalCount, setTotalCount] = useState(0);
 
     const { user } = useAuth();
 
@@ -28,17 +32,28 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
         const fetchInvoices = async () => {
             setLoading(true);
             try {
-                const response = await getInvoicesPaginatedByUser(1, 100); // Lấy nhiều hơn để có thể filter/search
+                const statusParam = statusFilter === 'all' ? undefined : statusFilter;
+                const searchParam = searchTerm.trim() || undefined;
+
+                const response = await getInvoicesPaginatedByUser(
+                    currentPage + 1,
+                    invoicesPerPage,
+                    statusParam,
+                    searchParam
+                ); // Convert to 1-based for API
                 if (response.succeeded && response.data) {
                     setInvoiceList(response.data);
+                    setTotalCount(response.totalCount || response.data.length);
                 } else {
-                    // Fallback to mock data
+                    // Fallback to mock data khi API không thành công
                     setInvoiceList(mockInvoices);
+                    setTotalCount(mockInvoices.length);
                 }
             } catch (error) {
                 console.error('Error fetching invoices:', error);
-                // Fallback to mock data
+                // Fallback to mock data khi có lỗi
                 setInvoiceList(mockInvoices);
+                setTotalCount(mockInvoices.length);
             } finally {
                 setLoading(false);
             }
@@ -47,7 +62,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
         if (user) {
             fetchInvoices();
         }
-    }, [user]);
+    }, [user, currentPage, invoicesPerPage, statusFilter, searchTerm]);
 
     const deleteInvoice = (invoiceNumber: string | undefined) => {
         if (!invoiceNumber) return;
@@ -55,55 +70,152 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
     };
 
     const handleCreateSuccess = (newInvoice: Invoice) => {
-        setInvoiceList(prev => [newInvoice, ...prev]);
+        // Refresh dữ liệu sau khi tạo hóa đơn mới
+        setCurrentPage(0);
         setShowCreateModal(false);
     };
-    const filteredInvoices = useMemo(() => {
-        return invoiceList.filter(inv => {
-            const matchesSearch = (inv.invoiceNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (inv.customerName || '').toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesStatus = statusFilter === 'all' || (inv.status != null && inv.status === Number(statusFilter));
-            return matchesSearch && matchesStatus;
-        });
-    }, [invoiceList, searchTerm, statusFilter]);
 
-    const paginatedInvoices = useMemo(() => {
-        const startIndex = (currentPage - 1) * invoicesPerPage;
-        const endIndex = startIndex + invoicesPerPage;
-        return filteredInvoices.slice(startIndex, endIndex);
-    }, [filteredInvoices, currentPage, invoicesPerPage]);
-
-    const totalPages = Math.ceil(filteredInvoices.length / invoicesPerPage);
-
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
-        setCurrentPage(1);
+    const handlePageChange = (newPage: number) => {
+        if (!loading) {
+            setCurrentPage(newPage);
+        }
     };
 
-    const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setStatusFilter(e.target.value);
-        setCurrentPage(1);
+    const handlePageSizeChange = (newPageSize: number) => {
+        // Reset to first page when changing page size
+        setCurrentPage(0);
+        // Note: invoicesPerPage is const, but we could make it state if needed
     };
+
+    // Debounced search function to avoid too many API calls
+    const debouncedSearch = useCallback(
+        debounce((searchValue: string) => {
+            setSearchTerm(searchValue);
+            setCurrentPage(0);
+        }, 500),
+        []
+    );
+
+    // API sẽ handle filtering, không cần filter phía client
+    const paginatedInvoices = invoiceList;
+
+    const handleSearchChange = (value: string) => {
+        debouncedSearch(value);
+    };
+
+    const handleStatusFilterChange = (value: string | null) => {
+        setStatusFilter(value || 'all');
+        setCurrentPage(0);
+    };
+
+    // Define table columns
+    const tableColumns: TableColumn[] = [
+        {
+            key: 'invoiceNumber',
+            label: 'Số hóa đơn',
+            dataKey: 'invoiceNumber',
+            width: 150,
+            render: (rowData: Invoice) => (
+                <span className="font-medium text-gray-900">{rowData.invoiceNumber}</span>
+            )
+        },
+        {
+            key: 'customerName',
+            label: 'Khách hàng',
+            dataKey: 'customerName',
+            width: 200,
+            render: (rowData: Invoice) => (
+                <span className="text-gray-600">{rowData.customerName || '-'}</span>
+            ),
+            flexGrow: 1,
+        },
+        {
+            key: 'issuedDate',
+            label: 'Ngày phát hành',
+            dataKey: 'issuedDate',
+            width: 180,
+            render: (rowData: Invoice) => (
+                <span className="text-gray-600">{rowData.issuedDate || '-'}</span>
+            )
+
+        },
+        {
+            key: 'totalAmount',
+            label: 'Số tiền',
+            dataKey: 'totalAmount',
+            width: 150,
+            align: 'right',
+            render: (rowData: Invoice) => (
+                <span className="font-semibold text-gray-900">
+                    {rowData.totalAmount?.toLocaleString('vi-VN')} {rowData.currency || 'VND'}
+                </span>
+            )
+        },
+        {
+            key: 'status',
+            label: 'Trạng thái',
+            dataKey: 'status',
+            width: 180,
+            render: (rowData: Invoice) => (
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(rowData.status)}`}>
+                    {getStatusLabel(rowData.status)}
+                </span>
+            )
+        },
+        {
+            key: 'actions',
+            label: 'Hành động',
+            isAction: true,
+            width: 120,
+            render: (rowData: Invoice) => (
+                <div className="flex gap-1">
+                    <button
+                        onClick={() => onSelectInvoice(rowData)}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        title="Xem chi tiết"
+                    >
+                        <Eye size={16} />
+                    </button>
+                    <button
+                        className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                        title="Tải xuống"
+                    >
+                        <Download size={16} />
+                    </button>
+                    <button
+                        onClick={() => deleteInvoice(rowData.invoiceNumber)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
+                        title="Xóa"
+                    >
+                        <Trash2 size={16} />
+                    </button>
+                </div>
+            )
+        }
+    ];
 
     // Map InvoiceStatus enum to human-friendly Vietnamese labels and CSS classes
     const statusOptions = [
-        { value: InvoiceStatus.Uploaded, label: 'Đã upload' },
-        { value: InvoiceStatus.IpfsStored, label: 'Đã lưu trên IPFS' },
-        { value: InvoiceStatus.Batched, label: 'Đã tạo batch' },
-        { value: InvoiceStatus.BlockchainConfirmed, label: 'Đã xác nhận trên blockchain' },
-        { value: InvoiceStatus.Finalized, label: 'Hoàn tất' },
-        { value: InvoiceStatus.IpfsFailed, label: 'Upload IPFS thất bại' },
-        { value: InvoiceStatus.BlockchainFailed, label: 'Ghi blockchain thất bại' },
+        { value: 'all', label: 'Tất cả trạng thái' },
+        { value: String(InvoiceStatus.Draft), label: 'Bản nháp' },
+        { value: String(InvoiceStatus.Uploaded), label: 'Đã upload' },
+        { value: String(InvoiceStatus.IpfsStored), label: 'Đã lưu trên IPFS' },
+        { value: String(InvoiceStatus.Batched), label: 'Đã tạo batch' },
+        { value: String(InvoiceStatus.BlockchainConfirmed), label: 'Đã xác nhận trên blockchain' },
+        { value: String(InvoiceStatus.Finalized), label: 'Hoàn tất' },
+        { value: String(InvoiceStatus.IpfsFailed), label: 'Upload IPFS thất bại' },
+        { value: String(InvoiceStatus.BlockchainFailed), label: 'Ghi blockchain thất bại' },
     ];
 
     const getStatusLabel = (status?: number) => {
         if (status == null) return '-';
-        const opt = statusOptions.find(o => o.value === status);
+        const opt = statusOptions.find(o => o.value === String(status));
         return opt ? opt.label : String(status);
     };
 
     const getStatusClass = (status?: number) => {
         if (status == null) return 'bg-gray-100 text-gray-700';
+        if (status === InvoiceStatus.Draft) return 'bg-gray-100 text-gray-700';
         if (status === InvoiceStatus.BlockchainConfirmed || status === InvoiceStatus.Finalized) return 'bg-green-100 text-green-700';
         if (status === InvoiceStatus.Uploaded || status === InvoiceStatus.IpfsStored || status === InvoiceStatus.Batched) return 'bg-yellow-100 text-yellow-700';
         if (status === InvoiceStatus.IpfsFailed || status === InvoiceStatus.BlockchainFailed) return 'bg-red-100 text-red-700';
@@ -141,128 +253,45 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
                 <div className="flex gap-4 flex-col md:flex-row">
                     <div className="flex-1 relative">
-                        <Search size={18} className="absolute left-3 top-3 text-gray-400" />
-                        <input
-                            type="text"
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Input
                             placeholder="Tìm kiếm theo số hóa đơn hoặc tên khách hàng..."
-                            value={searchTerm}
                             onChange={handleSearchChange}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="pl-10"
                         />
                     </div>
-                    <select
-                        value={statusFilter}
-                        onChange={handleStatusFilterChange}
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="all">Tất cả trạng thái</option>
-                        {statusOptions.map(opt => (
-                            <option key={opt.value} value={String(opt.value)}>{opt.label}</option>
-                        ))}
-                    </select>
+                    <div className="w-full md:w-64">
+                        <SelectPicker
+                            data={statusOptions}
+                            value={statusFilter}
+                            onChange={handleStatusFilterChange}
+                            placeholder="Chọn trạng thái"
+                            searchable={false}
+                            cleanable={false}
+                            block
+                        />
+                    </div>
                 </div>
             </div>
 
             {/* Invoices Table */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                {paginatedInvoices.length > 0 ? (
-                    <>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-gray-50 border-b border-gray-200">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Số hóa đơn</th>
-                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Khách hàng</th>
-                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Ngày phát hành</th>
-                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Số tiền</th>
-                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Trạng thái</th>
-                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Hành động</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200">
-                                    {paginatedInvoices.map((invoice) => (
-                                        <tr key={invoice.invoiceNumber} className="hover:bg-gray-50 transition">
-                                            <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.invoiceNumber}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-600">{invoice.customerName || '-'}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-600">{invoice.issuedDate || '-'}</td>
-                                            <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                                                {invoice.totalAmount?.toLocaleString('vi-VN')} {invoice.currency || 'VND'}
-                                            </td>
-                                            <td className="px-6 py-4 text-sm">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(invoice.status)}`}>
-                                                    {getStatusLabel(invoice.status)}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm">
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => onSelectInvoice(invoice)}
-                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                                        title="Xem chi tiết"
-                                                    >
-                                                        <Eye size={18} />
-                                                    </button>
-                                                    <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
-                                                        <Download size={18} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => deleteInvoice(invoice.invoiceNumber)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination */}
-                        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                            <div className="text-sm text-gray-600">
-                                Hiển thị {paginatedInvoices.length > 0 ? (currentPage - 1) * invoicesPerPage + 1 : 0} đến {Math.min(currentPage * invoicesPerPage, filteredInvoices.length)} trong {filteredInvoices.length} kết quả
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <ChevronLeft size={18} />
-                                </button>
-                                <div className="flex items-center gap-2">
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                        <button
-                                            key={page}
-                                            onClick={() => setCurrentPage(page)}
-                                            className={`w-8 h-8 rounded-lg font-medium transition ${currentPage === page
-                                                ? 'bg-blue-600 text-white'
-                                                : 'text-gray-600 hover:bg-gray-100'
-                                                }`}
-                                        >
-                                            {page}
-                                        </button>
-                                    ))}
-                                </div>
-                                <button
-                                    onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <ChevronRight size={18} />
-                                </button>
-                            </div>
-                        </div>
-                    </>
-                ) : (
-                    <div className="text-center py-12">
-                        <FileText size={48} className="mx-auto text-gray-400 mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">Không tìm thấy hóa đơn</h3>
-                        <p className="text-gray-600">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
-                    </div>
-                )}
+                <Table
+                    data={paginatedInvoices}
+                    columns={tableColumns}
+                    loading={loading}
+                    showPagination={true}
+                    totalCount={totalCount}
+                    pageIndex={currentPage}
+                    pageSize={invoicesPerPage}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                    emptyText="Không tìm thấy hóa đơn"
+                    loadingText="Đang tải dữ liệu..."
+                    className="rounded-none"
+                    cellBordered={true}
+                    hover={true}
+                />
             </div>
 
             {/* Create Invoice Modal */}
