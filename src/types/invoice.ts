@@ -38,6 +38,7 @@ export interface Invoice {
     currency: string;
     note?: string;
     batchId: number;
+    lookupCode: string;
     immutableHash?: string;
     cid?: string;
     cidHash?: string;
