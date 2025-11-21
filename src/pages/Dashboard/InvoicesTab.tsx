@@ -155,7 +155,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
             key: 'status',
             label: 'Trạng thái',
             dataKey: 'status',
-            width: 180,
+            width: 210,
             render: (rowData: Invoice) => (
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(rowData.status)}`}>
                     {getStatusLabel(rowData.status)}

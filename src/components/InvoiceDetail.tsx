@@ -3,6 +3,7 @@ import type { Invoice } from "../types/invoice";
 import { Button, Table, Panel, Grid, Row, Col, Modal, Divider, FlexboxGrid } from "rsuite";
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { blockchainService, type BlockchainVerificationResponse } from '../api/services/blockchainService';
 import 'rsuite/dist/rsuite.min.css';
 
 interface Props {
@@ -26,6 +27,8 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
     gasUsed: string;
   } | null>(null);
   const [compareModalOpen, setCompareModalOpen] = useState(false);
+  const [comparisonData, setComparisonData] = useState<BlockchainVerificationResponse | null>(null);
+  const [loadingComparison, setLoadingComparison] = useState(false);
 
   if (!data) return null;
 
@@ -59,9 +62,25 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
     onClose(); // Close the modal
   };
 
+  const handleCompare = async () => {
+    try {
+      setLoadingComparison(true);
+      const response = await blockchainService.verifyInvoice(invoice.id);
+      setComparisonData(response);
+      setCompareModalOpen(true);
+    } catch (error) {
+      console.error('Lỗi khi lấy dữ liệu so sánh:', error);
+      // Có thể thêm notification hoặc message lỗi ở đây
+    } finally {
+      setLoadingComparison(false);
+    }
+  };
+
   const handleClose = () => {
     setBlockchainStatus(null);
     setBlockchainDetails(null);
+    setComparisonData(null);
+    setCompareModalOpen(false);
     onClose();
   };
 
@@ -77,32 +96,29 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
     URL.revokeObjectURL(url);
   };
 
-  // Generate comparison data
+  // Generate comparison data từ API response
   const getComparisonData = () => {
-    // Simulate on-chain data with some differences
+    if (!comparisonData?.data) {
+      return [];
+    }
+
+    const { offChainInvoice, onChainInvoice } = comparisonData.data;
+
+    // Sử dụng dữ liệu thực từ API thay vì dữ liệu giả lập
     const onChainData = {
-      invoiceNumber: invoice.invoiceNumber,
-      formNumber: invoice.formNumber,
-      serial: invoice.serial,
-      lookupCode: invoice.lookupCode,
-      sellerName: 'CÔNG TY TNHH CÔNG NGHỆ ABC',
-      sellerTaxId: '0123456789',
-      customerName: invoice.customerName,
-      totalAmount: invoice.totalAmount,
-      currency: invoice.currency || 'VND',
-      issuedDate: invoice.issuedDate,
-      immutableHash: '0x' + Math.random().toString(16).substr(2, 64),
-      cid: 'Qm' + Math.random().toString(36).substr(2, 44),
-      // Simulate some differences for demonstration
-      verificationStatus: 'Verified',
-      blockNumber: '19' + Math.floor(Math.random() * 1000000).toString(),
-      // Simulate invoice lines with minor differences
-      lines: invoice.lines?.map((line: any, index: number) => ({
-        ...line,
-        // Simulate some small differences in on-chain data
-        unitPrice: index === 0 ? line.unitPrice + 1000 : line.unitPrice, // First item has price difference
-        name: index === 1 ? line.name + ' (Blockchain)' : line.name // Second item has name difference
-      })) || []
+      invoiceNumber: onChainInvoice.invoiceNumber,
+      formNumber: onChainInvoice.formNumber,
+      serial: onChainInvoice.serial,
+      lookupCode: onChainInvoice.lookupCode,
+      sellerName: onChainInvoice.sellerName,
+      sellerTaxId: onChainInvoice.sellerTaxId,
+      customerName: onChainInvoice.customerName,
+      totalAmount: onChainInvoice.totalAmount,
+      currency: onChainInvoice.currency,
+      issuedDate: onChainInvoice.issuedDate,
+      immutableHash: onChainInvoice.immutableHash,
+      cid: onChainInvoice.cid,
+      lines: onChainInvoice.lines || []
     };
 
     const compareField = (offChainValue: any, onChainValue: any) => {
@@ -113,77 +129,77 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
       }
     };
 
-    let comparisonData = [
+    let comparisonResult = [
       {
         field: 'Số hóa đơn',
-        offChain: invoice.invoiceNumber || '-',
+        offChain: offChainInvoice.invoiceNumber || '-',
         onChain: onChainData.invoiceNumber || '-',
-        comparison: compareField(invoice.invoiceNumber, onChainData.invoiceNumber)
+        comparison: compareField(offChainInvoice.invoiceNumber, onChainData.invoiceNumber)
       },
       {
         field: 'Mẫu số hóa đơn',
-        offChain: invoice.formNumber || '-',
+        offChain: offChainInvoice.formNumber || '-',
         onChain: onChainData.formNumber || '-',
-        comparison: compareField(invoice.formNumber, onChainData.formNumber)
+        comparison: compareField(offChainInvoice.formNumber, onChainData.formNumber)
       },
       {
         field: 'Ký hiệu hóa đơn',
-        offChain: invoice.serial || '-',
+        offChain: offChainInvoice.serial || '-',
         onChain: onChainData.serial || '-',
-        comparison: compareField(invoice.serial, onChainData.serial)
+        comparison: compareField(offChainInvoice.serial, onChainData.serial)
       },
       {
         field: 'Mã tra cứu',
-        offChain: invoice.lookupCode || '-',
+        offChain: offChainInvoice.lookupCode || '-',
         onChain: onChainData.lookupCode || '-',
-        comparison: compareField(invoice.lookupCode, onChainData.lookupCode)
+        comparison: compareField(offChainInvoice.lookupCode, onChainData.lookupCode)
       },
       {
         field: 'Tên người bán',
-        offChain: 'CÔNG TY TNHH CÔNG NGHỆ ABC',
-        onChain: onChainData.sellerName,
-        comparison: compareField('CÔNG TY TNHH CÔNG NGHỆ ABC', onChainData.sellerName)
+        offChain: offChainInvoice.sellerName || '-',
+        onChain: onChainData.sellerName || '-',
+        comparison: compareField(offChainInvoice.sellerName, onChainData.sellerName)
       },
       {
         field: 'MST người bán',
-        offChain: '0123456789',
-        onChain: onChainData.sellerTaxId,
-        comparison: compareField('0123456789', onChainData.sellerTaxId)
+        offChain: offChainInvoice.sellerTaxId || '-',
+        onChain: onChainData.sellerTaxId || '-',
+        comparison: compareField(offChainInvoice.sellerTaxId, onChainData.sellerTaxId)
       },
       {
         field: 'Tên người mua',
-        offChain: invoice.customerName || '-',
+        offChain: offChainInvoice.customerName || '-',
         onChain: onChainData.customerName || '-',
-        comparison: compareField(invoice.customerName, onChainData.customerName)
+        comparison: compareField(offChainInvoice.customerName, onChainData.customerName)
       },
       {
         field: 'Ngày phát hành',
-        offChain: invoice.issuedDate || '-',
+        offChain: offChainInvoice.issuedDate || '-',
         onChain: onChainData.issuedDate || '-',
-        comparison: compareField(invoice.issuedDate, onChainData.issuedDate)
+        comparison: compareField(offChainInvoice.issuedDate, onChainData.issuedDate)
       },
       {
         field: 'Tổng tiền',
-        offChain: invoice.totalAmount?.toLocaleString('vi-VN') + ' ' + (invoice.currency || 'VND'),
-        onChain: onChainData.totalAmount?.toLocaleString('vi-VN') + ' ' + onChainData.currency,
-        comparison: compareField(invoice.totalAmount, onChainData.totalAmount)
+        offChain: offChainInvoice.totalAmount?.toLocaleString('vi-VN') + ' ' + (offChainInvoice.currency || 'VND'),
+        onChain: onChainData.totalAmount?.toLocaleString('vi-VN') + ' ' + (onChainData.currency || 'VND'),
+        comparison: compareField(offChainInvoice.totalAmount, onChainData.totalAmount)
       }
     ];
 
     // Add invoice lines comparison if available
-    if (invoice.lines && invoice.lines.length > 0) {
-      const offChainLines = invoice.lines;
+    if (offChainInvoice.lines && offChainInvoice.lines.length > 0) {
+      const offChainLines = offChainInvoice.lines;
       const onChainLines = onChainData.lines;
 
       // Compare number of lines
-      comparisonData.push({
+      comparisonResult.push({
         field: '--- CHI TIẾT HÀNG HÓA ---',
         offChain: '--- --- ---',
         onChain: '--- --- ---',
         comparison: { match: true, icon: '---', color: 'text-gray-400' }
       });
 
-      comparisonData.push({
+      comparisonResult.push({
         field: 'Số lượng dòng sản phẩm',
         offChain: offChainLines.length.toString() + ' dòng',
         onChain: onChainLines.length.toString() + ' dòng',
@@ -196,7 +212,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
         const linePrefix = `Dòng ${index + 1}:`;
 
         // name comparison
-        comparisonData.push({
+        comparisonResult.push({
           field: `${linePrefix} Tên`,
           offChain: offLine.name || '-',
           onChain: onLine?.name || '-',
@@ -204,7 +220,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
         });
 
         // Quantity comparison
-        comparisonData.push({
+        comparisonResult.push({
           field: `${linePrefix} Số lượng`,
           offChain: `${offLine.quantity || 0} ${offLine.unit || ''}`.trim(),
           onChain: `${onLine?.quantity || 0} ${onLine?.unit || ''}`.trim(),
@@ -212,7 +228,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
         });
 
         // Unit price comparison
-        comparisonData.push({
+        comparisonResult.push({
           field: `${linePrefix} Đơn giá`,
           offChain: (offLine.unitPrice?.toLocaleString('vi-VN') || '0') + ' VND',
           onChain: (onLine?.unitPrice?.toLocaleString('vi-VN') || '0') + ' VND',
@@ -220,7 +236,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
         });
 
         // Line total comparison
-        comparisonData.push({
+        comparisonResult.push({
           field: `${linePrefix} Thành tiền`,
           offChain: (offLine.lineTotal?.toLocaleString('vi-VN') || '0') + ' VND',
           onChain: (onLine?.lineTotal?.toLocaleString('vi-VN') || '0') + ' VND',
@@ -229,7 +245,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
       });
     }
 
-    return comparisonData;
+    return comparisonResult;
   };
 
 
@@ -518,9 +534,9 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
             <Button onClick={handleBlockchainVerification} appearance="ghost">
               Xem chi tiết xác thực
             </Button>
-            <Button onClick={() => setCompareModalOpen(true)} appearance="ghost">
+            <Button onClick={handleCompare} appearance="ghost" loading={loadingComparison}>
               <AlertCircle size={16} className="mr-2" />
-              Đối sánh
+              {loadingComparison ? 'Đang tải...' : 'Đối sánh'}
             </Button>
           </div>
           <div className="flex space-x-3">
