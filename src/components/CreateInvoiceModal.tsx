@@ -346,445 +346,790 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             size={1200}
         >
             <Modal.Header>
-                <Modal.Title>Tạo hóa đơn mới</Modal.Title>
+                <Modal.Title style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: '#2c3e50',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
+                }}>
+                    📄 Tạo hóa đơn mới
+                </Modal.Title>
             </Modal.Header>
 
-            <Modal.Body style={{ maxHeight: '70vh', overflow: 'auto' }}>
+            <Modal.Body >
                 <Form
                     ref={formRef}
                     model={model}
                     formValue={formData}
                     onChange={(formValue) => setFormData(formValue as CreateInvoiceRequest)}
                     formError={formError}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
                 >
                     {/* Invoice Basic Info */}
-                    <Panel header="Thông tin cơ bản hóa đơn" bordered >
-                        <FlexboxGrid justify="space-between">
-                            <FlexboxGrid.Item colspan={7}>
-                                <Form.Group controlId="invoiceNumber">
-                                    <Form.ControlLabel>Số hóa đơn *</Form.ControlLabel>
-                                    <Form.Control
-                                        name="invoiceNumber"
-                                        placeholder="Nhập số hóa đơn"
-                                        accepter={Input}
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                            <FlexboxGrid.Item colspan={7}>
-                                <Form.Group controlId="formNumber">
-                                    <Form.ControlLabel>Số mẫu *</Form.ControlLabel>
-                                    <Form.Control
-                                        name="formNumber"
-                                        placeholder="Nhập số mẫu"
-                                        accepter={Input}
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                            <FlexboxGrid.Item colspan={7}>
-                                <Form.Group controlId="serial">
-                                    <Form.ControlLabel>Ký hiệu *</Form.ControlLabel>
-                                    <Form.Control
-                                        name="serial"
-                                        placeholder="Nhập ký hiệu"
-                                        accepter={Input}
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                        </FlexboxGrid>
+                    <Panel
+                        header={
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                color: '#1675e0',
+                                fontWeight: '600'
+                            }}>
+                                📋 Thông tin cơ bản hóa đơn
+                            </div>
+                        }
+                        bordered
+                        style={{
+                            borderRadius: '12px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            backgroundColor: 'white'
+                        }}
+                    >
+                        <div style={{ padding: '16px' }}>
+                            <FlexboxGrid justify="space-between" >
+                                <FlexboxGrid.Item colspan={7}>
+                                    <Form.Group controlId="invoiceNumber">
+                                        <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                            Số hóa đơn *
+                                        </Form.ControlLabel>
+                                        <Form.Control
+                                            name="invoiceNumber"
+                                            placeholder="Nhập số hóa đơn"
+                                            accepter={Input}
+                                            style={{ borderRadius: '8px' }}
+                                        />
+                                    </Form.Group>
+                                </FlexboxGrid.Item>
+                                <FlexboxGrid.Item colspan={7}>
+                                    <Form.Group controlId="formNumber">
+                                        <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                            Số mẫu *
+                                        </Form.ControlLabel>
+                                        <Form.Control
+                                            name="formNumber"
+                                            placeholder="Nhập số mẫu"
+                                            accepter={Input}
+                                            style={{ borderRadius: '8px' }}
+                                        />
+                                    </Form.Group>
+                                </FlexboxGrid.Item>
+                                <FlexboxGrid.Item colspan={8}>
+                                    <Form.Group controlId="serial">
+                                        <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                            Ký hiệu *
+                                        </Form.ControlLabel>
+                                        <Form.Control
+                                            name="serial"
+                                            placeholder="Nhập ký hiệu"
+                                            accepter={Input}
+                                            style={{ borderRadius: '8px' }}
+                                        />
+                                    </Form.Group>
+                                </FlexboxGrid.Item>
+                            </FlexboxGrid>
+
+                            <FlexboxGrid justify="start" style={{ marginTop: '16px' }}>
+                                <FlexboxGrid.Item colspan={12}>
+                                    <Form.Group controlId="organizationId">
+                                        <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                            Tổ chức *
+                                        </Form.ControlLabel>
+                                        <Form.Control
+                                            name="organizationId"
+                                            accepter={InputPicker}
+                                            data={organizations.map((org) => ({
+                                                label: org.organizationName,
+                                                value: org.id,
+                                            }))}
+                                            placeholder="Chọn tổ chức"
+                                            searchable
+                                            cleanable
+                                            loading={loadingOrganizations}
+                                            style={{
+                                                width: '100%',
+                                                borderRadius: '8px'
+                                            }}
+                                        />
+                                    </Form.Group>
+                                </FlexboxGrid.Item>
+                            </FlexboxGrid>
+                        </div>
                     </Panel>
 
-                    <FlexboxGrid justify="start">
-                        <FlexboxGrid.Item colspan={12}>
-                            <Form.Group controlId="organizationId">
-                                <Form.ControlLabel>Tổ chức *</Form.ControlLabel>
-                                <Form.Control
-                                    name="organizationId"
-                                    accepter={InputPicker}
-                                    data={organizations.map((org) => ({
-                                        label: org.organizationName,
-                                        value: org.id,
-                                    }))}
-                                    placeholder="Chọn tổ chức"
-                                    searchable
-                                    cleanable
-                                    loading={loadingOrganizations}
-                                    style={{ width: '100%' }}
-                                />
-                            </Form.Group>
+                    <FlexboxGrid justify="space-between">
+                        <FlexboxGrid.Item colspan={11}>
+                            {/* Seller Information */}
+                            <Panel
+                                header={
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        color: '#28a745',
+                                        fontWeight: '600'
+                                    }}>
+                                        🏢 Thông tin người bán
+                                    </div>
+                                }
+                                bordered
+                                style={{
+                                    borderRadius: '12px',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                    backgroundColor: 'white',
+                                    height: 'fit-content'
+                                }}
+                            >
+                                <div style={{ padding: '16px' }}>
+                                    <FlexboxGrid justify="space-between">
+                                        <FlexboxGrid.Item colspan={24}>
+                                            <Form.Group controlId="sellerName">
+                                                <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                                    Tên người bán *
+                                                </Form.ControlLabel>
+                                                <Form.Control
+                                                    name="sellerName"
+                                                    placeholder="Nhập tên người bán"
+                                                    accepter={Input}
+                                                    style={{ borderRadius: '8px' }}
+                                                />
+                                            </Form.Group>
+                                        </FlexboxGrid.Item>
+                                    </FlexboxGrid>
+
+                                    <FlexboxGrid justify="space-between">
+                                        <FlexboxGrid.Item colspan={24}>
+                                            <Form.Group controlId="sellerTaxId">
+                                                <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                                    Mã số thuế *
+                                                </Form.ControlLabel>
+                                                <Form.Control
+                                                    name="sellerTaxId"
+                                                    placeholder="Nhập mã số thuế"
+                                                    accepter={Input}
+                                                    style={{ borderRadius: '8px' }}
+                                                />
+                                            </Form.Group>
+                                        </FlexboxGrid.Item>
+                                    </FlexboxGrid>
+
+                                    <Form.Group controlId="sellerAddress">
+                                        <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                            Địa chỉ
+                                        </Form.ControlLabel>
+                                        <Form.Control
+                                            name="sellerAddress"
+                                            placeholder="Nhập địa chỉ"
+                                            accepter={Input}
+                                            style={{ borderRadius: '8px' }}
+                                        />
+                                    </Form.Group>
+
+                                    <FlexboxGrid justify="space-between">
+                                        <FlexboxGrid.Item colspan={11}>
+                                            <Form.Group controlId="sellerPhone">
+                                                <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                                    Số điện thoại
+                                                </Form.ControlLabel>
+                                                <Form.Control
+                                                    name="sellerPhone"
+                                                    placeholder="Nhập số điện thoại"
+                                                    accepter={Input}
+                                                    style={{ borderRadius: '8px' }}
+                                                />
+                                            </Form.Group>
+                                        </FlexboxGrid.Item>
+                                        <FlexboxGrid.Item colspan={11}>
+                                            <Form.Group controlId="sellerEmail">
+                                                <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                                    Email
+                                                </Form.ControlLabel>
+                                                <Form.Control
+                                                    name="sellerEmail"
+                                                    placeholder="Nhập email"
+                                                    accepter={Input}
+                                                    type="email"
+                                                    style={{ borderRadius: '8px' }}
+                                                />
+                                            </Form.Group>
+                                        </FlexboxGrid.Item>
+                                    </FlexboxGrid>
+                                </div>
+                            </Panel>
+                        </FlexboxGrid.Item>
+
+                        <FlexboxGrid.Item colspan={11}>
+                            {/* Customer Information */}
+                            <Panel
+                                header={
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        color: '#17a2b8',
+                                        fontWeight: '600'
+                                    }}>
+                                        👥 Thông tin khách hàng
+                                    </div>
+                                }
+                                bordered
+                                style={{
+                                    borderRadius: '12px',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                    backgroundColor: 'white',
+                                    height: 'fit-content'
+                                }}
+                            >
+                                <div style={{ padding: '16px' }}>
+                                    <FlexboxGrid justify="space-between">
+                                        <FlexboxGrid.Item colspan={24}>
+                                            <Form.Group controlId="customerName">
+                                                <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                                    Tên khách hàng *
+                                                </Form.ControlLabel>
+                                                <Form.Control
+                                                    name="customerName"
+                                                    placeholder="Nhập tên khách hàng"
+                                                    accepter={Input}
+                                                    style={{ borderRadius: '8px' }}
+                                                />
+                                            </Form.Group>
+                                        </FlexboxGrid.Item>
+                                    </FlexboxGrid>
+
+                                    <FlexboxGrid justify="space-between">
+                                        <FlexboxGrid.Item colspan={24}>
+                                            <Form.Group controlId="customerTaxId">
+                                                <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                                    Mã số thuế *
+                                                </Form.ControlLabel>
+                                                <Form.Control
+                                                    name="customerTaxId"
+                                                    placeholder="Nhập mã số thuế"
+                                                    accepter={Input}
+                                                    style={{ borderRadius: '8px' }}
+                                                />
+                                            </Form.Group>
+                                        </FlexboxGrid.Item>
+                                    </FlexboxGrid>
+
+                                    <Form.Group controlId="customerAddress">
+                                        <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                            Địa chỉ
+                                        </Form.ControlLabel>
+                                        <Form.Control
+                                            name="customerAddress"
+                                            placeholder="Nhập địa chỉ"
+                                            accepter={Input}
+                                            style={{ borderRadius: '8px' }}
+                                        />
+                                    </Form.Group>
+
+                                    <FlexboxGrid justify="space-between">
+                                        <FlexboxGrid.Item colspan={11}>
+                                            <Form.Group controlId="customerPhone">
+                                                <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                                    Số điện thoại
+                                                </Form.ControlLabel>
+                                                <Form.Control
+                                                    name="customerPhone"
+                                                    placeholder="Nhập số điện thoại"
+                                                    accepter={Input}
+                                                    style={{ borderRadius: '8px' }}
+                                                />
+                                            </Form.Group>
+                                        </FlexboxGrid.Item>
+                                        <FlexboxGrid.Item colspan={11}>
+                                            <Form.Group controlId="customerEmail">
+                                                <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                                    Email
+                                                </Form.ControlLabel>
+                                                <Form.Control
+                                                    name="customerEmail"
+                                                    placeholder="Nhập email"
+                                                    accepter={Input}
+                                                    type="email"
+                                                    style={{ borderRadius: '8px' }}
+                                                />
+                                            </Form.Group>
+                                        </FlexboxGrid.Item>
+                                    </FlexboxGrid>
+                                </div>
+                            </Panel>
                         </FlexboxGrid.Item>
                     </FlexboxGrid>
 
-                    <Divider />
-
-                    {/* Seller Information */}
-                    <Panel header="Thông tin người bán" bordered>
-                        <FlexboxGrid justify="space-between">
-                            <FlexboxGrid.Item colspan={11}>
-                                <Form.Group controlId="sellerName">
-                                    <Form.ControlLabel>Tên người bán *</Form.ControlLabel>
-                                    <Form.Control
-                                        name="sellerName"
-                                        placeholder="Nhập tên người bán"
-                                        accepter={Input}
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                            <FlexboxGrid.Item colspan={11}>
-                                <Form.Group controlId="sellerTaxId">
-                                    <Form.ControlLabel>Mã số thuế *</Form.ControlLabel>
-                                    <Form.Control
-                                        name="sellerTaxId"
-                                        placeholder="Nhập mã số thuế"
-                                        accepter={Input}
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                        </FlexboxGrid>
-
-                        <FlexboxGrid justify="space-between">
-                            <FlexboxGrid.Item colspan={11}>
-                                <Form.Group controlId="sellerAddress">
-                                    <Form.ControlLabel>Địa chỉ</Form.ControlLabel>
-                                    <Form.Control
-                                        name="sellerAddress"
-                                        placeholder="Nhập địa chỉ"
-                                        accepter={Input}
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                            <FlexboxGrid.Item colspan={11}>
-                                <Form.Group controlId="sellerPhone">
-                                    <Form.ControlLabel>Số điện thoại</Form.ControlLabel>
-                                    <Form.Control
-                                        name="sellerPhone"
-                                        placeholder="Nhập số điện thoại"
-                                        accepter={Input}
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                        </FlexboxGrid>
-
-                        <Form.Group controlId="sellerEmail">
-                            <Form.ControlLabel>Email</Form.ControlLabel>
-                            <Form.Control
-                                name="sellerEmail"
-                                placeholder="Nhập email"
-                                accepter={Input}
-                                type="email"
-                            />
-                        </Form.Group>
-                    </Panel>
-
-                    <Divider />
-
-                    {/* Customer Information */}
-                    <Panel header="Thông tin khách hàng" bordered>
-                        <FlexboxGrid justify="space-between">
-                            <FlexboxGrid.Item colspan={11}>
-                                <Form.Group controlId="customerName">
-                                    <Form.ControlLabel>Tên khách hàng *</Form.ControlLabel>
-                                    <Form.Control
-                                        name="customerName"
-                                        placeholder="Nhập tên khách hàng"
-                                        accepter={Input}
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                            <FlexboxGrid.Item colspan={11}>
-                                <Form.Group controlId="customerTaxId">
-                                    <Form.ControlLabel>Mã số thuế *</Form.ControlLabel>
-                                    <Form.Control
-                                        name="customerTaxId"
-                                        placeholder="Nhập mã số thuế"
-                                        accepter={Input}
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                        </FlexboxGrid>
-
-                        <FlexboxGrid justify="space-between">
-                            <FlexboxGrid.Item colspan={11}>
-                                <Form.Group controlId="customerAddress">
-                                    <Form.ControlLabel>Địa chỉ</Form.ControlLabel>
-                                    <Form.Control
-                                        name="customerAddress"
-                                        placeholder="Nhập địa chỉ"
-                                        accepter={Input}
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                            <FlexboxGrid.Item colspan={11}>
-                                <Form.Group controlId="customerPhone">
-                                    <Form.ControlLabel>Số điện thoại</Form.ControlLabel>
-                                    <Form.Control
-                                        name="customerPhone"
-                                        placeholder="Nhập số điện thoại"
-                                        accepter={Input}
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                        </FlexboxGrid>
-
-                        <Form.Group controlId="customerEmail">
-                            <Form.ControlLabel>Email</Form.ControlLabel>
-                            <Form.Control
-                                name="customerEmail"
-                                placeholder="Nhập email"
-                                accepter={Input}
-                                type="email"
-                            />
-                        </Form.Group>
-                    </Panel>
-
-                    <Divider />
-
                     {/* Invoice Details */}
-                    <Panel header="Chi tiết hóa đơn" bordered>
-                        <FlexboxGrid justify="space-between">
-                            <FlexboxGrid.Item colspan={7}>
-                                <Form.Group controlId="issuedDate">
-                                    <Form.ControlLabel>Ngày phát hành</Form.ControlLabel>
-                                    <Form.Control
-                                        name="issuedDate"
-                                        accepter={DatePicker}
-                                        format="yyyy-MM-dd"
-                                        style={{ width: '100%' }}
-                                        placeholder="Chọn ngày phát hành"
-                                        value={formData.issuedDate ? new Date(formData.issuedDate) : null}
-                                        onChange={(value) => {
-                                            if (value) {
-                                                handleInputChange('issuedDate', value.toISOString().split('T')[0]);
-                                            }
-                                        }}
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                            <FlexboxGrid.Item colspan={7}>
-                                <Form.Group controlId="currency">
-                                    <Form.ControlLabel>Tiền tệ</Form.ControlLabel>
-                                    <Form.Control
-                                        name="currency"
-                                        accepter={SelectPicker}
-                                        data={[
-                                            { label: 'VND', value: 'VND' },
-                                            { label: 'USD', value: 'USD' },
-                                            { label: 'EUR', value: 'EUR' }
-                                        ]}
-                                        searchable={false}
-                                        style={{ width: '100%' }}
-                                        placeholder="Chọn tiền tệ"
-                                    />
-                                </Form.Group>
-                            </FlexboxGrid.Item>
-                        </FlexboxGrid>
-
-                        <Form.Group controlId="note">
-                            <Form.ControlLabel>Ghi chú</Form.ControlLabel>
-                            <Form.Control
-                                name="note"
-                                placeholder="Nhập ghi chú"
-                                accepter={Textarea}
-                                rows={3}
-                            />
-                        </Form.Group>
+                    <Panel
+                        header={
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                color: '#ffc107',
+                                fontWeight: '600'
+                            }}>
+                                📅 Chi tiết hóa đơn
+                            </div>
+                        }
+                        bordered
+                        style={{
+                            borderRadius: '12px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            backgroundColor: 'white'
+                        }}
+                    >
+                        <div style={{ padding: '16px' }}>
+                            <FlexboxGrid justify="space-between">
+                                <FlexboxGrid.Item colspan={8}>
+                                    <Form.Group controlId="issuedDate">
+                                        <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                            Ngày phát hành
+                                        </Form.ControlLabel>
+                                        <Form.Control
+                                            name="issuedDate"
+                                            accepter={DatePicker}
+                                            format="yyyy-MM-dd"
+                                            style={{
+                                                width: '100%',
+                                                borderRadius: '8px'
+                                            }}
+                                            placeholder="Chọn ngày phát hành"
+                                            value={formData.issuedDate ? new Date(formData.issuedDate) : null}
+                                            onChange={(value) => {
+                                                if (value) {
+                                                    handleInputChange('issuedDate', value.toISOString().split('T')[0]);
+                                                }
+                                            }}
+                                        />
+                                    </Form.Group>
+                                </FlexboxGrid.Item>
+                                <FlexboxGrid.Item colspan={8}>
+                                    <Form.Group controlId="currency">
+                                        <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                            Tiền tệ
+                                        </Form.ControlLabel>
+                                        <Form.Control
+                                            name="currency"
+                                            accepter={SelectPicker}
+                                            data={[
+                                                { label: 'VND', value: 'VND' },
+                                                { label: 'USD', value: 'USD' },
+                                                { label: 'EUR', value: 'EUR' }
+                                            ]}
+                                            searchable={false}
+                                            style={{
+                                                width: '100%',
+                                                borderRadius: '8px'
+                                            }}
+                                            placeholder="Chọn tiền tệ"
+                                        />
+                                    </Form.Group>
+                                </FlexboxGrid.Item>
+                                <FlexboxGrid.Item colspan={8}>
+                                    <Form.Group controlId="note">
+                                        <Form.ControlLabel style={{ fontWeight: '500', color: '#495057' }}>
+                                            Ghi chú
+                                        </Form.ControlLabel>
+                                        <Form.Control
+                                            name="note"
+                                            placeholder="Nhập ghi chú"
+                                            accepter={Textarea}
+                                            rows={3}
+                                            style={{ borderRadius: '8px' }}
+                                        />
+                                    </Form.Group>
+                                </FlexboxGrid.Item>
+                            </FlexboxGrid>
+                        </div>
                     </Panel>
-
-                    <Divider />
 
                     {/* Invoice Lines */}
-                    <Panel header="Danh sách hàng hóa/dịch vụ" bordered>
-                        <ButtonToolbar style={{ marginBottom: 16 }}>
-                            <Button
-                                appearance="primary"
-                                startIcon={<PlusIcon />}
-                                onClick={addLine}
-                            >
-                                Thêm dòng
-                            </Button>
-                        </ButtonToolbar>
+                    <Panel
+                        header={
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                color: '#dc3545',
+                                fontWeight: '600'
+                            }}>
+                                🛒 Danh sách hàng hóa/dịch vụ
+                            </div>
+                        }
+                        bordered
+                        style={{
+                            borderRadius: '12px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            backgroundColor: 'white'
+                        }}
+                    >
+                        <div style={{ padding: '16px' }}>
+                            <ButtonToolbar style={{ marginBottom: 16 }}>
+                                <Button
+                                    appearance="primary"
+                                    startIcon={<PlusIcon />}
+                                    onClick={addLine}
+                                    style={{
+                                        borderRadius: '8px',
+                                        fontWeight: '500'
+                                    }}
+                                >
+                                    Thêm dòng
+                                </Button>
+                            </ButtonToolbar>
 
-                        <Table
-                            data={lines}
-                            autoHeight
-                            bordered
-                            cellBordered
-                        >
-                            <Table.Column width={60} align="center" fixed>
-                                <Table.HeaderCell>STT</Table.HeaderCell>
-                                <Table.Cell>
-                                    {(rowData, rowIndex) => (rowIndex !== undefined ? rowIndex + 1 : 0)}
-                                </Table.Cell>
-                            </Table.Column>
+                            <div style={{
+                                borderRadius: '12px',
+                                overflow: 'hidden',
+                                border: '1px solid #e9ecef'
+                            }}>
+                                <Table
+                                    data={lines}
+                                    autoHeight
+                                    bordered={false}
+                                    cellBordered
+                                    style={{ backgroundColor: 'white' }}
+                                    headerHeight={50}
+                                    rowHeight={60}
+                                >
+                                    <Table.Column width={70} align="center" fixed>
+                                        <Table.HeaderCell style={{
+                                            backgroundColor: '#f8f9fa',
+                                            fontWeight: '600',
+                                            color: '#495057'
+                                        }}>
+                                            STT
+                                        </Table.HeaderCell>
+                                        <Table.Cell style={{ padding: '8px' }}>
+                                            {(rowData, rowIndex) => (
+                                                <div style={{
+                                                    backgroundColor: '#e3f2fd',
+                                                    borderRadius: '50%',
+                                                    width: '32px',
+                                                    height: '32px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    margin: '0 auto',
+                                                    fontWeight: '600',
+                                                    color: '#1976d2'
+                                                }}>
+                                                    {rowIndex !== undefined ? rowIndex + 1 : 0}
+                                                </div>
+                                            )}
+                                        </Table.Cell>
+                                    </Table.Column>
 
-                            <Table.Column width={200} resizable flexGrow={1}>
-                                <Table.HeaderCell>Tên sản phẩm *</Table.HeaderCell>
-                                <Table.Cell>
-                                    {(rowData, rowIndex) => (
-                                        rowIndex !== undefined && (
-                                            <Input
-                                                value={rowData.name}
-                                                placeholder="Tên sản phẩm"
-                                                onChange={(value) => handleLineChange(rowIndex, 'name', value)}
-                                                size="sm"
-                                            />
-                                        )
-                                    )}
-                                </Table.Cell>
-                            </Table.Column>
+                                    <Table.Column width={220} resizable flexGrow={1}>
+                                        <Table.HeaderCell style={{
+                                            backgroundColor: '#f8f9fa',
+                                            fontWeight: '600',
+                                            color: '#495057'
+                                        }}>
+                                            Tên sản phẩm *
+                                        </Table.HeaderCell>
+                                        <Table.Cell style={{ padding: '8px' }}>
+                                            {(rowData, rowIndex) => (
+                                                rowIndex !== undefined && (
+                                                    <Input
+                                                        value={rowData.name}
+                                                        placeholder="Tên sản phẩm"
+                                                        onChange={(value) => handleLineChange(rowIndex, 'name', value)}
+                                                        size="sm"
+                                                        style={{ borderRadius: '6px' }}
+                                                    />
+                                                )
+                                            )}
+                                        </Table.Cell>
+                                    </Table.Column>
 
-                            <Table.Column width={100} resizable>
-                                <Table.HeaderCell>Đơn vị</Table.HeaderCell>
-                                <Table.Cell>
-                                    {(rowData, rowIndex) => (
-                                        rowIndex !== undefined && (
-                                            <Input
-                                                value={rowData.unit}
-                                                placeholder="Đơn vị"
-                                                onChange={(value) => handleLineChange(rowIndex, 'unit', value)}
-                                                size="sm"
-                                            />
-                                        )
-                                    )}
-                                </Table.Cell>
-                            </Table.Column>
+                                    <Table.Column width={100} resizable>
+                                        <Table.HeaderCell style={{
+                                            backgroundColor: '#f8f9fa',
+                                            fontWeight: '600',
+                                            color: '#495057'
+                                        }}>
+                                            Đơn vị
+                                        </Table.HeaderCell>
+                                        <Table.Cell style={{ padding: '8px' }}>
+                                            {(rowData, rowIndex) => (
+                                                rowIndex !== undefined && (
+                                                    <Input
+                                                        value={rowData.unit}
+                                                        placeholder="Đơn vị"
+                                                        onChange={(value) => handleLineChange(rowIndex, 'unit', value)}
+                                                        size="sm"
+                                                        style={{ borderRadius: '6px' }}
+                                                    />
+                                                )
+                                            )}
+                                        </Table.Cell>
+                                    </Table.Column>
 
-                            <Table.Column width={100} resizable>
-                                <Table.HeaderCell>Số lượng *</Table.HeaderCell>
-                                <Table.Cell>
-                                    {(rowData, rowIndex) => (
-                                        rowIndex !== undefined && (
-                                            <InputNumber
-                                                value={rowData.quantity}
-                                                min={0}
-                                                step={0.01}
-                                                onChange={(value) => handleLineChange(rowIndex, 'quantity', value || 0)}
-                                                size="sm"
-                                            />
-                                        )
-                                    )}
-                                </Table.Cell>
-                            </Table.Column>
+                                    <Table.Column width={110} resizable>
+                                        <Table.HeaderCell style={{
+                                            backgroundColor: '#f8f9fa',
+                                            fontWeight: '600',
+                                            color: '#495057'
+                                        }}>
+                                            Số lượng *
+                                        </Table.HeaderCell>
+                                        <Table.Cell style={{ padding: '8px' }}>
+                                            {(rowData, rowIndex) => (
+                                                rowIndex !== undefined && (
+                                                    <InputNumber
+                                                        value={rowData.quantity}
+                                                        min={0}
+                                                        step={0.01}
+                                                        onChange={(value) => handleLineChange(rowIndex, 'quantity', value || 0)}
+                                                        size="sm"
+                                                        style={{ borderRadius: '6px' }}
+                                                    />
+                                                )
+                                            )}
+                                        </Table.Cell>
+                                    </Table.Column>
 
-                            <Table.Column width={120} resizable>
-                                <Table.HeaderCell>Đơn giá</Table.HeaderCell>
-                                <Table.Cell>
-                                    {(rowData, rowIndex) => (
-                                        rowIndex !== undefined && (
-                                            <InputNumber
-                                                value={rowData.unitPrice}
-                                                min={0}
-                                                step={0.01}
-                                                onChange={(value) => handleLineChange(rowIndex, 'unitPrice', value || 0)}
-                                                size="sm"
-                                            />
-                                        )
-                                    )}
-                                </Table.Cell>
-                            </Table.Column>
+                                    <Table.Column width={130} resizable>
+                                        <Table.HeaderCell style={{
+                                            backgroundColor: '#f8f9fa',
+                                            fontWeight: '600',
+                                            color: '#495057'
+                                        }}>
+                                            Đơn giá
+                                        </Table.HeaderCell>
+                                        <Table.Cell style={{ padding: '8px' }}>
+                                            {(rowData, rowIndex) => (
+                                                rowIndex !== undefined && (
+                                                    <InputNumber
+                                                        value={rowData.unitPrice}
+                                                        min={0}
+                                                        step={0.01}
+                                                        onChange={(value) => handleLineChange(rowIndex, 'unitPrice', value || 0)}
+                                                        size="sm"
+                                                        style={{ borderRadius: '6px' }}
+                                                    />
+                                                )
+                                            )}
+                                        </Table.Cell>
+                                    </Table.Column>
 
-                            <Table.Column width={100} resizable>
-                                <Table.HeaderCell>Giảm giá (%)</Table.HeaderCell>
-                                <Table.Cell>
-                                    {(rowData, rowIndex) => (
-                                        rowIndex !== undefined && (
-                                            <InputNumber
-                                                value={rowData.discount}
-                                                min={0}
-                                                max={100}
-                                                step={0.01}
-                                                onChange={(value) => handleLineChange(rowIndex, 'discount', value || 0)}
-                                                size="sm"
-                                            />
-                                        )
-                                    )}
-                                </Table.Cell>
-                            </Table.Column>
+                                    <Table.Column width={110} resizable>
+                                        <Table.HeaderCell style={{
+                                            backgroundColor: '#f8f9fa',
+                                            fontWeight: '600',
+                                            color: '#495057'
+                                        }}>
+                                            Giảm giá (%)
+                                        </Table.HeaderCell>
+                                        <Table.Cell style={{ padding: '8px' }}>
+                                            {(rowData, rowIndex) => (
+                                                rowIndex !== undefined && (
+                                                    <InputNumber
+                                                        value={rowData.discount}
+                                                        min={0}
+                                                        max={100}
+                                                        step={0.01}
+                                                        onChange={(value) => handleLineChange(rowIndex, 'discount', value || 0)}
+                                                        size="sm"
+                                                        style={{ borderRadius: '6px' }}
+                                                    />
+                                                )
+                                            )}
+                                        </Table.Cell>
+                                    </Table.Column>
 
-                            <Table.Column width={100} resizable>
-                                <Table.HeaderCell>Thuế (%)</Table.HeaderCell>
-                                <Table.Cell>
-                                    {(rowData, rowIndex) => (
-                                        rowIndex !== undefined && (
-                                            <InputNumber
-                                                value={rowData.taxRate}
-                                                min={0}
-                                                max={100}
-                                                step={0.01}
-                                                onChange={(value) => handleLineChange(rowIndex, 'taxRate', value || 0)}
-                                                size="sm"
-                                            />
-                                        )
-                                    )}
-                                </Table.Cell>
-                            </Table.Column>
+                                    <Table.Column width={100} resizable>
+                                        <Table.HeaderCell style={{
+                                            backgroundColor: '#f8f9fa',
+                                            fontWeight: '600',
+                                            color: '#495057'
+                                        }}>
+                                            Thuế (%)
+                                        </Table.HeaderCell>
+                                        <Table.Cell style={{ padding: '8px' }}>
+                                            {(rowData, rowIndex) => (
+                                                rowIndex !== undefined && (
+                                                    <InputNumber
+                                                        value={rowData.taxRate}
+                                                        min={0}
+                                                        max={100}
+                                                        step={0.01}
+                                                        onChange={(value) => handleLineChange(rowIndex, 'taxRate', value || 0)}
+                                                        size="sm"
+                                                        style={{ borderRadius: '6px' }}
+                                                    />
+                                                )
+                                            )}
+                                        </Table.Cell>
+                                    </Table.Column>
 
-                            <Table.Column width={120} align="right">
-                                <Table.HeaderCell>Thành tiền</Table.HeaderCell>
-                                <Table.Cell>
-                                    {rowData => (
-                                        <strong>{rowData.lineTotal.toLocaleString('vi-VN')}</strong>
-                                    )}
-                                </Table.Cell>
-                            </Table.Column>
+                                    <Table.Column width={140} align="right">
+                                        <Table.HeaderCell style={{
+                                            backgroundColor: '#f8f9fa',
+                                            fontWeight: '600',
+                                            color: '#495057'
+                                        }}>
+                                            Thành tiền
+                                        </Table.HeaderCell>
+                                        <Table.Cell style={{ padding: '8px' }}>
+                                            {rowData => (
+                                                <div style={{
+                                                    backgroundColor: '#e8f5e8',
+                                                    padding: '8px',
+                                                    borderRadius: '6px',
+                                                    fontWeight: '600',
+                                                    color: '#2e7d32',
+                                                    textAlign: 'right'
+                                                }}>
+                                                    {rowData.lineTotal.toLocaleString('vi-VN')}
+                                                </div>
+                                            )}
+                                        </Table.Cell>
+                                    </Table.Column>
 
-                            <Table.Column width={80} align="center" fixed="right">
-                                <Table.HeaderCell>Hành động</Table.HeaderCell>
-                                <Table.Cell>
-                                    {(rowData, rowIndex) => (
-                                        lines.length > 1 && rowIndex !== undefined && (
-                                            <IconButton
-                                                icon={<TrashIcon />}
-                                                color="red"
-                                                appearance="subtle"
-                                                size="sm"
-                                                onClick={() => removeLine(rowIndex)}
-                                            />
-                                        )
-                                    )}
-                                </Table.Cell>
-                            </Table.Column>
-                        </Table>
+                                    <Table.Column width={80} align="center" fixed="right">
+                                        <Table.HeaderCell style={{
+                                            backgroundColor: '#f8f9fa',
+                                            fontWeight: '600',
+                                            color: '#495057'
+                                        }}>
+                                            Hành động
+                                        </Table.HeaderCell>
+                                        <Table.Cell style={{ padding: '8px' }}>
+                                            {(rowData, rowIndex) => (
+                                                lines.length > 1 && rowIndex !== undefined && (
+                                                    <IconButton
+                                                        icon={<TrashIcon />}
+                                                        color="red"
+                                                        appearance="subtle"
+                                                        size="sm"
+                                                        onClick={() => removeLine(rowIndex)}
+                                                        style={{
+                                                            borderRadius: '6px',
+                                                            backgroundColor: '#ffebee'
+                                                        }}
+                                                    />
+                                                )
+                                            )}
+                                        </Table.Cell>
+                                    </Table.Column>
+                                </Table>
+                            </div>
+                        </div>
                     </Panel>
 
-                    <Divider />
-
                     {/* Totals */}
-                    <Panel header="Tổng kết" bordered>
-                        <FlexboxGrid justify="end">
-                            <FlexboxGrid.Item colspan={12}>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div style={{ marginBottom: 8 }}>
-                                        <span>Tổng tiền hàng: </span>
-                                        <strong>{formData.subTotal.toLocaleString('vi-VN')} {formData.currency}</strong>
+                    <Panel
+                        header={
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                color: '#6f42c1',
+                                fontWeight: '600'
+                            }}>
+                                💰 Tổng kết
+                            </div>
+                        }
+                        bordered
+                        style={{
+                            borderRadius: '12px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            backgroundColor: 'white'
+                        }}
+                    >
+                        <div style={{ padding: '24px' }}>
+                            <FlexboxGrid justify="end">
+                                <FlexboxGrid.Item colspan={10}>
+                                    <div style={{
+                                        backgroundColor: '#f8f9fa',
+                                        borderRadius: '12px',
+                                        padding: '20px',
+                                        border: '2px solid #e9ecef'
+                                    }}>
+                                        <div style={{
+                                            marginBottom: 12,
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '8px 0',
+                                            borderBottom: '1px solid #dee2e6'
+                                        }}>
+                                            <span style={{ fontWeight: '500', color: '#6c757d' }}>Tổng tiền hàng:</span>
+                                            <span style={{ fontWeight: '600', color: '#495057' }}>
+                                                {formData.subTotal.toLocaleString('vi-VN')} {formData.currency}
+                                            </span>
+                                        </div>
+                                        <div style={{
+                                            marginBottom: 12,
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '8px 0',
+                                            borderBottom: '1px solid #dee2e6'
+                                        }}>
+                                            <span style={{ fontWeight: '500', color: '#6c757d' }}>Giảm giá:</span>
+                                            <span style={{ fontWeight: '600', color: '#dc3545' }}>
+                                                -{formData.discountAmount.toLocaleString('vi-VN')} {formData.currency}
+                                            </span>
+                                        </div>
+                                        <div style={{
+                                            marginBottom: 16,
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '8px 0',
+                                            borderBottom: '1px solid #dee2e6'
+                                        }}>
+                                            <span style={{ fontWeight: '500', color: '#6c757d' }}>Tiền thuế:</span>
+                                            <span style={{ fontWeight: '600', color: '#fd7e14' }}>
+                                                +{formData.taxAmount.toLocaleString('vi-VN')} {formData.currency}
+                                            </span>
+                                        </div>
+                                        <div style={{
+                                            fontSize: '20px',
+                                            fontWeight: 'bold',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '12px 0',
+                                            backgroundColor: '#fff',
+                                            borderRadius: '8px',
+                                            paddingLeft: '16px',
+                                            paddingRight: '16px',
+                                            border: '2px solid #1675e0'
+                                        }}>
+                                            <span style={{ color: '#495057' }}>Tổng thanh toán:</span>
+                                            <span style={{
+                                                color: '#1675e0',
+                                                fontSize: '24px'
+                                            }}>
+                                                {formData.totalAmount.toLocaleString('vi-VN')} {formData.currency}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div style={{ marginBottom: 8 }}>
-                                        <span>Giảm giá: </span>
-                                        <strong>{formData.discountAmount.toLocaleString('vi-VN')} {formData.currency}</strong>
-                                    </div>
-                                    <div style={{ marginBottom: 8 }}>
-                                        <span>Tiền thuế: </span>
-                                        <strong>{formData.taxAmount.toLocaleString('vi-VN')} {formData.currency}</strong>
-                                    </div>
-                                    <Divider style={{ margin: '8px 0' }} />
-                                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                                        <span>Tổng thanh toán: </span>
-                                        <span style={{ color: '#1675e0' }}>
-                                            {formData.totalAmount.toLocaleString('vi-VN')} {formData.currency}
-                                        </span>
-                                    </div>
-                                </div>
-                            </FlexboxGrid.Item>
-                        </FlexboxGrid>
+                                </FlexboxGrid.Item>
+                            </FlexboxGrid>
+                        </div>
                     </Panel>
                 </Form>
             </Modal.Body>
 
-            <Modal.Footer>
-                <ButtonToolbar>
+            <Modal.Footer >
+                <ButtonToolbar style={{ gap: '12px' }}>
                     <Button
                         appearance="subtle"
                         onClick={onClose}
                         disabled={loading}
+                        size="sm"
+                        style={{
+                            borderRadius: '8px',
+                            fontWeight: '500',
+                            padding: '10px 24px'
+                        }}
                     >
                         Hủy
                     </Button>
@@ -792,6 +1137,15 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                         appearance="default"
                         onClick={() => handleSubmit(0)}
                         disabled={loading}
+                        size="sm"
+                        style={{
+                            borderRadius: '8px',
+                            fontWeight: '500',
+                            padding: '10px 24px',
+                            backgroundColor: '#6c757d',
+                            borderColor: '#6c757d',
+                            color: 'white'
+                        }}
                     >
                         Tạo bản nháp
                     </Button>
@@ -800,6 +1154,13 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                         onClick={() => handleSubmit(1)}
                         disabled={loading}
                         loading={loading}
+                        size="sm"
+                        style={{
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            padding: '10px 32px',
+                            fontSize: '16px'
+                        }}
                     >
                         {loading ? 'Đang tạo...' : 'Tạo hóa đơn'}
                     </Button>
