@@ -23,7 +23,7 @@ import {
 import TrashIcon from '@rsuite/icons/Trash';
 import PlusIcon from '@rsuite/icons/Plus';
 import type { CreateInvoiceRequest, CreateInvoiceLineRequest, Invoice } from '../types/invoice';
-import { getAllOrganizations } from '../api/services/organizationService';
+import { getOrganizationByMe } from '../api/services/organizationService';
 import { createInvoice } from '../api/services/invoiceService';
 import type { Organization } from '../types/organization';
 const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<typeof Input>>(
@@ -95,7 +95,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             const loadOrganizations = async () => {
                 try {
                     setLoadingOrganizations(true);
-                    const response = await getAllOrganizations();
+                    const response = await getOrganizationByMe();
                     if (response.succeeded && response.data) {
                         setOrganizations(response.data);
                     }

@@ -1,15 +1,12 @@
 // Organization types
 export interface Organization {
-    id: string;
+    id: number;
     organizationName: string;
-    description?: string;
-    address?: string;
-    phone?: string;
-    email?: string;
-    taxCode?: string;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
+    organizationTaxId: string;
+    organizationAddress: string;
+    organizationPhone: string;
+    organizationEmail: string;
+    organizationBankAccount: string;
 }
 
 export interface CreateOrganizationRequest {

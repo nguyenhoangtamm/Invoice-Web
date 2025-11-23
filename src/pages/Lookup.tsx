@@ -3,9 +3,8 @@ import InvoiceDetail from "../components/InvoiceDetail";
 import type { Invoice, InvoiceLookUp } from "../types/invoice";
 import { getInvoicesPaginatedLookUp } from "../api/services/invoiceService";
 import { Search, Eye, Download, Trash2, ChevronLeft, ChevronRight, FileText, Loader, CheckCircle, AlertCircle } from "lucide-react";
-import { InvoiceStatus } from "../enums/invoiceEnum";
-import { mockInvoices } from "../data/mockInvoice";
 import { getSimplifiedInvoiceStatusText, getSimplifiedInvoiceStatusColor } from "../utils/helpers";
+import { Input, InputGroup } from "rsuite";
 
 export default function Lookup() {
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceLookUp | null>(null);
@@ -69,49 +68,48 @@ export default function Lookup() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 py-12 shadow-2xl">
+      <header className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 py-8 shadow-2xl">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-3xl mx-auto">
             {/* Title Section */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-3 bg-white/15 backdrop-blur-sm px-5 py-3 rounded-full mb-6 border border-white/30 hover:bg-white/20 transition-colors">
-                <Search size={20} className="text-blue-100" />
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full mb-4 border border-white/30 hover:bg-white/20 transition-colors">
                 <span className="text-blue-100 text-sm font-semibold">TrustInvoice</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">Tìm Kiếm Hóa Đơn</h1>
-              <p className="text-blue-100 text-lg md:text-xl font-light">Tra cứu thông tin hóa đơn của bạn một cách nhanh chóng và an toàn</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white mb-3 leading-tight">Tra Cứu Hóa Đơn</h1>
             </div>
 
             {/* Search Form */}
-            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm border border-white/50">
-              <div className="p-6 md:p-8">
-                <div className="space-y-4">
+            <div className="bg-white rounded-xl shadow-xl overflow-hidden backdrop-blur-sm border border-white/50">
+              <div className="p-4 md:p-6">
+                <div className="space-y-3">
                   <div>
-                    <label className="flex text-sm font-bold text-gray-800 mb-3 items-center gap-2">
-                      <Search size={18} className="text-blue-600" />
-                      Tìm kiếm hóa đơn
-                    </label>
-                    <input
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                      placeholder="Nhập số hóa đơn, tên khách hàng hoặc mã số thuế..."
-                      className="w-full px-6 py-4 border-2 border-gray-300 rounded-xl text-base focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all placeholder-gray-400 font-medium"
-                    />
+                    <InputGroup inside>
+                      <Input
+                        value={searchTerm}
+                        onChange={setSearchTerm}
+                        onPressEnter={handleSearch}
+                        placeholder="Nhập số hóa đơn, tên khách hàng hoặc mã số thuế..."
+                        size="lg"
+                      />
+                      <InputGroup.Addon>
+                        <Search size={16} className="text-blue-600" />
+                      </InputGroup.Addon>
+                    </InputGroup>
                   </div>
                   <button
                     onClick={handleSearch}
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-2xl text-base"
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-sm"
                   >
                     {loading ? (
                       <>
-                        <Loader size={20} className="animate-spin" />
+                        <Loader size={18} className="animate-spin" />
                         Đang tìm...
                       </>
                     ) : (
                       <>
-                        <Search size={20} />
+                        <Search size={18} />
                         Tìm Kiếm
                       </>
                     )}
@@ -122,9 +120,9 @@ export default function Lookup() {
 
             {/* Messages */}
             {message && (
-              <div className="mt-6 flex items-center gap-3 p-5 rounded-xl bg-amber-50 border-l-4 border-amber-400 text-amber-800 animate-fadeIn shadow-md">
-                <AlertCircle size={22} className="flex-shrink-0 text-amber-600" />
-                <p className="font-semibold text-base">{message}</p>
+              <div className="mt-4 flex items-center gap-2 p-4 rounded-lg bg-amber-50 border-l-4 border-amber-400 text-amber-800 animate-fadeIn shadow-sm">
+                <AlertCircle size={18} className="flex-shrink-0 text-amber-600" />
+                <p className="font-medium text-sm">{message}</p>
               </div>
             )}
           </div>
@@ -132,13 +130,13 @@ export default function Lookup() {
       </header>
 
       {/* Results Section */}
-      <main className="container mx-auto px-6 py-12">
+      <main className="container mx-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">
           {hasSearched && searchResults.length > 0 && (
             <div className="animate-fadeIn">
-              <div className="flex items-center gap-3 mb-8">
-                <CheckCircle size={28} className="text-green-500" />
-                <h2 className="text-3xl font-bold text-gray-900">Kết Quả Tìm Kiếm</h2>
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <CheckCircle size={24} className="text-green-500" />
+                <h2 className="text-2xl font-bold text-gray-900">Kết Quả Tìm Kiếm</h2>
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
                   {totalCount} hóa đơn
                 </span>
@@ -238,37 +236,37 @@ export default function Lookup() {
           )}
 
           {hasSearched && searchResults.length === 0 && !loading && (
-            <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-              <FileText size={48} className="mx-auto text-gray-400 mb-4" />
+            <div className="text-center py-8 bg-white rounded-xl shadow-sm">
+              <FileText size={40} className="mx-auto text-gray-400 mb-3" />
               <h3 className="text-lg font-semibold text-gray-900 mb-1">Không tìm thấy hóa đơn</h3>
-              <p className="text-gray-600">Thử thay đổi từ khóa tìm kiếm hoặc kiểm tra lại thông tin</p>
+              <p className="text-gray-600 text-sm">Thử thay đổi từ khóa tìm kiếm hoặc kiểm tra lại thông tin</p>
             </div>
           )}
 
           {!hasSearched && (
-            <div className="text-center py-20">
-              <div className="text-7xl mb-6 opacity-80">🔍</div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">Tìm kiếm hóa đơn</h2>
-              <p className="text-gray-600 text-lg">Nhập từ khóa tìm kiếm ở phần trên để bắt đầu</p>
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4 opacity-80">🔍</div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tìm kiếm hóa đơn</h2>
+              <p className="text-gray-600 text-base">Nhập từ khóa tìm kiếm ở phần trên để bắt đầu</p>
             </div>
           )}
 
           {/* Info Section */}
-          <div className="mt-16 grid md:grid-cols-3 gap-6">
-            <div className="p-8 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 hover:shadow-xl transition-all transform hover:scale-105">
-              <div className="text-4xl mb-4">🔍</div>
-              <h3 className="font-bold text-gray-900 mb-3 text-lg">Tìm kiếm nhanh</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">Tìm hóa đơn theo số hóa đơn, tên khách hàng hoặc mã số thuế</p>
+          <div className="mt-12 grid md:grid-cols-3 gap-4">
+            <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:shadow-lg transition-all">
+              <div className="text-3xl mb-3">🔍</div>
+              <h3 className="font-bold text-gray-900 mb-2 text-base">Tìm kiếm nhanh</h3>
+              <p className="text-xs text-gray-700 leading-relaxed">Tìm hóa đơn theo số hóa đơn, tên khách hàng hoặc mã số thuế</p>
             </div>
-            <div className="p-8 rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100 border-2 border-indigo-200 hover:shadow-xl transition-all transform hover:scale-105">
-              <div className="text-4xl mb-4">📋</div>
-              <h3 className="font-bold text-gray-900 mb-3 text-lg">Xem chi tiết</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">Nhấp vào hóa đơn trong danh sách để xem thông tin chi tiết</p>
+            <div className="p-6 rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 hover:shadow-lg transition-all">
+              <div className="text-3xl mb-3">📋</div>
+              <h3 className="font-bold text-gray-900 mb-2 text-base">Xem chi tiết</h3>
+              <p className="text-xs text-gray-700 leading-relaxed">Nhấp vào hóa đơn trong danh sách để xem thông tin chi tiết</p>
             </div>
-            <div className="p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 hover:shadow-xl transition-all transform hover:scale-105">
-              <div className="text-4xl mb-4">🔐</div>
-              <h3 className="font-bold text-gray-900 mb-3 text-lg">An toàn bảo mật</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">Thông tin hóa đơn được bảo vệ và xác thực an toàn</p>
+            <div className="p-6 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:shadow-lg transition-all">
+              <div className="text-3xl mb-3">🔐</div>
+              <h3 className="font-bold text-gray-900 mb-2 text-base">An toàn bảo mật</h3>
+              <p className="text-xs text-gray-700 leading-relaxed">Thông tin hóa đơn được bảo vệ và xác thực an toàn</p>
             </div>
           </div>
         </div>
