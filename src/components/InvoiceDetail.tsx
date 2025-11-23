@@ -4,6 +4,7 @@ import { Button, Table, Panel, Grid, Row, Col, Modal, Divider, FlexboxGrid } fro
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { blockchainService, type BlockchainVerificationResponse } from '../api/services/blockchainService';
+import { InvoiceStatus } from '../enums/invoiceEnum';
 import 'rsuite/dist/rsuite.min.css';
 
 interface Props {
@@ -15,6 +16,36 @@ interface Props {
 function fmtMoney(v?: number) {
   if (v === null || v === undefined) return "-";
   return v.toLocaleString("vi-VN");
+}
+
+function getInvoiceStatusText(status: number): string {
+  switch (status) {
+    case InvoiceStatus.Draft:
+      return "Bản nháp";
+    case InvoiceStatus.Uploaded:
+    case InvoiceStatus.IpfsStored:
+    case InvoiceStatus.Batched:
+    case InvoiceStatus.BlockchainConfirmed:
+    case InvoiceStatus.Finalized:
+      return "Đã ghi nhận";
+    default:
+      return "Đã ghi nhận";
+  }
+}
+
+function getInvoiceStatusColor(status: number): string {
+  switch (status) {
+    case InvoiceStatus.Draft:
+      return "text-yellow-600 bg-yellow-100";
+    case InvoiceStatus.Uploaded:
+    case InvoiceStatus.IpfsStored:
+    case InvoiceStatus.Batched:
+    case InvoiceStatus.BlockchainConfirmed:
+    case InvoiceStatus.Finalized:
+      return "text-green-600 bg-green-100";
+    default:
+      return "text-green-600 bg-green-100";
+  }
 }
 
 export default function InvoiceDetail({ data, open, onClose }: Props) {
@@ -349,6 +380,12 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Mẫu số hóa đơn:</label>
                         <p className="text-gray-900">{invoice.formNumber}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái:</label>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getInvoiceStatusColor(invoice.status)}`}>
+                          {getInvoiceStatusText(invoice.status)}
+                        </span>
                       </div>
                       <div className="bg-green-100 border-l-4 border-green-500 p-3 text-sm">
                         <strong>✓ Hóa đơn hợp lệ và đã được xác thực trên Blockchain</strong>

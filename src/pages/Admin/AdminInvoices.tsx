@@ -11,6 +11,7 @@ import {
     updateInvoice,
     deleteInvoice
 } from '../../api/services/invoiceService';
+import { getSimplifiedInvoiceStatusText, getSimplifiedInvoiceStatusColor } from '../../utils/helpers';
 
 type Props = {
     open: boolean;
@@ -391,17 +392,12 @@ export default function AdminInvoices() {
     };
 
     const getStatusBadge = (status: number) => {
-        const config = {
-            0: { label: 'Nháp', className: 'bg-gray-100 text-gray-800' },
-            1: { label: 'Đã phát hành', className: 'bg-blue-100 text-blue-800' },
-            2: { label: 'Đã hủy', className: 'bg-red-100 text-red-800' },
-            101: { label: 'Đã xác thực', className: 'bg-green-100 text-green-800' },
-            102: { label: 'Lỗi xác thực', className: 'bg-yellow-100 text-yellow-800' },
-        }[status] || { label: 'Không xác định', className: 'bg-gray-100 text-gray-800' };
+        const label = getSimplifiedInvoiceStatusText(status);
+        const className = getSimplifiedInvoiceStatusColor(status).replace('text-yellow-700', 'text-yellow-800').replace('text-green-700', 'text-green-800');
 
         return (
-            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${config.className}`}>
-                {config.label}
+            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${className}`}>
+                {label}
             </span>
         );
     };

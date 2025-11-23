@@ -5,9 +5,10 @@ import { getInvoicesPaginatedLookUp } from "../api/services/invoiceService";
 import { Search, Eye, Download, Trash2, ChevronLeft, ChevronRight, FileText, Loader, CheckCircle, AlertCircle } from "lucide-react";
 import { InvoiceStatus } from "../enums/invoiceEnum";
 import { mockInvoices } from "../data/mockInvoice";
+import { getSimplifiedInvoiceStatusText, getSimplifiedInvoiceStatusColor } from "../utils/helpers";
 
 export default function Lookup() {
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceLookUp | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<InvoiceLookUp[]>([]);
@@ -57,25 +58,12 @@ export default function Lookup() {
 
   const getStatusLabel = (status?: number) => {
     if (status == null) return '-';
-    const statusOptions = [
-      { value: InvoiceStatus.Uploaded, label: 'Đã upload' },
-      { value: InvoiceStatus.IpfsStored, label: 'Đã lưu trên IPFS' },
-      { value: InvoiceStatus.Batched, label: 'Đã tạo batch' },
-      { value: InvoiceStatus.BlockchainConfirmed, label: 'Đã xác nhận trên blockchain' },
-      { value: InvoiceStatus.Finalized, label: 'Hoàn tất' },
-      { value: InvoiceStatus.IpfsFailed, label: 'Upload IPFS thất bại' },
-      { value: InvoiceStatus.BlockchainFailed, label: 'Ghi blockchain thất bại' },
-    ];
-    const opt = statusOptions.find(o => o.value === status);
-    return opt ? opt.label : String(status);
+    return getSimplifiedInvoiceStatusText(status);
   };
 
   const getStatusClass = (status?: number) => {
     if (status == null) return 'bg-gray-100 text-gray-700';
-    if (status === InvoiceStatus.BlockchainConfirmed || status === InvoiceStatus.Finalized) return 'bg-green-100 text-green-700';
-    if (status === InvoiceStatus.Uploaded || status === InvoiceStatus.IpfsStored || status === InvoiceStatus.Batched) return 'bg-yellow-100 text-yellow-700';
-    if (status === InvoiceStatus.IpfsFailed || status === InvoiceStatus.BlockchainFailed) return 'bg-red-100 text-red-700';
-    return 'bg-gray-100 text-gray-700';
+    return getSimplifiedInvoiceStatusColor(status);
   };
 
   return (
@@ -288,7 +276,7 @@ export default function Lookup() {
 
       {/* Modal */}
       <InvoiceDetail
-        data={selectedInvoice}
+        data={selectedInvoice as Invoice}
         open={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);

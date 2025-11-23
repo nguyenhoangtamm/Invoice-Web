@@ -8,7 +8,7 @@ import { mockInvoices } from '../../data/mockInvoice';
 import { useAuth } from '../../contexts/AuthContext';
 import CreateInvoiceModal from '../../components/CreateInvoiceModal';
 import Table, { TableColumn } from '../../components/common/table';
-import { debounce } from '../../utils/helpers';
+import { debounce, getSimplifiedInvoiceStatusText, getSimplifiedInvoiceStatusColor } from '../../utils/helpers';
 
 interface InvoicesTabProps {
     onSelectInvoice: (invoice: Invoice) => void;
@@ -32,7 +32,15 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
         const fetchInvoices = async () => {
             setLoading(true);
             try {
-                const statusParam = statusFilter === 'all' ? undefined : statusFilter;
+                let statusParam: string | undefined;
+                if (statusFilter === 'all') {
+                    statusParam = undefined;
+                } else if (statusFilter === 'recorded') {
+                    // Map "recorded" to all non-draft statuses - server will handle this
+                    statusParam = 'recorded';
+                } else {
+                    statusParam = statusFilter;
+                }
                 const searchParam = searchTerm.trim() || undefined;
 
                 const response = await getInvoicesPaginatedByUser(
@@ -198,28 +206,17 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
     const statusOptions = [
         { value: 'all', label: 'Tất cả trạng thái' },
         { value: String(InvoiceStatus.Draft), label: 'Bản nháp' },
-        { value: String(InvoiceStatus.Uploaded), label: 'Đã upload' },
-        { value: String(InvoiceStatus.IpfsStored), label: 'Đã lưu trên IPFS' },
-        { value: String(InvoiceStatus.Batched), label: 'Đã tạo batch' },
-        { value: String(InvoiceStatus.BlockchainConfirmed), label: 'Đã xác nhận trên blockchain' },
-        { value: String(InvoiceStatus.Finalized), label: 'Hoàn tất' },
-        { value: String(InvoiceStatus.IpfsFailed), label: 'Upload IPFS thất bại' },
-        { value: String(InvoiceStatus.BlockchainFailed), label: 'Ghi blockchain thất bại' },
+        { value: 'recorded', label: 'Đã ghi nhận' },
     ];
 
     const getStatusLabel = (status?: number) => {
         if (status == null) return '-';
-        const opt = statusOptions.find(o => o.value === String(status));
-        return opt ? opt.label : String(status);
+        return getSimplifiedInvoiceStatusText(status);
     };
 
     const getStatusClass = (status?: number) => {
         if (status == null) return 'bg-gray-100 text-gray-700';
-        if (status === InvoiceStatus.Draft) return 'bg-gray-100 text-gray-700';
-        if (status === InvoiceStatus.BlockchainConfirmed || status === InvoiceStatus.Finalized) return 'bg-green-100 text-green-700';
-        if (status === InvoiceStatus.Uploaded || status === InvoiceStatus.IpfsStored || status === InvoiceStatus.Batched) return 'bg-yellow-100 text-yellow-700';
-        if (status === InvoiceStatus.IpfsFailed || status === InvoiceStatus.BlockchainFailed) return 'bg-red-100 text-red-700';
-        return 'bg-gray-100 text-gray-700';
+        return getSimplifiedInvoiceStatusColor(status);
     };
 
     if (loading) {
