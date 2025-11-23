@@ -133,7 +133,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
             key: 'issuedDate',
             label: 'Ngày phát hành',
             dataKey: 'issuedDate',
-            width: 180,
+            width: 220,
             render: (rowData: Invoice) => (
                 <span className="text-gray-600">{rowData.issuedDate || '-'}</span>
             )
