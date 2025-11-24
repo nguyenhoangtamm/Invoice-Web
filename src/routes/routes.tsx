@@ -20,6 +20,8 @@ import AdminInvoiceBatches from '../pages/Admin/AdminInvoiceBatches';
 import AdminInvoiceLines from '../pages/Admin/AdminInvoiceLines';
 import AdminGuard from '../components/common/AdminGuard';
 import AuthGuard from '../components/common/AuthGuard';
+import UserGuard from '../components/common/UserGuard';
+import PermissionMiddleware, { createPermission } from '../components/common/PermissionMiddleware';
 import BlockchainVerificationPage from '../pages/BlockchainVerification';
 import {
     DashboardPage,
@@ -40,13 +42,15 @@ export const routes: RouteObject[] = [
             { path: '*', element: <Lookup /> },
         ]
     },
-    // Dashboard routes with layout
+    // Dashboard routes - Chỉ cho User thường (không phải Admin)
     {
         path: '/dashboard',
         element: (
-            <AuthGuard>
-                <DashboardLayout />
-            </AuthGuard>
+            <PermissionMiddleware permission={createPermission.authenticated()}>
+                <UserGuard>
+                    <DashboardLayout />
+                </UserGuard>
+            </PermissionMiddleware>
         ),
         children: [
             { index: true, element: <DashboardPage /> },
@@ -57,7 +61,7 @@ export const routes: RouteObject[] = [
             { path: 'settings', element: <SettingsPage /> }
         ]
     },
-    // Admin routes with separate layout
+    // Admin routes - Chỉ cho Admin
     {
         path: '/admin',
         element: (
@@ -78,12 +82,34 @@ export const routes: RouteObject[] = [
             { path: 'api-keys', element: <AdminApiKeys /> },
         ]
     },
-    // Auth routes without layout
-    { path: '/login', element: <Login /> },
-    { path: '/register', element: <Register /> },
-    { path: '/forgot-password', element: <ForgotPassword /> },
+    // Auth routes - Public (nhưng redirect nếu đã đăng nhập)
+    {
+        path: '/login',
+        element: (
+            <PermissionMiddleware permission={createPermission.public()}>
+                <Login />
+            </PermissionMiddleware>
+        )
+    },
+    {
+        path: '/register',
+        element: (
+            <PermissionMiddleware permission={createPermission.public()}>
+                <Register />
+            </PermissionMiddleware>
+        )
+    },
+    {
+        path: '/forgot-password',
+        element: (
+            <PermissionMiddleware permission={createPermission.public()}>
+                <ForgotPassword />
+            </PermissionMiddleware>
+        )
+    },
+    // Static pages - Public
     { path: '/terms', element: <Terms /> },
     { path: '/privacy', element: <Privacy /> },
-    // Blockchain verification route
+    // Blockchain verification route - Public
     { path: '/blockchain-verify/:id', element: <BlockchainVerificationPage /> }
 ];
