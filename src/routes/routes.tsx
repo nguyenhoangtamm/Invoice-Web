@@ -1,6 +1,8 @@
 import type { RouteObject } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
 import App from '../App';
+import Home from '../pages/Home';
+import NotFound from '../pages/NotFound';
 import Lookup from '../pages/Lookup';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
@@ -33,15 +35,21 @@ import {
 } from '../pages/DashboardPages';
 
 export const routes: RouteObject[] = [
+    // Home page - Public
+    { path: '/', element: <Home /> },
+    
+    // Main app routes
     {
-        path: '/',
+        path: '/app',
         element: <App />,
         children: [
             { index: true, element: <Navigate to="/lookup" replace /> },
             { path: 'lookup', element: <Lookup /> },
-            { path: '*', element: <Lookup /> },
         ]
     },
+    
+    // Direct access to lookup page
+    { path: '/lookup', element: <Lookup /> },
     // Dashboard routes - Chỉ cho User thường (không phải Admin)
     {
         path: '/dashboard',
@@ -111,5 +119,7 @@ export const routes: RouteObject[] = [
     { path: '/terms', element: <Terms /> },
     { path: '/privacy', element: <Privacy /> },
     // Blockchain verification route - Public
-    { path: '/blockchain-verify/:id', element: <BlockchainVerificationPage /> }
+    { path: '/blockchain-verify/:id', element: <BlockchainVerificationPage /> },
+    // 404 Not Found - Catch all unmatched routes
+    { path: '*', element: <NotFound /> }
 ];
