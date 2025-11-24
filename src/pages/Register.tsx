@@ -146,7 +146,7 @@ const Register = () => {
                 </div>
 
                 {/* Social register buttons */}
-                <div className="space-y-3 mb-6">
+                {/* <div className="space-y-3 mb-6">
                     <button
                         onClick={handleGoogleRegister}
                         className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200"
@@ -179,17 +179,17 @@ const Register = () => {
                             <span className="font-medium text-gray-700 text-xs">SSO</span>
                         </button>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Divider */}
-                <div className="relative mb-6">
+                {/* <div className="relative mb-6">
                     <div className="absolute inset-0 flex items-center">
                         <div className="w-full border-t border-gray-300"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
                         <span className="px-4 bg-white text-gray-500">hoặc đăng ký bằng email</span>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Error message */}
                 {error && (
