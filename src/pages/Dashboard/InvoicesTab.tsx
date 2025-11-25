@@ -25,7 +25,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
-
+    const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger for manual refetch
     const { user } = useAuth();
 
     useEffect(() => {
@@ -70,7 +70,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
         if (user) {
             fetchInvoices();
         }
-    }, [user, currentPage, invoicesPerPage, statusFilter, searchTerm]);
+    }, [user, currentPage, invoicesPerPage, statusFilter, searchTerm, refreshTrigger]);
 
     const deleteInvoice = (invoiceNumber: string | undefined) => {
         if (!invoiceNumber) return;
@@ -80,6 +80,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
     const handleCreateSuccess = (newInvoice: Invoice) => {
         // Refresh dữ liệu sau khi tạo hóa đơn mới
         setCurrentPage(0);
+        setRefreshTrigger(prev => prev + 1); // Trigger refetch
         setShowCreateModal(false);
     };
 

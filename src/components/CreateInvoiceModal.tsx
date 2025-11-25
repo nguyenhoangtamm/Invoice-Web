@@ -18,14 +18,19 @@ import {
     Panel,
     Divider,
     ButtonToolbar,
-    InputGroup
+    InputGroup,
+    Uploader,
+    Badge
 } from 'rsuite';
 import TrashIcon from '@rsuite/icons/Trash';
 import PlusIcon from '@rsuite/icons/Plus';
+import CloseIcon from '@rsuite/icons/Close';
 import type { CreateInvoiceRequest, CreateInvoiceLineRequest, Invoice } from '../types/invoice';
 import { getOrganizationByMe } from '../api/services/organizationService';
 import { createInvoice } from '../api/services/invoiceService';
+import { uploadInvoiceFile } from '../api/services/fileUploadService';
 import type { Organization } from '../types/organization';
+import type { AttachmentFile } from '../types/fileUpload';
 const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<typeof Input>>(
     (props, ref) => <Input {...props} as="textarea" ref={ref} />
 );
@@ -68,7 +73,8 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
         totalAmount: 0,
         currency: 'VND',
         note: '',
-        lines: []
+        lines: [],
+        attachmentFileIds: []
     });
 
     const [lines, setLines] = useState<CreateInvoiceLineRequest[]>([{
@@ -82,6 +88,9 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
         taxAmount: 0,
         lineTotal: 0
     }]);
+
+    const [attachedFiles, setAttachedFiles] = useState<AttachmentFile[]>([]);
+    const [uploading, setUploading] = useState(false);
 
     const formRef = React.useRef<any>();
     const [formError, setFormError] = useState({});
@@ -132,8 +141,10 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 totalAmount: 0,
                 currency: 'VND',
                 note: '',
-                lines: []
+                lines: [],
+                attachmentFileIds: []
             });
+            setAttachedFiles([]);
             setLines([{
                 lineNumber: 1,
                 name: '',
@@ -230,6 +241,52 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             setLines(updatedLines);
             calculateTotals(updatedLines);
         }
+    };
+
+    const handleFileUpload = async (file: File) => {
+        try {
+            setUploading(true);
+            const response = await uploadInvoiceFile(file);
+
+            if (response.succeeded && response.data) {
+                setAttachedFiles(prev => [...prev, response.data]);
+                setFormData(prev => ({
+                    ...prev,
+                    attachmentFileIds: [...(prev.attachmentFileIds || []), response.data.fileId]
+                }));
+                toaster.push(
+                    <Message type="success" showIcon>
+                        Upload file '{file.name}' thành công!
+                    </Message>
+                );
+                return false; // Return false to prevent default behavior
+            } else {
+                toaster.push(
+                    <Message type="error" showIcon>
+                        Lỗi upload file: {response.message || 'Unknown error'}
+                    </Message>
+                );
+                return false;
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            toaster.push(
+                <Message type="error" showIcon>
+                    Có lỗi xảy ra khi upload file
+                </Message>
+            );
+            return false;
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const removeAttachedFile = (fileId: number) => {
+        setAttachedFiles(prev => prev.filter(f => f.fileId !== fileId));
+        setFormData(prev => ({
+            ...prev,
+            attachmentFileIds: (prev.attachmentFileIds || []).filter(id => id !== fileId)
+        }));
     };
 
     // RSuite Form Schema
@@ -742,6 +799,145 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                     </Form.Group>
                                 </FlexboxGrid.Item>
                             </FlexboxGrid>
+                        </div>
+                    </Panel>
+
+                    {/* File Upload */}
+                    <Panel
+                        header={
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                color: '#6c5ce7',
+                                fontWeight: '600'
+                            }}>
+                                📎 Tệp đính kèm
+                            </div>
+                        }
+                        bordered
+                        style={{
+                            borderRadius: '12px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            backgroundColor: 'white'
+                        }}
+                    >
+                        <div style={{ padding: '16px' }}>
+                            <div style={{
+                                marginBottom: '16px',
+                                padding: '20px',
+                                border: '2px dashed #6c5ce7',
+                                borderRadius: '12px',
+                                backgroundColor: '#f0e6ff',
+                                textAlign: 'center'
+                            }}>
+                                <Uploader
+                                    action=""
+                                    autoUpload={false}
+                                    multiple
+                                    onChange={(fileList) => {
+                                        fileList.forEach(file => {
+                                            if (file.blobFile) {
+                                                handleFileUpload(file.blobFile);
+                                            }
+                                        });
+                                    }}
+                                    disabled={uploading}
+                                    style={{
+                                        display: 'inline-block',
+                                        width: 'auto'
+                                    }}
+                                >
+                                    <Button
+                                        appearance="primary"
+                                        disabled={uploading}
+                                        loading={uploading}
+                                        style={{
+                                            borderRadius: '8px',
+                                            fontWeight: '500',
+                                            backgroundColor: '#6c5ce7',
+                                            borderColor: '#6c5ce7'
+                                        }}
+                                    >
+                                        {uploading ? 'Đang upload...' : '📁 Chọn tệp để upload'}
+                                    </Button>
+                                </Uploader>
+                                <p style={{
+                                    marginTop: '12px',
+                                    fontSize: '12px',
+                                    color: '#6c757d'
+                                }}>
+                                    Kéo thả tệp hoặc nhấp để chọn tệp từ máy tính
+                                </p>
+                            </div>
+
+                            {attachedFiles.length > 0 && (
+                                <div style={{
+                                    padding: '16px',
+                                    backgroundColor: '#f8f9fa',
+                                    borderRadius: '8px',
+                                    border: '1px solid #dee2e6'
+                                }}>
+                                    <p style={{
+                                        fontWeight: '600',
+                                        marginBottom: '12px',
+                                        color: '#495057'
+                                    }}>
+                                        Tệp đã upload ({attachedFiles.length}):
+                                    </p>
+                                    {attachedFiles.map((file, index) => (
+                                        <div key={file.fileId} style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '12px',
+                                            marginBottom: index < attachedFiles.length - 1 ? '8px' : '0',
+                                            backgroundColor: 'white',
+                                            borderRadius: '6px',
+                                            border: '1px solid #e9ecef'
+                                        }}>
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '12px',
+                                                flex: 1
+                                            }}>
+                                                <Badge content={file.fileId} style={{
+                                                    backgroundColor: '#6c5ce7',
+                                                    color: 'white'
+                                                }} />
+                                                <div style={{ flex: 1 }}>
+                                                    <p style={{
+                                                        margin: '0 0 4px 0',
+                                                        fontWeight: '500',
+                                                        color: '#495057'
+                                                    }}>
+                                                        {file.fileName}
+                                                    </p>
+                                                    <p style={{
+                                                        margin: '0',
+                                                        fontSize: '12px',
+                                                        color: '#6c757d'
+                                                    }}>
+                                                        {(file.size / 1024).toFixed(2)} KB • {file.contentType}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <IconButton
+                                                icon={<CloseIcon />}
+                                                color="red"
+                                                appearance="subtle"
+                                                size="sm"
+                                                onClick={() => removeAttachedFile(file.fileId)}
+                                                style={{
+                                                    borderRadius: '6px',
+                                                    backgroundColor: '#ffebee'
+                                                }}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </Panel>
 

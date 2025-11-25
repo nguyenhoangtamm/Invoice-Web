@@ -80,7 +80,6 @@ export interface InvoiceLookUp {
     lines: InvoiceLine[];
 }
 
-
 // User types
 export interface User {
     id: string;
@@ -222,6 +221,7 @@ export interface CreateInvoiceRequest {
     currency: string;
     note: string;
     lines: CreateInvoiceLineRequest[];
+    attachmentFileIds?: number[];
 }
 
 export interface UpdateInvoiceRequest extends CreateInvoiceRequest {

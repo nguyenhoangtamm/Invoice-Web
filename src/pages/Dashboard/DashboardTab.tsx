@@ -31,21 +31,7 @@ const DashboardTab: React.FC = () => {
                 // Fetch organizations
                 const orgResponse = await getOrganizationByMe();
                 if (orgResponse.succeeded && orgResponse.data) {
-                    const orgDatas = orgResponse.data;
-                    orgDatas.forEach((orgData) => {
-                        const organization: Organization = {
-                            id: orgData.id.toString(),
-                            organizationName: orgData.organizationName,
-                            taxCode: orgData.organizationTaxId,
-                            address: orgData.organizationAddress,
-                            phone: orgData.organizationPhone,
-                            email: orgData.organizationEmail,
-                            isActive: true,
-                            createdAt: '',
-                            updatedAt: ''
-                        };
-                        setOrganizations([organization]);
-                    })
+                    setOrganizations(orgResponse.data);
                 }
 
                 // Fetch recent invoices
@@ -110,7 +96,7 @@ const DashboardTab: React.FC = () => {
                 <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
                     onClick={() => setShowCreateModal(true)}>
                     <Plus size={20} />
-                    Tải hóa đơn mới
+                    Tạo hóa đơn mới
                 </button>
             </div>
 
@@ -194,14 +180,9 @@ const DashboardTab: React.FC = () => {
                                 <div className="flex items-start justify-between">
                                     <div>
                                         <h4 className="font-semibold text-gray-900">{org.organizationName}</h4>
-                                        <p className="text-sm text-gray-600 mt-1">MST: {org.taxCode}</p>
+                                        <p className="text-sm text-gray-600 mt-1">MST: {org.organizationTaxId}</p>
+                                        <p className="text-sm text-gray-600">{org.organizationAddress}</p>
                                     </div>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${org.isActive
-                                        ? 'bg-green-100 text-green-700'
-                                        : 'bg-red-100 text-red-700'
-                                        }`}>
-                                        {org.isActive ? 'Hoạt động' : 'Không hoạt động'}
-                                    </span>
                                 </div>
                             </div>
                         ))}
