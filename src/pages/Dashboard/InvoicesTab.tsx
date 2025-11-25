@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Plus, Eye, Download, Trash2, Search, Filter, FileText } from 'lucide-react';
-import { Input, SelectPicker } from 'rsuite';
+import { Input, Message, SelectPicker, toaster } from 'rsuite';
 import type { Invoice, CreateInvoiceRequest } from '../../types/invoice';
 import { InvoiceStatus } from '../../enums/invoiceEnum';
-import { getInvoicesPaginatedByUser } from '../../api/services/invoiceService';
+import { downloadInvoiceFile, getInvoicesPaginatedByUser } from '../../api/services/invoiceService';
 import { mockInvoices } from '../../data/mockInvoice';
 import { useAuth } from '../../contexts/AuthContext';
 import CreateInvoiceModal from '../../components/CreateInvoiceModal';
@@ -27,6 +27,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
     const [totalCount, setTotalCount] = useState(0);
     const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger for manual refetch
     const { user } = useAuth();
+    const [downloadingFileId, setDownloadingFileId] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchInvoices = async () => {
@@ -116,6 +117,51 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
         setStatusFilter(value || 'all');
         setCurrentPage(0);
     };
+    // Download invoice file
+    const handleDownload = async (invoiceId: number) => {
+        const invoice = invoiceList.find(inv => inv.id === invoiceId);
+        if (!invoice) return;
+        // Check if invoice has attachment files
+        if (!invoice.attachmentFileIds || invoice.attachmentFileIds.length === 0) {
+            toaster.push(
+                <Message type="warning" showIcon>
+                    Không có tệp đính kèm để tải xuống
+                </Message>
+            );
+            return;
+        }
+
+        try {
+            // Download first file (or you can show a selection if multiple files)
+            const fileId = invoice.attachmentFileIds[0];
+            setDownloadingFileId(fileId);
+
+            const blob = await downloadInvoiceFile(fileId);
+
+            // Create download link and trigger download
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${invoice.invoiceNumber || "invoice"}-${fileId}`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            toaster.push(
+                <Message type="success" showIcon>
+                    Tải xuống tệp thành công
+                </Message>
+            );
+        } catch (error) {
+            console.error('Error downloading file:', error);
+            toaster.push(
+                <Message type="error" showIcon>
+                    Có lỗi xảy ra khi tải xuống tệp
+                </Message>
+            );
+        } finally {
+            setDownloadingFileId(null);
+        }
+    };
 
     // Define table columns
     const tableColumns: TableColumn[] = [
@@ -126,6 +172,15 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
             width: 150,
             render: (rowData: Invoice) => (
                 <span className="font-medium text-gray-900">{rowData.invoiceNumber}</span>
+            )
+        },
+        {
+            label: 'Mã tra cứu',
+            key: 'lookupCode',
+            dataKey: 'lookupCode',
+            width: 150,
+            render: (rowData: Invoice) => (
+                <span className="text-gray-600">{rowData.lookupCode || '-'}</span>
             )
         },
         {
@@ -189,7 +244,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
                         className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition"
                         title="Tải xuống"
                     >
-                        <Download size={16} />
+                        <Download size={16} onClick={() => handleDownload(rowData.id)} />
                     </button>
                     <button
                         onClick={() => deleteInvoice(rowData.invoiceNumber)}

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import InvoiceDetail from "../components/InvoiceDetail";
 import type { Invoice, InvoiceLookUp } from "../types/invoice";
-import { getInvoicesPaginatedLookUp } from "../api/services/invoiceService";
+import { downloadInvoiceFile, getInvoicesPaginatedLookUp } from "../api/services/invoiceService";
 import { Search, Eye, Download, Trash2, ChevronLeft, ChevronRight, FileText, Loader, CheckCircle, AlertCircle } from "lucide-react";
 import { getSimplifiedInvoiceStatusText, getSimplifiedInvoiceStatusColor } from "../utils/helpers";
-import { Input, InputGroup } from "rsuite";
+import { Input, InputGroup, Message, toaster } from "rsuite";
 
 export default function Lookup() {
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceLookUp | null>(null);
@@ -18,6 +18,7 @@ export default function Lookup() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [downloadingFileId, setDownloadingFileId] = useState<number | null>(null);
 
   const fetchInvoices = async (page: number) => {
     setLoading(true);
@@ -63,6 +64,51 @@ export default function Lookup() {
   const getStatusClass = (status?: number) => {
     if (status == null) return 'bg-gray-100 text-gray-700';
     return getSimplifiedInvoiceStatusColor(status);
+  };
+  // Download invoice file
+  const handleDownload = async (invoiceId: number) => {
+    const invoice = searchResults.find(inv => inv.id === invoiceId);
+    if (!invoice) return;
+    // Check if invoice has attachment files
+    if (!invoice.attachmentFileIds || invoice.attachmentFileIds.length === 0) {
+      toaster.push(
+        <Message type="warning" showIcon>
+          Không có tệp đính kèm để tải xuống
+        </Message>
+      );
+      return;
+    }
+
+    try {
+      // Download first file (or you can show a selection if multiple files)
+      const fileId = invoice.attachmentFileIds[0];
+      setDownloadingFileId(fileId);
+
+      const blob = await downloadInvoiceFile(fileId);
+
+      // Create download link and trigger download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${invoice.invoiceNumber || "invoice"}-${fileId}`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      toaster.push(
+        <Message type="success" showIcon>
+          Tải xuống tệp thành công
+        </Message>
+      );
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      toaster.push(
+        <Message type="error" showIcon>
+          Có lỗi xảy ra khi tải xuống tệp
+        </Message>
+      );
+    } finally {
+      setDownloadingFileId(null);
+    }
   };
 
   return (
@@ -183,7 +229,7 @@ export default function Lookup() {
                                 <Eye size={18} />
                               </button>
                               <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
-                                <Download size={18} />
+                                <Download size={18} onClick={() => handleDownload(invoice.id)} />
                               </button>
                             </div>
                           </td>

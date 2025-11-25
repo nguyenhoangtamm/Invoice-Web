@@ -79,6 +79,7 @@ export interface InvoiceLookUp {
     merkleProof?: string;
     isExactMatch?: boolean;
     lines: InvoiceLine[];
+    attachmentFileIds?: number[];
 }
 
 // User types
