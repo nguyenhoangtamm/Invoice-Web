@@ -44,6 +44,7 @@ export interface Invoice {
     cidHash?: string;
     merkleProof?: string;
     lines: InvoiceLine[];
+    attachmentFileIds?: number[];
 }
 
 export interface InvoiceLookUp {

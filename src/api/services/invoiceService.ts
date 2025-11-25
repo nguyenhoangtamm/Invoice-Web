@@ -157,3 +157,13 @@ export const getInvoiceByLookup = async (
     );
     return response.data;
 };
+
+export const downloadInvoiceFile = async (fileId: number): Promise<Blob> => {
+    const response = await apiClient.get<Blob>(
+        `/Invoices/download-file/${fileId}`,
+        {
+            responseType: "blob",
+        }
+    );
+    return response.data;
+};
