@@ -195,6 +195,7 @@ export default function Lookup() {
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
                         <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Số hóa đơn</th>
+                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Mã tra cứu</th>
                         <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Khách hàng</th>
                         <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Ngày phát hành</th>
                         <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Số tiền</th>
@@ -206,6 +207,7 @@ export default function Lookup() {
                       {paginatedResults.map((invoice) => (
                         <tr key={invoice.invoiceNumber} className="hover:bg-gray-50 transition">
                           <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.invoiceNumber}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{invoice.lookupCode || '-'}</td>
                           <td className="px-6 py-4 text-sm text-gray-600">{invoice.customerName || '-'}</td>
                           <td className="px-6 py-4 text-sm text-gray-600">{invoice.issuedDate || '-'}</td>
                           <td className="px-6 py-4 text-sm font-semibold text-gray-900">

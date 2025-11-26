@@ -78,6 +78,7 @@ export interface InvoiceLookUp {
     cidHash?: string;
     merkleProof?: string;
     isExactMatch?: boolean;
+    lookupCode: string;
     lines: InvoiceLine[];
     attachmentFileIds?: number[];
 }
