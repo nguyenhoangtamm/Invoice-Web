@@ -1,17 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import InvoiceDetail from "../components/InvoiceDetail";
 import type { Invoice, InvoiceLookUp } from "../types/invoice";
 import { downloadInvoiceFile, getInvoicesPaginatedLookUp } from "../api/services/invoiceService";
-import { Search, Eye, Download, Trash2, ChevronLeft, ChevronRight, FileText, Loader, CheckCircle, AlertCircle } from "lucide-react";
-import { getSimplifiedInvoiceStatusText, getSimplifiedInvoiceStatusColor } from "../utils/helpers";
+import { Search, Eye, Download, FileText, Loader, CheckCircle, AlertCircle } from "lucide-react";
+import { getSimplifiedInvoiceStatusText, getSimplifiedInvoiceStatusColor, debounce, formatDateTime } from "../utils/helpers";
 import { Input, InputGroup, Message, toaster } from "rsuite";
+import Table, { TableColumn } from "../components/common/table";
 
 export default function Lookup() {
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceLookUp | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<InvoiceLookUp[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0); // 0-based index for table component
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [invoicesPerPage] = useState(10);
@@ -23,7 +24,7 @@ export default function Lookup() {
   const fetchInvoices = async (page: number) => {
     setLoading(true);
     try {
-      const result = await getInvoicesPaginatedLookUp(page, invoicesPerPage, searchTerm);
+      const result = await getInvoicesPaginatedLookUp(page + 1, invoicesPerPage, searchTerm); // Convert to 1-based for API
       if (result.succeeded) {
         setSearchResults(result.data);
         setTotalPages(result.totalPages);
@@ -33,7 +34,7 @@ export default function Lookup() {
         setSearchResults([]);
         setTotalPages(0);
         setTotalCount(0);
-        if (page === 1) setMessage("Không tìm thấy kết quả");
+        if (page === 0) setMessage("Không tìm thấy kết quả");
       }
     } catch (error) {
       console.error('Search error:', error);
@@ -47,14 +48,25 @@ export default function Lookup() {
     setMessage(null);
     if (!searchTerm.trim()) return setMessage("Vui lòng nhập từ khóa tìm kiếm");
     setHasSearched(true);
-    await fetchInvoices(1);
+    await fetchInvoices(0); // Start from page 0
   }
 
   const handlePageChange = (page: number) => {
     fetchInvoices(page);
   };
 
-  const paginatedResults = searchResults;
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    debounce((searchValue: string) => {
+      setSearchTerm(searchValue);
+      setCurrentPage(0);
+    }, 500),
+    []
+  );
+
+  const handleSearchTermChange = (value: string) => {
+    debouncedSearch(value);
+  };
 
   const getStatusLabel = (status?: number) => {
     if (status == null) return '-';
@@ -65,6 +77,88 @@ export default function Lookup() {
     if (status == null) return 'bg-gray-100 text-gray-700';
     return getSimplifiedInvoiceStatusColor(status);
   };
+
+  // Define table columns
+  const tableColumns: TableColumn[] = [
+    {
+      label: 'Mã tra cứu',
+      key: 'lookupCode',
+      dataKey: 'lookupCode',
+      width: 150,
+      render: (rowData: InvoiceLookUp) => (
+        <span className="text-gray-600">{rowData.lookupCode || '-'}</span>
+      )
+    },
+    {
+      key: 'customerName',
+      label: 'Khách hàng',
+      dataKey: 'customerName',
+      width: 200,
+      render: (rowData: InvoiceLookUp) => (
+        <span className="text-gray-600">{rowData.customerName || '-'}</span>
+      ),
+      flexGrow: 1,
+    },
+    {
+      key: 'issuedDate',
+      label: 'Ngày phát hành',
+      dataKey: 'issuedDate',
+      width: 220,
+      render: (rowData: InvoiceLookUp) => (
+        <span className="text-gray-600">{formatDateTime(rowData.issuedDate) || '-'}</span>
+      )
+    },
+    {
+      key: 'totalAmount',
+      label: 'Số tiền',
+      dataKey: 'totalAmount',
+      width: 150,
+      align: 'right',
+      render: (rowData: InvoiceLookUp) => (
+        <span className="font-semibold text-gray-900">
+          {rowData.totalAmount?.toLocaleString('vi-VN')} {rowData.currency || 'VND'}
+        </span>
+      )
+    },
+    {
+      key: 'status',
+      label: 'Trạng thái',
+      dataKey: 'status',
+      width: 210,
+      render: (rowData: InvoiceLookUp) => (
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(rowData.status)}`}>
+          {getStatusLabel(rowData.status)}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      label: 'Hành động',
+      isAction: true,
+      width: 120,
+      render: (rowData: InvoiceLookUp) => (
+        <div className="flex gap-1">
+          <button
+            onClick={() => {
+              setSelectedInvoice(rowData);
+              setIsModalOpen(true);
+            }}
+            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+            title="Xem chi tiết"
+          >
+            <Eye size={16} />
+          </button>
+          <button
+            onClick={() => handleDownload(rowData.id)}
+            className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            title="Tải xuống"
+          >
+            <Download size={16} />
+          </button>
+        </div>
+      )
+    }
+  ];
   // Download invoice file
   const handleDownload = async (invoiceId: number) => {
     const invoice = searchResults.find(inv => inv.id === invoiceId);
@@ -133,7 +227,10 @@ export default function Lookup() {
                     <InputGroup inside>
                       <Input
                         value={searchTerm}
-                        onChange={setSearchTerm}
+                        onChange={(value) => {
+                          setSearchTerm(value);
+                          setHasSearched(false);
+                        }}
                         onPressEnter={handleSearch}
                         placeholder="Nhập số hóa đơn, tên khách hàng hoặc mã số thuế..."
                         size="lg"
@@ -179,8 +276,8 @@ export default function Lookup() {
       <main className="container mx-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">
           {hasSearched && searchResults.length > 0 && (
-            <div className="animate-fadeIn">
-              <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="animate-fadeIn space-y-6">
+              <div className="flex items-center justify-center gap-3">
                 <CheckCircle size={24} className="text-green-500" />
                 <h2 className="text-2xl font-bold text-gray-900">Kết Quả Tìm Kiếm</h2>
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
@@ -190,95 +287,21 @@ export default function Lookup() {
 
               {/* Invoices Table */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Số hóa đơn</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Mã tra cứu</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Khách hàng</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Ngày phát hành</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Số tiền</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Trạng thái</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Hành động</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {paginatedResults.map((invoice) => (
-                        <tr key={invoice.invoiceNumber} className="hover:bg-gray-50 transition">
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.invoiceNumber}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{invoice.lookupCode || '-'}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{invoice.customerName || '-'}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{invoice.issuedDate || '-'}</td>
-                          <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                            {invoice.totalAmount?.toLocaleString('vi-VN')} {invoice.currency || 'VND'}
-                          </td>
-                          <td className="px-6 py-4 text-sm">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(invoice.status)}`}>
-                              {getStatusLabel(invoice.status)}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-sm">
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => {
-                                  setSelectedInvoice(invoice);
-                                  setIsModalOpen(true);
-                                }}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                title="Xem chi tiết"
-                              >
-                                <Eye size={18} />
-                              </button>
-                              <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
-                                <Download size={18} onClick={() => handleDownload(invoice.id)} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                    <div className="text-sm text-gray-600">
-                      Hiển thị {paginatedResults.length > 0 ? (currentPage - 1) * invoicesPerPage + 1 : 0} đến {Math.min(currentPage * invoicesPerPage, totalCount)} trong {totalCount} kết quả
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronLeft size={18} />
-                      </button>
-                      <div className="flex items-center gap-2">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                          <button
-                            key={page}
-                            onClick={() => handlePageChange(page)}
-                            className={`w-8 h-8 rounded-lg font-medium transition ${currentPage === page
-                              ? 'bg-blue-600 text-white'
-                              : 'text-gray-600 hover:bg-gray-100'
-                              }`}
-                          >
-                            {page}
-                          </button>
-                        ))}
-                      </div>
-                      <button
-                        onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronRight size={18} />
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <Table
+                  data={searchResults}
+                  columns={tableColumns}
+                  loading={loading}
+                  showPagination={true}
+                  totalCount={totalCount}
+                  pageIndex={currentPage}
+                  pageSize={invoicesPerPage}
+                  onPageChange={handlePageChange}
+                  emptyText="Không tìm thấy hóa đơn"
+                  loadingText="Đang tải dữ liệu..."
+                  className="rounded-none"
+                  cellBordered={true}
+                  hover={true}
+                />
               </div>
             </div>
           )}

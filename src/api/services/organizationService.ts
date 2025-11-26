@@ -32,7 +32,7 @@ export const updateOrganization = async (
     return response.data;
 };
 
-export const deleteOrganization = async (id: string): Promise<Result<void>> => {
+export const deleteOrganization = async (id: number): Promise<Result<void>> => {
     const response = await apiClient.post<Result<void>>(
         `/Organizations/delete/${id}`
     );
@@ -40,7 +40,7 @@ export const deleteOrganization = async (id: string): Promise<Result<void>> => {
 };
 
 export const getOrganizationById = async (
-    id: string
+    id: number
 ): Promise<Result<Organization>> => {
     const response = await apiClient.get<Result<Organization>>(
         `/Organizations/get-by-id/${id}`

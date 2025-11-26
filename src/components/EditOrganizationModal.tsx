@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { X, Building2, User, Phone, Mail, MapPin, Hash, CreditCard } from 'lucide-react';
+import { X, Building2, Phone, Mail, MapPin, Hash, CreditCard } from 'lucide-react';
 import { updateOrganization, getOrganizationById } from '../api/services/organizationService';
-import type { UpdateOrganizationFormData, Organization } from '../types/organization';
+import type { Organization } from '../types/organization';
 import { useToast } from './common/ToastProvider';
 
 interface EditOrganizationModalProps {
     isOpen: boolean;
     onClose: () => void;
     onOrganizationUpdated: () => void;
-    organizationId: string;
+    organizationId?: string | number;
 }
 
 const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
@@ -17,20 +17,19 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
     onOrganizationUpdated,
     organizationId
 }) => {
-    const [formData, setFormData] = useState<UpdateOrganizationFormData>({
-        id: '',
-        name: '',
-        description: '',
-        address: '',
-        phone: '',
-        email: '',
-        taxCode: '',
-        bankAccount: '',
-        isActive: true
+    if (!isOpen || !organizationId) return null;
+    const [formData, setFormData] = useState<Organization>({
+        id: 0,
+        organizationName: '',
+        organizationTaxId: '',
+        organizationAddress: '',
+        organizationPhone: '',
+        organizationEmail: '',
+        organizationBankAccount: ''
     });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(false);
-    const [errors, setErrors] = useState<Partial<UpdateOrganizationFormData>>({});
+    const [errors, setErrors] = useState<Partial<Organization>>({});
     const { showToast } = useToast();
 
     // Fetch organization data when modal opens
@@ -40,19 +39,17 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
 
             setFetchLoading(true);
             try {
-                const response = await getOrganizationById(organizationId);
+                const response = await getOrganizationById(typeof organizationId === 'string' ? parseInt(organizationId) : organizationId);
                 if (response.succeeded && response.data) {
                     const org = response.data;
                     setFormData({
                         id: org.id,
-                        name: org.organizationName,
-                        description: org.description || '',
-                        address: org.address || '',
-                        phone: org.phone || '',
-                        email: org.email || '',
-                        taxCode: org.taxCode || '',
-                        bankAccount: '', // This field might not be available in org data
-                        isActive: org.isActive
+                        organizationName: org.organizationName || '',
+                        organizationTaxId: org.organizationTaxId || '',
+                        organizationAddress: org.organizationAddress || '',
+                        organizationPhone: org.organizationPhone || '',
+                        organizationEmail: org.organizationEmail || '',
+                        organizationBankAccount: org.organizationBankAccount || ''
                     });
                 }
             } catch (error) {
@@ -66,36 +63,36 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
     }, [isOpen, organizationId]);
 
     const validateForm = (): boolean => {
-        const newErrors: Partial<UpdateOrganizationFormData> = {};
+        const newErrors: Partial<Organization> = {};
 
-        if (!formData.name.trim()) {
-            newErrors.name = 'Tên tổ chức là bắt buộc';
+        if (!formData.organizationName.trim()) {
+            newErrors.organizationName = 'Tên tổ chức là bắt buộc';
         }
 
-        if (!formData.taxCode?.trim()) {
-            newErrors.taxCode = 'Mã số thuế là bắt buộc';
-        } else if (!/^[0-9]{10,13}$/.test(formData.taxCode.trim())) {
-            newErrors.taxCode = 'Mã số thuế phải từ 10-13 chữ số';
+        if (!formData.organizationTaxId?.trim()) {
+            newErrors.organizationTaxId = 'Mã số thuế là bắt buộc';
+        } else if (!/^[0-9]{10,13}$/.test(formData.organizationTaxId.trim())) {
+            newErrors.organizationTaxId = 'Mã số thuế phải từ 10-13 chữ số';
         }
 
-        if (!formData.address?.trim()) {
-            newErrors.address = 'Địa chỉ là bắt buộc';
+        if (!formData.organizationAddress?.trim()) {
+            newErrors.organizationAddress = 'Địa chỉ là bắt buộc';
         }
 
-        if (!formData.phone?.trim()) {
-            newErrors.phone = 'Số điện thoại là bắt buộc';
-        } else if (!/^[0-9]{10,11}$/.test(formData.phone.replace(/\s/g, ''))) {
-            newErrors.phone = 'Số điện thoại phải có 10-11 chữ số';
+        if (!formData.organizationPhone?.trim()) {
+            newErrors.organizationPhone = 'Số điện thoại là bắt buộc';
+        } else if (!/^[0-9]{10,11}$/.test(formData.organizationPhone.replace(/\s/g, ''))) {
+            newErrors.organizationPhone = 'Số điện thoại phải có 10-11 chữ số';
         }
 
-        if (!formData.email?.trim()) {
-            newErrors.email = 'Email là bắt buộc';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'Email không hợp lệ';
+        if (!formData.organizationEmail?.trim()) {
+            newErrors.organizationEmail = 'Email là bắt buộc';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.organizationEmail)) {
+            newErrors.organizationEmail = 'Email không hợp lệ';
         }
 
-        if (!formData.bankAccount?.trim()) {
-            newErrors.bankAccount = 'Số tài khoản ngân hàng là bắt buộc';
+        if (!formData.organizationBankAccount?.trim()) {
+            newErrors.organizationBankAccount = 'Số tài khoản ngân hàng là bắt buộc';
         }
 
         setErrors(newErrors);
@@ -109,15 +106,14 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
 
         setLoading(true);
         try {
-            // Convert form data to API payload
             const apiPayload = {
                 id: formData.id,
-                organizationName: formData.name,
-                organizationTaxId: formData.taxCode || '',
-                organizationAddress: formData.address || '',
-                organizationPhone: formData.phone || '',
-                organizationEmail: formData.email || '',
-                organizationBankAccount: formData.bankAccount || ''
+                organizationName: formData.organizationName,
+                organizationTaxId: formData.organizationTaxId,
+                organizationAddress: formData.organizationAddress,
+                organizationPhone: formData.organizationPhone,
+                organizationEmail: formData.organizationEmail,
+                organizationBankAccount: formData.organizationBankAccount
             };
             const response = await updateOrganization(apiPayload);
 
@@ -137,7 +133,7 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
                     title: 'Lỗi',
                     message: errorMessage
                 });
-                setErrors({ name: errorMessage });
+                setErrors({ organizationName: errorMessage });
             }
         } catch (error) {
             console.error('Error updating organization:', error);
@@ -146,32 +142,30 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
                 title: 'Lỗi',
                 message: 'Có lỗi xảy ra khi cập nhật tổ chức'
             });
-            setErrors({ name: 'Có lỗi xảy ra khi cập nhật tổ chức' });
+            setErrors({ organizationName: 'Có lỗi xảy ra khi cập nhật tổ chức' });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleInputChange = (field: keyof UpdateOrganizationFormData, value: string | boolean) => {
+    const handleInputChange = (field: keyof Organization, value: string | number) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         // Clear error when user starts typing
         if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: '' }));
+            setErrors(prev => ({ ...prev, [field]: undefined }));
         }
     };
 
     const handleClose = () => {
         // Reset form when closing
         setFormData({
-            id: '',
-            name: '',
-            description: '',
-            address: '',
-            phone: '',
-            email: '',
-            taxCode: '',
-            bankAccount: '',
-            isActive: true
+            id: 0,
+            organizationName: '',
+            organizationTaxId: '',
+            organizationAddress: '',
+            organizationPhone: '',
+            organizationEmail: '',
+            organizationBankAccount: ''
         });
         setErrors({});
         onClose();
@@ -214,15 +208,15 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
                                     <Building2 className="absolute left-3 top-3 text-gray-400" size={20} />
                                     <input
                                         type="text"
-                                        value={formData.name}
-                                        onChange={(e) => handleInputChange('name', e.target.value)}
-                                        className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.name ? 'border-red-500' : 'border-gray-300'
+                                        value={formData.organizationName}
+                                        onChange={(e) => handleInputChange('organizationName', e.target.value)}
+                                        className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.organizationName ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="Nhập tên tổ chức"
                                     />
                                 </div>
-                                {errors.name && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                                {errors.organizationName && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.organizationName}</p>
                                 )}
                             </div>
 
@@ -235,15 +229,15 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
                                     <Hash className="absolute left-3 top-3 text-gray-400" size={20} />
                                     <input
                                         type="text"
-                                        value={formData.taxCode}
-                                        onChange={(e) => handleInputChange('taxCode', e.target.value)}
-                                        className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.taxCode ? 'border-red-500' : 'border-gray-300'
+                                        value={formData.organizationTaxId}
+                                        onChange={(e) => handleInputChange('organizationTaxId', e.target.value)}
+                                        className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.organizationTaxId ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="0123456789"
                                     />
                                 </div>
-                                {errors.taxCode && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.taxCode}</p>
+                                {errors.organizationTaxId && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.organizationTaxId}</p>
                                 )}
                             </div>
 
@@ -256,15 +250,15 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
                                     <Phone className="absolute left-3 top-3 text-gray-400" size={20} />
                                     <input
                                         type="text"
-                                        value={formData.phone || ''}
-                                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                                        className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.phone ? 'border-red-500' : 'border-gray-300'
+                                        value={formData.organizationPhone || ''}
+                                        onChange={(e) => handleInputChange('organizationPhone', e.target.value)}
+                                        className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.organizationPhone ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="0123456789"
                                     />
                                 </div>
-                                {errors.phone && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                                {errors.organizationPhone && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.organizationPhone}</p>
                                 )}
                             </div>
 
@@ -277,15 +271,15 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
                                     <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
                                     <input
                                         type="email"
-                                        value={formData.email || ''}
-                                        onChange={(e) => handleInputChange('email', e.target.value)}
-                                        className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-300'
+                                        value={formData.organizationEmail || ''}
+                                        onChange={(e) => handleInputChange('organizationEmail', e.target.value)}
+                                        className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.organizationEmail ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="example@company.com"
                                     />
                                 </div>
-                                {errors.email && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                                {errors.organizationEmail && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.organizationEmail}</p>
                                 )}
                             </div>
 
@@ -297,16 +291,16 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
                                 <div className="relative">
                                     <MapPin className="absolute left-3 top-3 text-gray-400" size={20} />
                                     <textarea
-                                        value={formData.address || ''}
-                                        onChange={(e) => handleInputChange('address', e.target.value)}
+                                        value={formData.organizationAddress || ''}
+                                        onChange={(e) => handleInputChange('organizationAddress', e.target.value)}
                                         rows={3}
-                                        className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${errors.address ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${errors.organizationAddress ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="Nhập địa chỉ tổ chức"
                                     />
                                 </div>
-                                {errors.address && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.address}</p>
+                                {errors.organizationAddress && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.organizationAddress}</p>
                                 )}
                             </div>
 
@@ -319,15 +313,15 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
                                     <CreditCard className="absolute left-3 top-3 text-gray-400" size={20} />
                                     <input
                                         type="text"
-                                        value={formData.bankAccount || ''}
-                                        onChange={(e) => handleInputChange('bankAccount', e.target.value)}
-                                        className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.bankAccount ? 'border-red-500' : 'border-gray-300'
+                                        value={formData.organizationBankAccount || ''}
+                                        onChange={(e) => handleInputChange('organizationBankAccount', e.target.value)}
+                                        className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.organizationBankAccount ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="Nhập số tài khoản ngân hàng"
                                     />
                                 </div>
-                                {errors.bankAccount && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.bankAccount}</p>
+                                {errors.organizationBankAccount && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.organizationBankAccount}</p>
                                 )}
                             </div>
 
@@ -337,11 +331,10 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
                                     Mô tả
                                 </label>
                                 <textarea
-                                    value={formData.description || ''}
-                                    onChange={(e) => handleInputChange('description', e.target.value)}
                                     rows={3}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                                     placeholder="Mô tả về tổ chức (tùy chọn)"
+                                    disabled
                                 />
                             </div>
 
@@ -350,8 +343,7 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
                                 <label className="flex items-center gap-3">
                                     <input
                                         type="checkbox"
-                                        checked={formData.isActive}
-                                        onChange={(e) => handleInputChange('isActive', e.target.checked)}
+                                        disabled
                                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                     />
                                     <span className="text-sm font-medium text-gray-700">Kích hoạt tổ chức</span>

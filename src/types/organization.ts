@@ -20,18 +20,16 @@ export interface CreateOrganizationRequest {
 
 // Legacy interface for backward compatibility
 export interface CreateOrganizationFormData {
-    name: string;
-    description?: string;
-    address?: string;
-    phone?: string;
-    email?: string;
-    taxCode?: string;
-    bankAccount?: string;
-    isActive: boolean;
+    organizationName: string;
+    organizationTaxId: string;
+    organizationAddress: string;
+    organizationPhone: string;
+    organizationEmail: string;
+    organizationBankAccount: string;
 }
 
 export interface UpdateOrganizationRequest {
-    id: string;
+    id: number;
     organizationName: string;
     organizationTaxId: string;
     organizationAddress: string;
@@ -42,15 +40,13 @@ export interface UpdateOrganizationRequest {
 
 // Legacy interface for backward compatibility
 export interface UpdateOrganizationFormData {
-    id: string;
-    name: string;
-    description?: string;
-    address?: string;
-    phone?: string;
-    email?: string;
-    taxCode?: string;
-    bankAccount?: string;
-    isActive: boolean;
+    id: number;
+    organizationName: string;
+    organizationTaxId: string;
+    organizationAddress: string;
+    organizationPhone: string;
+    organizationEmail: string;
+    organizationBankAccount: string;
 }
 
 export interface GetByUserResponse {

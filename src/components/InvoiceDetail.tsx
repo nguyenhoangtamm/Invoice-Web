@@ -7,6 +7,7 @@ import { blockchainService, type BlockchainVerificationResponse } from '../api/s
 import { downloadInvoiceFile, getInvoiceById } from '../api/services/invoiceService';
 import { InvoiceStatus } from '../enums/invoiceEnum';
 import 'rsuite/dist/rsuite.min.css';
+import { formatDateTime } from "../utils/helpers";
 
 interface Props {
   data: Invoice | Invoice[] | null;
@@ -71,7 +72,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
       const invoiceData = Array.isArray(data) ? data[0] : data;
       if (invoiceData?.id) {
         setLoadingInvoice(true);
-        getInvoiceById(String(invoiceData.id))
+        getInvoiceById(invoiceData.id)
           .then(response => {
             if (response.succeeded && response.data) {
               setInvoice(response.data);
@@ -106,11 +107,10 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
   const verifyBlockchain = async () => {
     // Simulate blockchain verification
     setBlockchainStatus('pending');
+    if (!invoice) return;
+    const response = await blockchainService.verifyInvoice(invoice.id);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const isVerified = Math.random() > 0.1; // 90% success rate
+    const isVerified = response.succeeded && response.data?.isValid;
 
     if (isVerified) {
       setBlockchainStatus('verified');
@@ -120,8 +120,18 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
         timestamp: new Date().toISOString(),
         gasUsed: (Math.random() * 50000 + 21000).toFixed(0)
       });
+      toaster.push(
+        <Message type="success" showIcon>
+          Xác thực blockchain thành công
+        </Message>
+      );
     } else {
       setBlockchainStatus('failed');
+      toaster.push(
+        <Message type="error" showIcon>
+          Xác thực blockchain thất bại - Hóa đơn không hợp lệ
+        </Message>
+      );
     }
   };
 
@@ -288,8 +298,8 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
       },
       {
         field: 'Ngày phát hành',
-        offChain: offChainInvoice.issuedDate || '-',
-        onChain: onChainData.issuedDate || '-',
+        offChain: formatDateTime(offChainInvoice.issuedDate) || '-',
+        onChain: formatDateTime(onChainData.issuedDate) || '-',
         comparison: compareField(offChainInvoice.issuedDate, onChainData.issuedDate)
       },
       {
@@ -423,7 +433,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
                 {/* Tiêu đề */}
                 <div className="text-center mb-6">
                   <h1 className="text-2xl font-bold text-gray-800 mb-2">HÓA ĐƠN GIÁ TRỊ GIA TĂNG</h1>
-                  <p className="text-gray-600">Ngày {invoice.issuedDate}</p>
+                  <p className="text-gray-600">Ngày {formatDateTime(invoice.issuedDate)}</p>
                 </div>
 
                 <FlexboxGrid justify="space-between" className="mb-6">
@@ -661,7 +671,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
                 Xác thực lại
               </Button>
             )}
-            <Button onClick={handleBlockchainVerification} appearance="ghost">
+            <Button onClick={handleBlockchainVerification} appearance="primary" color="cyan" disabled={blockchainStatus !== 'verified'}>
               Xem chi tiết xác thực
             </Button>
             <Button onClick={handleCompare} appearance="ghost" loading={loadingComparison}>
@@ -672,14 +682,14 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
           <div className="flex space-x-3">
             <Button
               onClick={handleDownload}
-              appearance="primary"
+              appearance="ghost"
               loading={downloadingFileId !== null}
               disabled={!invoice || !invoice.attachmentFileIds || invoice.attachmentFileIds.length === 0}
             >
               <DownloadIcon size={16} className="mr-2" />
               Tải hóa đơn
             </Button>
-            <Button onClick={handleClose} appearance="subtle">
+            <Button onClick={handleClose} appearance="default">
               Đóng
             </Button>
           </div>

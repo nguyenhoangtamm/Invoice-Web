@@ -14,7 +14,7 @@ const OrganizationsTab: React.FC = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [selectedOrgId, setSelectedOrgId] = useState<string>('');
+    const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
 
     const { user } = useAuth();
     const { showToast } = useToast();
@@ -26,20 +26,7 @@ const OrganizationsTab: React.FC = () => {
                 const response = await getOrganizationByMe();
                 if (response.succeeded && response.data) {
                     const orgDatas = response.data;
-                    const organizationsList = orgDatas.map((orgData) => {
-                        const organization: Organization = {
-                            id: orgData.id.toString(),
-                            organizationName: orgData.organizationName,
-                            taxCode: orgData.organizationTaxId,
-                            address: orgData.organizationAddress,
-                            phone: orgData.organizationPhone,
-                            email: orgData.organizationEmail,
-                            isActive: true,
-                            createdAt: '',
-                            updatedAt: ''
-                        };
-                        return organization;
-                    });
+                    const organizationsList = orgDatas;
                     setOrganizations(organizationsList);
                 } else {
                     setOrganizations([]);
@@ -65,7 +52,7 @@ const OrganizationsTab: React.FC = () => {
             if (response.succeeded) {
                 setOrganizations(prev => prev.filter(org => org.id !== selectedOrgId));
                 setDeleteModalOpen(false);
-                setSelectedOrgId('');
+                setSelectedOrgId(null);
                 showToast({
                     type: 'success',
                     title: 'Thành công',
@@ -89,9 +76,9 @@ const OrganizationsTab: React.FC = () => {
         }
     };
 
-    const handleToggleStatus = async (orgId: string, currentStatus: boolean) => {
+    const handleToggleStatus = async (orgId: number, currentStatus: boolean) => {
         try {
-            const response = await updateOrganizationStatus(parseInt(orgId), !currentStatus);
+            const response = await updateOrganizationStatus(orgId, !currentStatus);
             if (response.succeeded) {
                 setOrganizations(prev =>
                     prev.map(org =>
@@ -132,20 +119,7 @@ const OrganizationsTab: React.FC = () => {
                     const response = await getOrganizationByMe();
                     if (response.succeeded && response.data) {
                         const orgDatas = response.data;
-                        const organizationsList = orgDatas.map((orgData) => {
-                            const organization: Organization = {
-                                id: orgData.id.toString(),
-                                organizationName: orgData.organizationName,
-                                taxCode: orgData.organizationTaxId,
-                                address: orgData.organizationAddress,
-                                phone: orgData.organizationPhone,
-                                email: orgData.organizationEmail,
-                                isActive: true,
-                                createdAt: '',
-                                updatedAt: ''
-                            };
-                            return organization;
-                        });
+                        const organizationsList = orgDatas;
                         setOrganizations(organizationsList);
                     } else {
                         setOrganizations([]);
@@ -207,27 +181,18 @@ const OrganizationsTab: React.FC = () => {
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="text-lg font-semibold text-gray-900">{org.organizationName}</h3>
-                                        <p className="text-gray-600 mt-1">Mã số thuế: {org.taxCode}</p>
-                                        {org.address && (
-                                            <p className="text-sm text-gray-500 mt-1">Địa chỉ: {org.address}</p>
+                                        <p className="text-gray-600 mt-1">Mã số thuế: {org.organizationTaxId}</p>
+                                        {org.organizationAddress && (
+                                            <p className="text-sm text-gray-500 mt-1">Địa chỉ: {org.organizationAddress}</p>
                                         )}
                                         <div className="flex flex-wrap items-center gap-4 mt-3">
                                             <span className="text-sm text-gray-500">ID: ORG-{org.id}</span>
-                                            {org.phone && (
-                                                <span className="text-sm text-gray-500">SĐT: {org.phone}</span>
+                                            {org.organizationPhone && (
+                                                <span className="text-sm text-gray-500">SĐT: {org.organizationPhone}</span>
                                             )}
-                                            {org.email && (
-                                                <span className="text-sm text-gray-500">Email: {org.email}</span>
+                                            {org.organizationEmail && (
+                                                <span className="text-sm text-gray-500">Email: {org.organizationEmail}</span>
                                             )}
-                                            <button
-                                                onClick={() => handleToggleStatus(org.id, org.isActive)}
-                                                className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition ${org.isActive
-                                                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                        : 'bg-red-100 text-red-700 hover:bg-red-200'
-                                                    }`}
-                                            >
-                                                {org.isActive ? 'Hoạt động' : 'Không hoạt động'}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -271,10 +236,10 @@ const OrganizationsTab: React.FC = () => {
                 isOpen={isEditModalOpen}
                 onClose={() => {
                     setIsEditModalOpen(false);
-                    setSelectedOrgId('');
+                    setSelectedOrgId(null);
                 }}
                 onOrganizationUpdated={handleOrganizationAdded}
-                organizationId={selectedOrgId}
+                organizationId={selectedOrgId ?? undefined}
             />
 
             {/* Delete Confirmation Modal */}
@@ -282,7 +247,7 @@ const OrganizationsTab: React.FC = () => {
                 isOpen={deleteModalOpen}
                 onClose={() => {
                     setDeleteModalOpen(false);
-                    setSelectedOrgId('');
+                    setSelectedOrgId(null);
                 }}
                 onConfirm={handleDeleteOrganization}
                 title="Xóa tổ chức"

@@ -45,14 +45,15 @@ export const updateInvoice = async (
     return response.data;
 };
 
-export const deleteInvoice = async (id: string): Promise<Result<void>> => {
+export const deleteInvoice = async (id: number): Promise<Result<void>> => {
     const response = await apiClient.post<Result<void>>(
         `/Invoices/delete/${id}`
     );
     return response.data;
 };
 
-export const getInvoiceById = async (id: string): Promise<Result<Invoice>> => {
+
+export const getInvoiceById = async (id: number): Promise<Result<Invoice>> => {
     const response = await apiClient.get<Result<Invoice>>(
         `/Invoices/get-by-id/${id}`
     );
@@ -124,7 +125,7 @@ export const updateInvoiceStatus = async (
     return response.data;
 };
 
-export const verifyInvoice = async (id: string): Promise<Result<void>> => {
+export const verifyInvoice = async (id: number): Promise<Result<void>> => {
     const response = await apiClient.post<Result<void>>(
         `/Invoices/${id}/verify`
     );

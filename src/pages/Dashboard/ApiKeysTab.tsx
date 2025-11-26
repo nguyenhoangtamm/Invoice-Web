@@ -20,10 +20,10 @@ const ApiKeysTab: React.FC = () => {
     const [formData, setFormData] = useState({
         name: '',
         active: true,
-        organizationId: null as string | null,
+        organizationId: null as number | null,
         expirationDate: null as Date | null
     });
-    const [organizations, setOrganizations] = useState<Array<{ id: string, name: string }>>([]);
+    const [organizations, setOrganizations] = useState<Array<{ id: number, name: string }>>([]);
     const toaster = useToaster();
 
     useEffect(() => {
@@ -89,7 +89,7 @@ const ApiKeysTab: React.FC = () => {
             const apiKeyData = {
                 name: formData.name,
                 active: formData.active,
-                organizationId: formData.organizationId ? parseInt(formData.organizationId) : 0,
+                organizationId: formData.organizationId ? formData.organizationId : 0,
                 expirationDays: expirationDays
             };
 

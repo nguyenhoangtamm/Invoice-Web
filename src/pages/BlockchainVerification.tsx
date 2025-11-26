@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, XCircle, Clock, AlertTriangle, FileJson, Shield } from 'lucide-react';
 import { blockchainService, BlockchainVerificationResponse } from '../api/services/blockchainService';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { formatDateTime } from '../utils/helpers';
 
 interface InvoiceComparisonProps {
     title: string;
@@ -32,6 +33,10 @@ const InvoiceComparison: React.FC<InvoiceComparisonProps> = ({ title, invoice, v
                         <p className="text-sm text-gray-900">{invoice.invoiceNumber}</p>
                     </div>
                     <div>
+                        <p className="text-xs font-semibold text-gray-600">Ngày phát hành:</p>
+                        <p className="text-sm text-gray-900">{formatDateTime(invoice.issuedDate)}</p>
+                    </div>
+                    <div>
                         <p className="text-xs font-semibold text-gray-600">Mẫu số:</p>
                         <p className="text-sm text-gray-900">{invoice.formNumber}</p>
                     </div>
@@ -46,6 +51,10 @@ const InvoiceComparison: React.FC<InvoiceComparisonProps> = ({ title, invoice, v
                 </div>
 
                 <div className="space-y-2">
+                    <div>
+                        <p className="text-xs font-semibold text-gray-600">Mã tra cứu:</p>
+                        <p className="text-sm text-gray-900">{invoice.lookupCode}</p>
+                    </div>
                     <div>
                         <p className="text-xs font-semibold text-gray-600">Người bán:</p>
                         <p className="text-sm text-gray-900">{invoice.sellerName}</p>
@@ -206,8 +215,8 @@ const BlockchainVerificationPage: React.FC = () => {
                     <div className="space-y-6">
                         {/* Verification Status */}
                         <div className={`border rounded-lg p-6 ${verificationResult.data?.isValid
-                                ? 'bg-green-50 border-green-200'
-                                : 'bg-red-50 border-red-200'
+                            ? 'bg-green-50 border-green-200'
+                            : 'bg-red-50 border-red-200'
                             }`}>
                             <div className="flex items-center gap-3 mb-4">
                                 {verificationResult.data?.isValid ? (

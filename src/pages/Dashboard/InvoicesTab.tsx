@@ -3,12 +3,12 @@ import { Plus, Eye, Download, Trash2, Search, Filter, FileText } from 'lucide-re
 import { Input, Message, SelectPicker, toaster } from 'rsuite';
 import type { Invoice, CreateInvoiceRequest } from '../../types/invoice';
 import { InvoiceStatus } from '../../enums/invoiceEnum';
-import { downloadInvoiceFile, getInvoicesPaginatedByUser } from '../../api/services/invoiceService';
+import { downloadInvoiceFile, getInvoicesPaginatedByUser, deleteInvoice as deleteInvoiceApi } from '../../api/services/invoiceService';
 import { mockInvoices } from '../../data/mockInvoice';
 import { useAuth } from '../../contexts/AuthContext';
 import CreateInvoiceModal from '../../components/CreateInvoiceModal';
 import Table, { TableColumn } from '../../components/common/table';
-import { debounce, getSimplifiedInvoiceStatusText, getSimplifiedInvoiceStatusColor } from '../../utils/helpers';
+import { debounce, getSimplifiedInvoiceStatusText, getSimplifiedInvoiceStatusColor, formatDateTime } from '../../utils/helpers';
 
 interface InvoicesTabProps {
     onSelectInvoice: (invoice: Invoice) => void;
@@ -73,9 +73,36 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
         }
     }, [user, currentPage, invoicesPerPage, statusFilter, searchTerm, refreshTrigger]);
 
-    const deleteInvoice = (invoiceNumber: string | undefined) => {
+    const removeInvoiceFromList = (invoiceNumber: string | undefined) => {
         if (!invoiceNumber) return;
         setInvoiceList(prev => prev.filter(inv => inv.invoiceNumber !== invoiceNumber));
+    };
+
+    const handleDeleteInvoice = async (invoiceId: number) => {
+        try {
+            const response = await deleteInvoiceApi(invoiceId);
+            if (response.succeeded) {
+                setInvoiceList(prev => prev.filter(inv => inv.id !== invoiceId));
+                toaster.push(
+                    <Message type="success" showIcon>
+                        Hóa đơn đã được xóa thành công
+                    </Message>
+                );
+            } else {
+                toaster.push(
+                    <Message type="error" showIcon>
+                        Có lỗi xảy ra khi xóa hóa đơn
+                    </Message>
+                );
+            }
+        } catch (error) {
+            console.error('Error deleting invoice:', error);
+            toaster.push(
+                <Message type="error" showIcon>
+                    Có lỗi xảy ra khi xóa hóa đơn
+                </Message>
+            );
+        }
     };
 
     const handleCreateSuccess = (newInvoice: Invoice) => {
@@ -199,7 +226,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
             dataKey: 'issuedDate',
             width: 220,
             render: (rowData: Invoice) => (
-                <span className="text-gray-600">{rowData.issuedDate || '-'}</span>
+                <span className="text-gray-600">{formatDateTime(rowData.issuedDate) || '-'}</span>
             )
 
         },
@@ -247,7 +274,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
                         <Download size={16} onClick={() => handleDownload(rowData.id)} />
                     </button>
                     <button
-                        onClick={() => deleteInvoice(rowData.invoiceNumber)}
+                        onClick={() => handleDeleteInvoice(rowData.id)}
                         className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
                         title="Xóa"
                     >

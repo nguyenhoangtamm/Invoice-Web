@@ -8,6 +8,8 @@ import { getInvoicesPaginated } from '../../api/services/invoiceService';
 import { mockInvoices } from '../../data/mockInvoice';
 import { useAuth } from '../../contexts/AuthContext';
 import CreateInvoiceModal from '../../components/CreateInvoiceModal';
+import { formatDateTime } from '../../utils/helpers';
+import InvoiceDetail from '../../components/InvoiceDetail';
 
 const DashboardTab: React.FC = () => {
     const [dashboardStats, setDashboardStats] = useState<DashboardStatsDto | null>(null);
@@ -15,6 +17,8 @@ const DashboardTab: React.FC = () => {
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+
 
     const { user } = useAuth();
 
@@ -162,9 +166,10 @@ const DashboardTab: React.FC = () => {
                                 </div>
                                 <div className="flex-1">
                                     <p className="font-medium text-gray-900">{inv.invoiceNumber || inv.formNumber || 'Hóa đơn'}</p>
-                                    <p className="text-sm text-gray-500">Ngày phát hành: {inv.issuedDate || '-'}</p>
+                                    <p className="text-sm text-gray-500">Ngày phát hành: {formatDateTime(inv.issuedDate) || '-'}</p>
                                 </div>
-                                <button className="text-blue-600 hover:text-blue-700">
+                                <button className="text-blue-600 hover:text-blue-700" onClick={() => setSelectedInvoice(inv)}
+                                >
                                     <Eye size={20} />
                                 </button>
                             </div>
@@ -199,6 +204,7 @@ const DashboardTab: React.FC = () => {
                 onClose={() => setShowCreateModal(false)}
                 onSuccess={handleCreateSuccess}
             />
+            <InvoiceDetail data={selectedInvoice} open={!!selectedInvoice} onClose={() => setSelectedInvoice(null)} />
         </div>
     );
 };
