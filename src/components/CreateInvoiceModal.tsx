@@ -35,6 +35,30 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<type
     (props, ref) => <Input {...props} as="textarea" ref={ref} />
 );
 
+const EditableCell = ({ rowData, rowIndex, dataKey, onChange, placeholder, ...props }: any) => {
+    const [value, setValue] = useState(rowData[dataKey]);
+
+    useEffect(() => {
+        setValue(rowData[dataKey]);
+    }, [rowData[dataKey]]);
+
+    return (
+        <Input
+            value={value}
+            placeholder={placeholder}
+            onChange={(val) => setValue(val)}
+            onBlur={() => {
+                if (value !== rowData[dataKey]) {
+                    onChange(rowIndex, dataKey, value);
+                }
+            }}
+            size="sm"
+            style={{ borderRadius: '6px' }}
+            {...props}
+        />
+    );
+};
+
 interface CreateInvoiceModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -200,6 +224,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     };
 
     const handleLineChange = (index: number, field: keyof CreateInvoiceLineRequest, value: any) => {
+        console.log('value', value);
         const updatedLines = [...lines];
         updatedLines[index] = {
             ...updatedLines[index],
@@ -411,7 +436,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                     alignItems: 'center',
                     gap: '12px'
                 }}>
-                    📄 Tạo hóa đơn mới
+                    Tạo hóa đơn mới
                 </Modal.Title>
             </Modal.Header>
 
@@ -434,7 +459,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                 color: '#1675e0',
                                 fontWeight: '600'
                             }}>
-                                📋 Thông tin cơ bản hóa đơn
+                                Thông tin cơ bản hóa đơn
                             </div>
                         }
                         bordered
@@ -527,7 +552,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                         color: '#28a745',
                                         fontWeight: '600'
                                     }}>
-                                        🏢 Thông tin người bán
+                                        Thông tin người bán
                                     </div>
                                 }
                                 bordered
@@ -627,7 +652,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                         color: '#17a2b8',
                                         fontWeight: '600'
                                     }}>
-                                        👥 Thông tin khách hàng
+                                        Thông tin khách hàng
                                     </div>
                                 }
                                 bordered
@@ -727,7 +752,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                 color: '#ffc107',
                                 fontWeight: '600'
                             }}>
-                                📅 Chi tiết hóa đơn
+                                Chi tiết hóa đơn
                             </div>
                         }
                         bordered
@@ -812,7 +837,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                 color: '#6c5ce7',
                                 fontWeight: '600'
                             }}>
-                                📎 Tệp đính kèm
+                                Tệp đính kèm
                             </div>
                         }
                         bordered
@@ -859,7 +884,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                             borderColor: '#6c5ce7'
                                         }}
                                     >
-                                        {uploading ? 'Đang upload...' : '📁 Chọn tệp để upload'}
+                                        {uploading ? 'Đang upload...' : 'Chọn tệp để upload'}
                                     </Button>
                                 </Uploader>
                                 <p style={{
@@ -951,7 +976,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                 color: '#dc3545',
                                 fontWeight: '600'
                             }}>
-                                🛒 Danh sách hàng hóa/dịch vụ
+                                Danh sách hàng hóa/dịch vụ
                             </div>
                         }
                         bordered
@@ -1029,12 +1054,12 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                         <Table.Cell style={{ padding: '8px' }}>
                                             {(rowData, rowIndex) => (
                                                 rowIndex !== undefined && (
-                                                    <Input
-                                                        value={rowData.name}
+                                                    <EditableCell
+                                                        rowData={rowData}
+                                                        rowIndex={rowIndex}
+                                                        dataKey="name"
+                                                        onChange={handleLineChange}
                                                         placeholder="Tên sản phẩm"
-                                                        onChange={(value) => handleLineChange(rowIndex, 'name', value)}
-                                                        size="sm"
-                                                        style={{ borderRadius: '6px' }}
                                                     />
                                                 )
                                             )}
@@ -1052,12 +1077,12 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                         <Table.Cell style={{ padding: '8px' }}>
                                             {(rowData, rowIndex) => (
                                                 rowIndex !== undefined && (
-                                                    <Input
-                                                        value={rowData.unit}
+                                                    <EditableCell
+                                                        rowData={rowData}
+                                                        rowIndex={rowIndex}
+                                                        dataKey="unit"
+                                                        onChange={handleLineChange}
                                                         placeholder="Đơn vị"
-                                                        onChange={(value) => handleLineChange(rowIndex, 'unit', value)}
-                                                        size="sm"
-                                                        style={{ borderRadius: '6px' }}
                                                     />
                                                 )
                                             )}
@@ -1227,7 +1252,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                 color: '#6f42c1',
                                 fontWeight: '600'
                             }}>
-                                💰 Tổng kết
+                                Tổng kết
                             </div>
                         }
                         bordered
