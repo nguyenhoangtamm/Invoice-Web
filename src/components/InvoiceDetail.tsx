@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import type { Invoice } from "../types/invoice";
-import { Button, Table, Panel, Grid, Row, Col, Modal, Divider, FlexboxGrid, Message, toaster } from "rsuite";
-import { CheckCircle, Clock, AlertCircle, Download as DownloadIcon } from 'lucide-react';
+import { Button, Table, Panel, Grid, Row, Col, Modal, Divider, FlexboxGrid, Message, toaster, Input, SelectPicker } from "rsuite";
+import { CheckCircle, Clock, AlertCircle, Download as DownloadIcon, Flag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { blockchainService, type BlockchainVerificationResponse } from '../api/services/blockchainService';
 import { downloadInvoiceFile, getInvoiceById } from '../api/services/invoiceService';
-import { InvoiceStatus } from '../enums/invoiceEnum';
+import { createInvoiceReport } from '../api/services/invoiceReportService';
+import { InvoiceReportReason, InvoiceStatus } from '../enums/invoiceEnum';
 import 'rsuite/dist/rsuite.min.css';
 import { formatDateTime } from "../utils/helpers";
 
@@ -65,6 +66,10 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
   const [comparisonData, setComparisonData] = useState<BlockchainVerificationResponse | null>(null);
   const [loadingComparison, setLoadingComparison] = useState(false);
   const [downloadingFileId, setDownloadingFileId] = useState<number | null>(null);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState<InvoiceReportReason | undefined>(undefined);
+  const [reportDescription, setReportDescription] = useState('');
+  const [submittingReport, setSubmittingReport] = useState(false);
 
   // Fetch invoice data when modal opens
   useEffect(() => {
@@ -163,6 +168,9 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
     setBlockchainDetails(null);
     setComparisonData(null);
     setCompareModalOpen(false);
+    setReportModalOpen(false);
+    setReportReason(undefined);
+    setReportDescription('');
     onClose();
   };
 
@@ -217,6 +225,52 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
       );
     } finally {
       setDownloadingFileId(null);
+    }
+  };
+
+  const handleReportSubmit = async () => {
+    if (!invoice || !reportReason) {
+      toaster.push(
+        <Message type="warning" showIcon>
+          Vui lòng nhập lý do báo cáo
+        </Message>
+      );
+      return;
+    }
+
+    try {
+      setSubmittingReport(true);
+      const response = await createInvoiceReport({
+        invoiceId: invoice.id,
+        reason: reportReason,
+        description: reportDescription.trim() || undefined,
+      });
+
+      if (response.succeeded) {
+        toaster.push(
+          <Message type="success" showIcon>
+            Báo cáo đã được gửi thành công
+          </Message>
+        );
+        setReportModalOpen(false);
+        setReportReason(undefined);
+        setReportDescription('');
+      } else {
+        toaster.push(
+          <Message type="error" showIcon>
+            Gửi báo cáo thất bại: {response.message || 'Unknown error'}
+          </Message>
+        );
+      }
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      toaster.push(
+        <Message type="error" showIcon>
+          Có lỗi xảy ra khi gửi báo cáo
+        </Message>
+      );
+    } finally {
+      setSubmittingReport(false);
     }
   };
 
@@ -372,7 +426,12 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
     return comparisonResult;
   };
 
-
+  const InvoiceReportReasonOptions = useMemo(() => [
+    { label: 'Thông tin sai lệch', value: (InvoiceReportReason.IncorrectDetails) },
+    { label: 'Thiếu thông tin quan trọng', value: InvoiceReportReason.MissingInformation },
+    { label: 'Hóa đơn giả mạo', value: InvoiceReportReason.FraudulentActivity },
+    { label: 'Lỗi khác', value: InvoiceReportReason.Other },
+  ], []);
 
   return (
     <>
@@ -678,6 +737,10 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
               <AlertCircle size={16} className="mr-2" />
               {loadingComparison ? 'Đang tải...' : 'Đối sánh'}
             </Button>
+            <Button onClick={() => setReportModalOpen(true)} appearance="ghost" color="orange">
+              <Flag size={16} className="mr-2" />
+              Báo cáo
+            </Button>
           </div>
           <div className="flex space-x-3">
             <Button
@@ -803,6 +866,70 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
         <Modal.Footer>
           <Button onClick={() => setCompareModalOpen(false)} appearance="subtle">
             Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Report Modal */}
+      <Modal
+        open={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        size="md"
+      >
+        <Modal.Header>
+          <Modal.Title>Báo cáo hóa đơn</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ padding: '1.5rem' }}>
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="text-yellow-600 w-5 h-5" />
+                <h3 className="font-semibold text-yellow-800">Thông báo</h3>
+              </div>
+              <p className="text-yellow-700 text-sm">
+                Nếu bạn phát hiện sai sót trong hóa đơn này, vui lòng báo cáo để chúng tôi kiểm tra và xử lý.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Lý do báo cáo <span className="text-red-500">*</span>
+              </label>
+              <SelectPicker<InvoiceReportReason>
+                data={InvoiceReportReasonOptions}
+                value={reportReason}
+                onChange={(value) => setReportReason(value ?? undefined)}
+                placeholder="Chọn lý do báo cáo"
+                block
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Mô tả chi tiết (tùy chọn)
+              </label>
+              <Input
+                as="textarea"
+                rows={4}
+                placeholder="Vui lòng mô tả chi tiết về sai sót bạn phát hiện..."
+                value={reportDescription}
+                onChange={(value) => setReportDescription(value)}
+              />
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button onClick={() => setReportModalOpen(false)} appearance="subtle">
+            Hủy
+          </Button>
+          <Button
+            onClick={handleReportSubmit}
+            appearance="primary"
+            color="orange"
+            loading={submittingReport}
+            disabled={!reportReason}
+          >
+            Gửi báo cáo
           </Button>
         </Modal.Footer>
       </Modal>

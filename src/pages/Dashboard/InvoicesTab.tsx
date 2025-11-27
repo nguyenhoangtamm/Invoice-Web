@@ -1,14 +1,15 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Plus, Eye, Download, Trash2, Search, Filter, FileText } from 'lucide-react';
+import { Plus, Eye, Download, Trash2, Search, Filter, FileText, X } from 'lucide-react';
 import { Input, Message, SelectPicker, toaster } from 'rsuite';
 import type { Invoice, CreateInvoiceRequest } from '../../types/invoice';
 import { InvoiceStatus } from '../../enums/invoiceEnum';
-import { downloadInvoiceFile, getInvoicesPaginatedByUser, deleteInvoice as deleteInvoiceApi } from '../../api/services/invoiceService';
+import { downloadInvoiceFile, getInvoicesPaginatedByUser, deleteInvoice as deleteInvoiceApi, updateInvoice } from '../../api/services/invoiceService';
 import { mockInvoices } from '../../data/mockInvoice';
 import { useAuth } from '../../contexts/AuthContext';
 import CreateInvoiceModal from '../../components/CreateInvoiceModal';
 import Table, { TableColumn } from '../../components/common/table';
 import { debounce, getSimplifiedInvoiceStatusText, getSimplifiedInvoiceStatusColor, formatDateTime } from '../../utils/helpers';
+import { ConfirmModal } from '../../components/common/ConfirmModal';
 
 interface InvoicesTabProps {
     onSelectInvoice: (invoice: Invoice) => void;
@@ -28,6 +29,12 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
     const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger for manual refetch
     const { user } = useAuth();
     const [downloadingFileId, setDownloadingFileId] = useState<number | null>(null);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<{
+        type: 'delete' | 'cancel';
+        invoiceId: number;
+        invoice?: Invoice;
+    } | null>(null);
 
     useEffect(() => {
         const fetchInvoices = async () => {
@@ -78,34 +85,118 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
         setInvoiceList(prev => prev.filter(inv => inv.invoiceNumber !== invoiceNumber));
     };
 
-    const handleDeleteInvoice = async (invoiceId: number) => {
-        try {
-            const response = await deleteInvoiceApi(invoiceId);
-            if (response.succeeded) {
-                setInvoiceList(prev => prev.filter(inv => inv.id !== invoiceId));
-                toaster.push(
-                    <Message type="success" showIcon>
-                        Hóa đơn đã được xóa thành công
-                    </Message>
-                );
-            } else {
+    const handleDeleteInvoice = (invoiceId: number) => {
+        setConfirmAction({
+            type: 'delete',
+            invoiceId
+        });
+        setShowConfirmModal(true);
+    };
+
+    const handleCancelInvoice = (invoiceId: number, invoice: Invoice) => {
+        setConfirmAction({
+            type: 'cancel',
+            invoiceId,
+            invoice
+        });
+        setShowConfirmModal(true);
+    };
+
+    const handleConfirmAction = async () => {
+        if (!confirmAction) return;
+
+        if (confirmAction.type === 'delete') {
+            try {
+                const response = await deleteInvoiceApi(confirmAction.invoiceId);
+                if (response.succeeded) {
+                    setInvoiceList(prev => prev.filter(inv => inv.id !== confirmAction.invoiceId));
+                    toaster.push(
+                        <Message type="success" showIcon>
+                            Hóa đơn đã được xóa thành công
+                        </Message>
+                    );
+                } else {
+                    toaster.push(
+                        <Message type="error" showIcon>
+                            Có lỗi xảy ra khi xóa hóa đơn
+                        </Message>
+                    );
+                }
+            } catch (error) {
+                console.error('Error deleting invoice:', error);
                 toaster.push(
                     <Message type="error" showIcon>
                         Có lỗi xảy ra khi xóa hóa đơn
                     </Message>
                 );
             }
-        } catch (error) {
-            console.error('Error deleting invoice:', error);
-            toaster.push(
-                <Message type="error" showIcon>
-                    Có lỗi xảy ra khi xóa hóa đơn
-                </Message>
-            );
+        } else if (confirmAction.type === 'cancel' && confirmAction.invoice) {
+            try {
+                const updateData = {
+                    id: String(confirmAction.invoiceId),
+                    invoiceNumber: confirmAction.invoice.invoiceNumber,
+                    formNumber: confirmAction.invoice.formNumber,
+                    serial: confirmAction.invoice.serial,
+                    organizationId: confirmAction.invoice.organizationId,
+                    sellerName: confirmAction.invoice.sellerName,
+                    sellerTaxId: confirmAction.invoice.sellerTaxId,
+                    sellerAddress: confirmAction.invoice.sellerAddress || '',
+                    sellerPhone: confirmAction.invoice.sellerPhone || '',
+                    sellerEmail: confirmAction.invoice.sellerEmail || '',
+                    customerName: confirmAction.invoice.customerName,
+                    customerTaxId: confirmAction.invoice.customerTaxId,
+                    customerAddress: confirmAction.invoice.customerAddress || '',
+                    customerPhone: confirmAction.invoice.customerPhone || '',
+                    customerEmail: confirmAction.invoice.customerEmail || '',
+                    status: 6,
+                    issuedDate: confirmAction.invoice.issuedDate,
+                    subTotal: confirmAction.invoice.subTotal,
+                    taxAmount: confirmAction.invoice.taxAmount,
+                    discountAmount: confirmAction.invoice.discountAmount,
+                    totalAmount: confirmAction.invoice.totalAmount,
+                    currency: confirmAction.invoice.currency,
+                    note: confirmAction.invoice.note || '',
+                    lines: confirmAction.invoice.lines.map(line => ({
+                        lineNumber: line.lineNumber,
+                        name: line.name,
+                        quantity: line.quantity,
+                        unit: line.unit || '',
+                        unitPrice: line.unitPrice,
+                        discount: line.discount,
+                        taxRate: line.taxRate,
+                        taxAmount: line.taxAmount,
+                        lineTotal: line.lineTotal
+                    })),
+                    attachmentFileIds: confirmAction.invoice.attachmentFileIds
+                };
+                const response = await updateInvoice(updateData);
+                if (response.succeeded) {
+                    // Cập nhật invoice trong danh sách với status mới
+                    setInvoiceList(prev => prev.map(inv =>
+                        inv.id === confirmAction.invoiceId ? { ...inv, status: 6 } : inv
+                    ));
+                    toaster.push(
+                        <Message type="success" showIcon>
+                            Hóa đơn đã được hủy thành công
+                        </Message>
+                    );
+                } else {
+                    toaster.push(
+                        <Message type="error" showIcon>
+                            Có lỗi xảy ra khi hủy hóa đơn
+                        </Message>
+                    );
+                }
+            } catch (error) {
+                console.error('Error canceling invoice:', error);
+                toaster.push(
+                    <Message type="error" showIcon>
+                        Có lỗi xảy ra khi hủy hóa đơn
+                    </Message>
+                );
+            }
         }
-    };
-
-    const handleCreateSuccess = (newInvoice: Invoice) => {
+    }; const handleCreateSuccess = (newInvoice: Invoice) => {
         // Refresh dữ liệu sau khi tạo hóa đơn mới
         setCurrentPage(0);
         setRefreshTrigger(prev => prev + 1); // Trigger refetch
@@ -257,7 +348,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
             key: 'actions',
             label: 'Hành động',
             isAction: true,
-            width: 120,
+            width: 150,
             render: (rowData: Invoice) => (
                 <div className="flex gap-1">
                     <button
@@ -273,13 +364,23 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
                     >
                         <Download size={16} onClick={() => handleDownload(rowData.id)} />
                     </button>
-                    <button
-                        onClick={() => handleDeleteInvoice(rowData.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
-                        title="Xóa"
-                    >
-                        <Trash2 size={16} />
-                    </button>
+                    {rowData.status === InvoiceStatus.Draft ? (
+                        <button
+                            onClick={() => handleDeleteInvoice(rowData.id)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            title="Xóa"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => handleCancelInvoice(rowData.id, rowData)}
+                            className="p-1.5 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                            title="Hủy"
+                        >
+                            <X size={16} />
+                        </button>
+                    )}
                 </div>
             )
         }
@@ -375,6 +476,25 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 onSuccess={handleCreateSuccess}
+            />
+
+            {/* Confirm Modal */}
+            <ConfirmModal
+                isOpen={showConfirmModal}
+                onClose={() => {
+                    setShowConfirmModal(false);
+                    setConfirmAction(null);
+                }}
+                onConfirm={handleConfirmAction}
+                title={confirmAction?.type === 'delete' ? 'Xác nhận xóa hóa đơn' : 'Xác nhận hủy hóa đơn'}
+                message={
+                    confirmAction?.type === 'delete'
+                        ? 'Bạn có chắc chắn muốn xóa hóa đơn này? Hành động này không thể hoàn tác.'
+                        : 'Bạn có chắc chắn muốn hủy hóa đơn này? Hóa đơn sẽ được chuyển sang trạng thái đã hủy.'
+                }
+                type={confirmAction?.type === 'delete' ? 'delete' : 'warning'}
+                confirmText={confirmAction?.type === 'delete' ? 'Xóa' : 'Hủy'}
+                cancelText="Hủy bỏ"
             />
         </div>
     );

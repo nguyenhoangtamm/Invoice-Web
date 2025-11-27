@@ -1,3 +1,5 @@
+import { InvoiceReportReason, InvoiceReportStatus } from "../enums/invoiceEnum";
+
 export interface InvoiceLine {
     id: number;
     invoiceId: number;
@@ -229,4 +231,21 @@ export interface CreateInvoiceRequest {
 
 export interface UpdateInvoiceRequest extends CreateInvoiceRequest {
     id: string;
+}
+
+export interface InvoiceReport {
+    id: number;
+    invoiceId: number;
+    reportedByUserId: number;
+    reason: InvoiceReportReason;
+    description?: string;
+    status: InvoiceReportStatus;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CreateInvoiceReportRequest {
+    invoiceId: number;
+    reason: InvoiceReportReason;
+    description?: string;
 }
