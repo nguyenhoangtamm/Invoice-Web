@@ -13,7 +13,7 @@ import type {
  * Handles all invoice-related operations
  */
 
-const cleanInvoiceParams = (
+export const cleanInvoiceParams = (
     pageNumber: number = 1,
     pageSize: number = 10,
     status?: string,
@@ -51,7 +51,6 @@ export const deleteInvoice = async (id: number): Promise<Result<void>> => {
     );
     return response.data;
 };
-
 
 export const getInvoiceById = async (id: number): Promise<Result<Invoice>> => {
     const response = await apiClient.get<Result<Invoice>>(
@@ -165,6 +164,15 @@ export const downloadInvoiceFile = async (fileId: number): Promise<Blob> => {
         {
             responseType: "blob",
         }
+    );
+    return response.data;
+};
+
+export const syncBlockchainInvoice = async (
+    invoiceId: number
+): Promise<Result<Invoice>> => {
+    const response = await apiClient.post<Result<Invoice>>(
+        `/invoices/sync-blockchain/${invoiceId}`
     );
     return response.data;
 };

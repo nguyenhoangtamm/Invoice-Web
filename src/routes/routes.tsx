@@ -14,6 +14,7 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import AdminDashboard from '../pages/Admin/AdminDashboard';
 import AdminUsers from '../pages/Admin/AdminUsers';
 import AdminInvoices from '../pages/Admin/AdminInvoices';
+import AdminInvoiceReports from '../pages/Admin/AdminInvoiceReports';
 import AdminApiKeys from '../pages/Admin/AdminApiKeys';
 import AdminOrganizations from '../pages/Admin/AdminOrganizations';
 import AdminRoles from '../pages/Admin/AdminRoles';
@@ -37,7 +38,7 @@ import {
 export const routes: RouteObject[] = [
     // Home page - Public
     { path: '/', element: <Home /> },
-    
+
     // Main app routes
     {
         path: '/app',
@@ -47,7 +48,7 @@ export const routes: RouteObject[] = [
             { path: 'lookup', element: <Lookup /> },
         ]
     },
-    
+
     // Direct access to lookup page
     { path: '/lookup', element: <Lookup /> },
     // Dashboard routes - Chỉ cho User thường (không phải Admin)
@@ -85,6 +86,7 @@ export const routes: RouteObject[] = [
             { path: 'roles', element: <AdminRoles /> },
             { path: 'menus', element: <AdminMenus /> },
             { path: 'invoices', element: <AdminInvoices /> },
+            { path: 'invoice-reports', element: <AdminInvoiceReports /> },
             { path: 'invoice-lines', element: <AdminInvoiceLines /> },
             { path: 'invoice-batches', element: <AdminInvoiceBatches /> },
             { path: 'api-keys', element: <AdminApiKeys /> },

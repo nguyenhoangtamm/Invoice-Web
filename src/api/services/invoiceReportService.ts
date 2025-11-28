@@ -35,6 +35,34 @@ export const getInvoiceReports = async (
     return response.data;
 };
 
+export const getInvoiceReportById = async (
+    id: number
+): Promise<Result<InvoiceReport>> => {
+    const response = await apiClient.get<Result<InvoiceReport>>(
+        `/InvoiceReports/${id}`
+    );
+    return response.data;
+};
+
+export const getInvoiceReportsPaginated = async (
+    pageNumber: number = 1,
+    pageSize: number = 10,
+    status?: number,
+    keyword?: string,
+    reason?: number
+): Promise<PaginatedResult<InvoiceReport>> => {
+    const params: Record<string, string | number> = { pageNumber, pageSize };
+    if (status !== undefined) params.status = status;
+    if (keyword) params.keyword = keyword;
+    if (reason !== undefined) params.reason = reason;
+    const response = await apiClient.get<PaginatedResult<InvoiceReport>>(
+        "/InvoiceReports/get-pagination",
+        {
+            params,
+        }
+    );
+    return response.data;
+};
 export const updateInvoiceReportStatus = async (
     id: number,
     status: "pending" | "resolved" | "dismissed"

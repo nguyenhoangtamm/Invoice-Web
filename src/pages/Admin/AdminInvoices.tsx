@@ -228,7 +228,7 @@ export default function AdminInvoices() {
         note: '',
         lines: []
     });
-    const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+    const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
     // Pagination states
@@ -438,7 +438,7 @@ export default function AdminInvoices() {
             render: (row: any) => (
                 <div>
                     <Button appearance="link" size="sm" className="mr-3" onClick={() => handleEdit(row)}>Sửa</Button>
-                    <Button appearance="link" size="sm" color="red" onClick={() => setDeleteTargetId(String(row.id))}>Xóa</Button>
+                    <Button appearance="link" size="sm" color="red" onClick={() => setDeleteTargetId(row.id)}>Xóa</Button>
                 </div>
             ),
         },
