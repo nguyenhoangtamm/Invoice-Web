@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  MagnifyingGlassIcon, 
-  ShieldCheckIcon, 
+import {
+  MagnifyingGlassIcon,
+  ShieldCheckIcon,
   DocumentTextIcon,
   UserGroupIcon,
   ChartBarIcon,
@@ -42,7 +42,7 @@ const Home: React.FC = () => {
       description: "Tạo tài khoản miễn phí để bắt đầu sử dụng hệ thống"
     },
     {
-      step: "02", 
+      step: "02",
       title: "Tạo tổ chức",
       description: "Thiết lập thông tin tổ chức và cấu hình hệ thống"
     },
@@ -108,10 +108,10 @@ const Home: React.FC = () => {
                 Tra cứu hóa đơn ngay
               </Link>
               <Link
-                to="/register"
+                to="/dashboard"
                 className="inline-flex items-center border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-indigo-600 transition-colors duration-200"
               >
-                Đăng ký miễn phí
+                Bắt đầu sử dụng
                 <ArrowRightIcon className="w-6 h-6 ml-2" />
               </Link>
             </div>
@@ -130,7 +130,7 @@ const Home: React.FC = () => {
               Khám phá những tính năng mạnh mẽ giúp bạn quản lý hóa đơn điện tử một cách hiệu quả
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200">
@@ -159,7 +159,7 @@ const Home: React.FC = () => {
             <p className="text-xl mb-8 max-w-3xl mx-auto opacity-90">
               Không cần đăng nhập! Tra cứu và xác thực hóa đơn điện tử một cách nhanh chóng và chính xác
             </p>
-            
+
             <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl p-8 mb-8 max-w-4xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
@@ -179,7 +179,7 @@ const Home: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             <Link
               to="/lookup"
               className="inline-flex items-center bg-yellow-400 text-gray-900 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-yellow-300 transition-colors duration-200"
@@ -202,7 +202,7 @@ const Home: React.FC = () => {
               Chỉ với 3 bước đơn giản, bạn có thể bắt đầu sử dụng hệ thống
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {steps.map((step, index) => (
               <div key={index} className="text-center">

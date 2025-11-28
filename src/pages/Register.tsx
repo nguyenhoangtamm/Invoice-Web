@@ -147,7 +147,7 @@ const Register = () => {
                             <span className="text-white font-bold text-xl">I</span>
                         </div>
                         <span className="ml-3 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            Invoice API
+                            TrustInvoice
                         </span>
                     </div>
                     <h2 className="text-3xl font-bold text-gray-900 mb-2">Đăng ký</h2>
@@ -458,7 +458,7 @@ const Register = () => {
                                 className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                             />
                             <span className="text-sm text-gray-600">
-                                Tôi đồng ý nhận thông tin cập nhật marketing từ Invoice API.
+                                Tôi đồng ý nhận thông tin cập nhật marketing từ TrustInvoice.
                             </span>
                         </label>
                     </div>

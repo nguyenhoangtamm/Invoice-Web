@@ -40,7 +40,7 @@ const DashboardLayout = () => {
                                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                                     <FileText className="text-white" size={20} />
                                 </div>
-                                <span className="font-bold text-xl">InvoiceHub</span>
+                                <span className="font-bold text-xl">TrustInvoice</span>
                             </div>
                         )}
                         <button

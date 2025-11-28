@@ -15,6 +15,7 @@ export default function AdminLayout() {
         { path: '/admin/invoice-lines', label: 'Chi tiết HĐ' },
         { path: '/admin/invoice-batches', label: 'Lô hóa đơn' },
         { path: '/admin/api-keys', label: 'API Keys' },
+        { path: '/admin/invoice-reports', label: 'Báo cáo HĐ' }
     ];
 
     return (

@@ -8,8 +8,8 @@ const Privacy = () => {
             <div className="max-w-4xl mx-auto px-4">
                 <div className="bg-white rounded-lg shadow-sm p-8">
                     <div className="flex items-center gap-4 mb-8">
-                        <Link 
-                            to="/login" 
+                        <Link
+                            to="/login"
                             className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
                         >
                             <ArrowLeft size={20} />
@@ -21,7 +21,7 @@ const Privacy = () => {
                     <div className="prose max-w-none text-gray-700">
                         <h2 className="text-xl font-semibold mb-4">1. Giới thiệu</h2>
                         <p className="mb-6">
-                            Invoice API cam kết bảo vệ quyền riêng tư và thông tin cá nhân của bạn. Chính sách bảo mật này 
+                            TrustInvoice cam kết bảo vệ quyền riêng tư và thông tin cá nhân của bạn. Chính sách bảo mật này
                             giải thích cách chúng tôi thu thập, sử dụng, và bảo vệ thông tin của bạn khi sử dụng dịch vụ của chúng tôi.
                         </p>
 
@@ -93,25 +93,25 @@ const Privacy = () => {
 
                         <h2 className="text-xl font-semibold mb-4">8. Lưu trữ dữ liệu</h2>
                         <p className="mb-6">
-                            Chúng tôi chỉ lưu trữ thông tin cá nhân của bạn trong thời gian cần thiết để thực hiện các mục đích 
+                            Chúng tôi chỉ lưu trữ thông tin cá nhân của bạn trong thời gian cần thiết để thực hiện các mục đích
                             đã nêu trong chính sách này hoặc theo yêu cầu của pháp luật. Dữ liệu sẽ được xóa an toàn khi không còn cần thiết.
                         </p>
 
                         <h2 className="text-xl font-semibold mb-4">9. Chuyển giao dữ liệu quốc tế</h2>
                         <p className="mb-6">
-                            Thông tin của bạn có thể được xử lý tại các quốc gia khác có luật bảo vệ dữ liệu khác với nước bạn. 
+                            Thông tin của bạn có thể được xử lý tại các quốc gia khác có luật bảo vệ dữ liệu khác với nước bạn.
                             Chúng tôi đảm bảo áp dụng các biện pháp bảo vệ phù hợp cho mọi chuyển giao dữ liệu.
                         </p>
 
                         <h2 className="text-xl font-semibold mb-4">10. Thay đổi chính sách</h2>
                         <p className="mb-6">
-                            Chúng tôi có thể cập nhật chính sách bảo mật này theo thời gian. Các thay đổi quan trọng sẽ được 
+                            Chúng tôi có thể cập nhật chính sách bảo mật này theo thời gian. Các thay đổi quan trọng sẽ được
                             thông báo qua email hoặc thông báo nổi bật trên dịch vụ.
                         </p>
 
                         <h2 className="text-xl font-semibold mb-4">11. Liên hệ</h2>
                         <p className="mb-6">
-                            Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật này hoặc muốn thực hiện quyền của mình, 
+                            Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật này hoặc muốn thực hiện quyền của mình,
                             vui lòng liên hệ:
                         </p>
                         <ul className="list-none pl-0 mb-6">
