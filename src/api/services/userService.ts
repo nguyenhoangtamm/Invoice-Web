@@ -43,7 +43,7 @@ export const fetchUsers = async (
 };
 
 export const getUser = async (id: string): Promise<Result<AdminUserDto>> => {
-    const response = await apiClient.get<Result<AdminUserDto>>(`/users/${id}`);
+    const response = await apiClient.get<Result<AdminUserDto>>(`/users/get-by-id/${id}`);
     return response.data;
 };
 
@@ -58,7 +58,7 @@ export const createUser = async (
     payload: UserPayload
 ): Promise<Result<AdminUserDto>> => {
     const response = await apiClient.post<Result<AdminUserDto>>(
-        "/users",
+        "/users/create",
         payload
     );
     return response.data;
@@ -68,8 +68,8 @@ export const updateUser = async (
     id: string,
     payload: Partial<UserPayload>
 ): Promise<Result<AdminUserDto>> => {
-    const response = await apiClient.put<Result<AdminUserDto>>(
-        `/users/${id}`,
+    const response = await apiClient.post<Result<AdminUserDto>>(
+        `/users/update/${id}`,
         payload
     );
     return response.data;
@@ -78,7 +78,7 @@ export const updateUser = async (
 export const updateUserProfile = async (
     payload: UpdateProfilePayload
 ): Promise<Result<AdminUserDto>> => {
-    const response = await apiClient.put<Result<AdminUserDto>>(
+    const response = await apiClient.post<Result<AdminUserDto>>(
         "/users/profile",
         payload
     );
@@ -86,7 +86,7 @@ export const updateUserProfile = async (
 };
 
 export const deleteUser = async (id: string): Promise<Result<void>> => {
-    const response = await apiClient.delete<Result<void>>(`/users/${id}`);
+    const response = await apiClient.post<Result<void>>(`/users/delete/${id}`);
     return response.data;
 };
 

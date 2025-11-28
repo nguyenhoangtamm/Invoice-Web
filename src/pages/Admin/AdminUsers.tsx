@@ -3,7 +3,8 @@ import {
     getUsersPaginated,
     createUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    getUser
 } from '../../api/services/userService';
 import type { AdminUserDto, UserPayload } from '../../types/user';
 import { Button, Form, Modal, InputPicker } from 'rsuite';
@@ -20,10 +21,11 @@ interface Props {
     formValue: UserPayload;
     onChange: (val: Partial<UserPayload>) => void;
     onSubmit: (e?: React.FormEvent) => Promise<void> | void;
-    roles: Array<{ label: string; value: string }>;
+    roles: Array<{ label: string; value: number }>;
+    statusOptions: Array<{ label: string; value: number }>;
 }
 
-const UserModal: React.FC<Props> = ({ open, onClose, loading, editingUser, formValue, onChange, onSubmit, roles }) => {
+const UserModal: React.FC<Props> = ({ open, onClose, loading, editingUser, formValue, onChange, onSubmit, roles, statusOptions }) => {
     return (
         <Modal open={open} onClose={onClose} size="md">
             <Modal.Header>
@@ -70,13 +72,25 @@ const UserModal: React.FC<Props> = ({ open, onClose, loading, editingUser, formV
                         <Form.Control name="address" componentClass="textarea" rows={3} />
                     </Form.Group>
 
-                    <Form.Group controlId="roleIds">
+                    <Form.Group controlId="roleId">
                         <Form.ControlLabel>Vai trò *</Form.ControlLabel>
                         <Form.Control
-                            name="roleIds"
+                            name="roleId"
                             accepter={InputPicker}
                             data={roles}
-                            multiple
+                            searchable={true}
+                            cleanable={false}
+                            style={{ width: '100%' }}
+                        />
+                    </Form.Group>
+
+                    <Form.Group controlId="status">
+                        <Form.ControlLabel>Trạng thái *</Form.ControlLabel>
+                        <Form.Control
+                            name="status"
+                            accepter={InputPicker}
+                            data={statusOptions}
+                            cleanable={false}
                             style={{ width: '100%' }}
                         />
                     </Form.Group>
@@ -94,11 +108,18 @@ const UserModal: React.FC<Props> = ({ open, onClose, loading, editingUser, formV
     );
 };
 
+const STATUS_OPTIONS = [
+    { label: 'Hoạt động', value: 1 },
+    { label: 'Không hoạt động', value: 2 },
+    { label: 'Tạm khóa', value: 3 },
+];
+
 export default function AdminUsers() {
     const [users, setUsers] = useState<AdminUserDto[]>([]);
-    const [roles, setRoles] = useState<Array<{ label: string; value: string }>>([]);
+    const [roles, setRoles] = useState<Array<{ label: string; value: number }>>([]);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [modalLoading, setModalLoading] = useState(false);
     const [editingUser, setEditingUser] = useState<AdminUserDto | null>(null);
     const [formData, setFormData] = useState<UserPayload>({
         username: '',
@@ -108,8 +129,8 @@ export default function AdminUsers() {
         lastName: '',
         phone: '',
         address: '',
-        roleIds: [],
-        status: 'active',
+        roleId: 0,
+        status: 1,
     });
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -142,10 +163,10 @@ export default function AdminUsers() {
     const loadRoles = async () => {
         try {
             const response = await getAllRoles();
-            if (response) {
+            if (response && response.data) {
                 const roleOptions = response.data.map((role: any) => ({
                     label: role.name,
-                    value: role.id
+                    value: parseInt(role.id) || role.id // Convert to number
                 }));
                 setRoles(roleOptions);
             }
@@ -176,18 +197,33 @@ export default function AdminUsers() {
 
     const handleEdit = (user: AdminUserDto) => {
         setEditingUser(user);
-        setFormData({
-            username: user.username,
-            email: user.email,
-            password: '',
-            firstName: user.firstName,
-            lastName: user.lastName,
-            phone: user.phone || '',
-            address: user.address || '',
-            roleIds: user.roles.map(role => role.id),
-            status: user.status,
-        });
-        setShowModal(true);
+        setModalLoading(true);
+
+        // Gọi API get-by-id để lấy dữ liệu mới nhất
+        getUser(user.id)
+            .then((response) => {
+                if (response.succeeded && response.data) {
+                    const userData = response.data;
+                    setFormData({
+                        username: userData.username,
+                        email: userData.email,
+                        password: '',
+                        firstName: userData.firstName,
+                        lastName: userData.lastName,
+                        phone: userData.phone || '',
+                        address: userData.address || '',
+                        roleId: userData.roleId,
+                        status: userData.status,
+                    });
+                }
+            })
+            .catch((error) => {
+                console.error('Error loading user details:', error);
+            })
+            .finally(() => {
+                setModalLoading(false);
+                setShowModal(true);
+            });
     };
 
     const performDelete = async () => {
@@ -215,8 +251,8 @@ export default function AdminUsers() {
             lastName: '',
             phone: '',
             address: '',
-            roleIds: [],
-            status: 'active',
+            roleId: 0,
+            status: 1,
         });
         setEditingUser(null);
     };
@@ -264,7 +300,7 @@ export default function AdminUsers() {
             key: 'roleName',
             label: 'Vai trò',
             render: (row: any) => (
-                <span  className={`inline-block text-white ${row.roleName==="Admin" ? 'bg-blue-400' : 'bg-green-400'} text-xs px-2 py-1 rounded mr-1`}>
+                <span className={`inline-block text-white ${row.roleName === "Admin" ? 'bg-blue-400' : 'bg-green-400'} text-xs px-2 py-1 rounded mr-1`}>
                     {row.roleName}
                 </span>
             ),
@@ -322,12 +358,13 @@ export default function AdminUsers() {
                     setShowModal(false);
                     resetForm();
                 }}
-                loading={loading}
+                loading={loading || modalLoading}
                 editingUser={editingUser}
                 formValue={formData}
                 onChange={handleFormChange}
                 onSubmit={handleSubmit}
                 roles={roles}
+                statusOptions={STATUS_OPTIONS}
             />
 
             <ConfirmModal

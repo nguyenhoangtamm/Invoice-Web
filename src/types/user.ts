@@ -10,10 +10,10 @@ export type AdminUserDto = {
     avatar: string | null;
     dateOfBirth: string | null;
     address: string | null;
-    roles: RoleInfoDto[];
+    roleId: number;
     organizationId: string | null;
     organizationName: string | null;
-    status: "active" | "inactive" | "suspended";
+    status: number; // 1: Active, 2: Inactive, 3: Suspended
     emailVerified: boolean;
     phoneVerified: boolean;
     twoFactorEnabled: boolean;
@@ -63,8 +63,8 @@ export type UserPayload = {
     dateOfBirth?: string | null;
     address?: string | null;
     organizationId?: string | null;
-    roleIds: string[];
-    status: "active" | "inactive" | "suspended";
+    roleId: number;
+    status: number; // 1: Active, 2: Inactive, 3: Suspended
     password?: string; // Required for create, optional for update
 };
 

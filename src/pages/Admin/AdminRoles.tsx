@@ -199,17 +199,14 @@ export default function AdminRoles() {
             key: 'name',
             label: 'Tên vai trò',
             dataKey: 'name',
+            flexGrow: 1,
         },
         {
             key: 'description',
             label: 'Mô tả',
             dataKey: 'description',
             render: (row: any) => row.description || '-',
-        },
-        {
-            key: 'createdAt',
-            label: 'Ngày tạo',
-            render: (row: any) => row.createdAt ? new Date(row.createdAt).toLocaleDateString('vi-VN') : '-',
+            flexGrow: 1,
         },
         {
             key: 'actions',
