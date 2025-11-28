@@ -188,6 +188,24 @@ export default function InvoiceReportDetail({ report, open, onClose, onStatusCha
                 comparison: compareField(offChainInvoice.lookupCode, onChainInvoice.lookupCode)
             },
             {
+                field: 'Ngày phát hành',
+                offChain: formatDateTime(offChainInvoice.issuedDate) || '-',
+                onChain: formatDateTime(onChainInvoice.issuedDate) || '-',
+                comparison: compareField(offChainInvoice.issuedDate, onChainInvoice.issuedDate)
+            },
+            {
+                field: 'Tổng tiền',
+                offChain: offChainInvoice.totalAmount?.toLocaleString('vi-VN') + ' ' + (offChainInvoice.currency || 'VND'),
+                onChain: onChainInvoice.totalAmount?.toLocaleString('vi-VN') + ' ' + (onChainInvoice.currency || 'VND'),
+                comparison: compareField(offChainInvoice.totalAmount, onChainInvoice.totalAmount)
+            },
+            {
+                field: '--- THÔNG TIN NGƯỜI BÁN ---',
+                offChain: '--- --- ---',
+                onChain: '--- --- ---',
+                comparison: { match: true, icon: '---', color: 'text-gray-400' }
+            },
+            {
                 field: 'Tên người bán',
                 offChain: offChainInvoice.sellerName || '-',
                 onChain: onChainInvoice.sellerName || '-',
@@ -200,23 +218,59 @@ export default function InvoiceReportDetail({ report, open, onClose, onStatusCha
                 comparison: compareField(offChainInvoice.sellerTaxId, onChainInvoice.sellerTaxId)
             },
             {
+                field: 'Địa chỉ người bán',
+                offChain: offChainInvoice.sellerAddress || '-',
+                onChain: onChainInvoice.sellerAddress || '-',
+                comparison: compareField(offChainInvoice.sellerAddress, onChainInvoice.sellerAddress)
+            },
+            {
+                field: 'Điện thoại người bán',
+                offChain: offChainInvoice.sellerPhone || '-',
+                onChain: onChainInvoice.sellerPhone || '-',
+                comparison: compareField(offChainInvoice.sellerPhone, onChainInvoice.sellerPhone)
+            },
+            {
+                field: 'Email người bán',
+                offChain: offChainInvoice.sellerEmail || '-',
+                onChain: onChainInvoice.sellerEmail || '-',
+                comparison: compareField(offChainInvoice.sellerEmail, onChainInvoice.sellerEmail)
+            },
+            {
+                field: '--- THÔNG TIN NGƯỜI MUA ---',
+                offChain: '--- --- ---',
+                onChain: '--- --- ---',
+                comparison: { match: true, icon: '---', color: 'text-gray-400' }
+            },
+            {
                 field: 'Tên người mua',
                 offChain: offChainInvoice.customerName || '-',
                 onChain: onChainInvoice.customerName || '-',
                 comparison: compareField(offChainInvoice.customerName, onChainInvoice.customerName)
             },
             {
-                field: 'Ngày phát hành',
-                offChain: formatDateTime(offChainInvoice.issuedDate) || '-',
-                onChain: formatDateTime(onChainInvoice.issuedDate) || '-',
-                comparison: compareField(offChainInvoice.issuedDate, onChainInvoice.issuedDate)
+                field: 'MST người mua',
+                offChain: offChainInvoice.customerTaxId || '-',
+                onChain: onChainInvoice.customerTaxId || '-',
+                comparison: compareField(offChainInvoice.customerTaxId, onChainInvoice.customerTaxId)
             },
             {
-                field: 'Tổng tiền',
-                offChain: offChainInvoice.totalAmount?.toLocaleString('vi-VN') + ' ' + (offChainInvoice.currency || 'VND'),
-                onChain: onChainInvoice.totalAmount?.toLocaleString('vi-VN') + ' ' + (onChainInvoice.currency || 'VND'),
-                comparison: compareField(offChainInvoice.totalAmount, onChainInvoice.totalAmount)
-            }
+                field: 'Địa chỉ người mua',
+                offChain: offChainInvoice.customerAddress || '-',
+                onChain: onChainInvoice.customerAddress || '-',
+                comparison: compareField(offChainInvoice.customerAddress, onChainInvoice.customerAddress)
+            },
+            {
+                field: 'Điện thoại người mua',
+                offChain: offChainInvoice.customerPhone || '-',
+                onChain: onChainInvoice.customerPhone || '-',
+                comparison: compareField(offChainInvoice.customerPhone, onChainInvoice.customerPhone)
+            },
+            {
+                field: 'Email người mua',
+                offChain: offChainInvoice.customerEmail || '-',
+                onChain: onChainInvoice.customerEmail || '-',
+                comparison: compareField(offChainInvoice.customerEmail, onChainInvoice.customerEmail)
+            },
         ];
 
         // Add invoice lines comparison if available
