@@ -159,7 +159,7 @@ const DashboardTab: React.FC = () => {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 className="text-lg font-semibold mb-4">Hoạt động gần đây</h3>
                     <div className="space-y-4">
-                        {recentInvoices.map((inv, idx) => (
+                        {recentInvoices?.map((inv, idx) => (
                             <div key={(inv.invoiceNumber || inv.formNumber || idx).toString()} className="flex items-center gap-4 pb-4 border-b border-gray-100 last:border-0">
                                 <div className="p-2 bg-blue-50 rounded-lg">
                                     <FileText className="text-blue-600" size={20} />
@@ -180,7 +180,7 @@ const DashboardTab: React.FC = () => {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 className="text-lg font-semibold mb-4">Tổ chức của bạn</h3>
                     <div className="space-y-4">
-                        {organizations.map((org) => (
+                        {organizations?.map((org) => (
                             <div key={org.id} className="p-4 bg-gray-50 rounded-lg">
                                 <div className="flex items-start justify-between">
                                     <div>

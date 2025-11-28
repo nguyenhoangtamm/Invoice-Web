@@ -9,6 +9,7 @@ import Register from '../pages/Register';
 import Terms from '../pages/Terms';
 import Privacy from '../pages/Privacy';
 import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
 import AdminLayout from '../layouts/AdminLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import AdminDashboard from '../pages/Admin/AdminDashboard';
@@ -114,6 +115,14 @@ export const routes: RouteObject[] = [
         element: (
             <PermissionMiddleware permission={createPermission.public()}>
                 <ForgotPassword />
+            </PermissionMiddleware>
+        )
+    },
+    {
+        path: '/reset-password',
+        element: (
+            <PermissionMiddleware permission={createPermission.public()}>
+                <ResetPassword />
             </PermissionMiddleware>
         )
     },

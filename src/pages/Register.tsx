@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Github, Chrome, Wallet, Check } from 'lucide-react';
+import { Eye, EyeOff, Github, Chrome, Wallet, Check, FileText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Register = () => {
@@ -62,8 +62,25 @@ const Register = () => {
             return;
         }
 
-        if (passwordStrength < 3) {
-            setError('Mật khẩu cần mạnh hơn (ít nhất 8 ký tự, có chữ hoa, chữ thường, số)');
+        // Validate password requirements
+        if (formData.password.length < 8) {
+            setError('Mật khẩu phải có ít nhất 8 ký tự!');
+            return;
+        }
+        if (!/[A-Z]/.test(formData.password)) {
+            setError('Mật khẩu phải chứa ít nhất một chữ hoa!');
+            return;
+        }
+        if (!/[a-z]/.test(formData.password)) {
+            setError('Mật khẩu phải chứa ít nhất một chữ thường!');
+            return;
+        }
+        if (!/[0-9]/.test(formData.password)) {
+            setError('Mật khẩu phải chứa ít nhất một số!');
+            return;
+        }
+        if (!/[^A-Za-z0-9]/.test(formData.password)) {
+            setError('Mật khẩu phải chứa ít nhất một ký tự đặc biệt!');
             return;
         }
 
@@ -83,8 +100,8 @@ const Register = () => {
             const response = await register(registerData);
 
             // Register function now directly returns data or throws error
-            // Redirect to dashboard on successful registration
-            navigate('/dashboard');
+            // Redirect to login on successful registration
+            navigate('/login');
         } catch (error) {
             setError('Có lỗi xảy ra trong quá trình đăng ký');
             console.error('Registration error:', error);
@@ -143,8 +160,8 @@ const Register = () => {
                 {/* Logo and title */}
                 <div className="text-center mb-8">
                     <div className="flex items-center justify-center mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                            <span className="text-white font-bold text-xl">I</span>
+                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <FileText className="text-white" size={20} />
                         </div>
                         <span className="ml-3 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                             TrustInvoice
@@ -394,36 +411,6 @@ const Register = () => {
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                             placeholder="Nhập địa chỉ"
                             required
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
-                            Giới thiệu bản thân (tùy chọn)
-                        </label>
-                        <textarea
-                            id="bio"
-                            name="bio"
-                            value={formData.bio}
-                            onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-                            placeholder="Giới thiệu ngắn về bản thân"
-                            rows={3}
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700 mb-2">
-                            Mã giới thiệu (tùy chọn)
-                        </label>
-                        <input
-                            id="referralCode"
-                            name="referralCode"
-                            type="text"
-                            value={formData.referralCode}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Nhập mã"
                         />
                     </div>
 

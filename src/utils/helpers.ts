@@ -34,7 +34,11 @@ export function formatLargeNumber(num: number): string {
  * Format date in Vietnamese format
  */
 export function formatDate(dateString: string): string {
+    if (!dateString) return "-";
+
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "-";
+
     return new Intl.DateTimeFormat("vi-VN", {
         year: "numeric",
         month: "2-digit",
@@ -46,7 +50,11 @@ export function formatDate(dateString: string): string {
  * Format datetime in Vietnamese format
  */
 export function formatDateTime(dateString: string): string {
+    if (!dateString) return "-";
+
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "-";
+
     const formatter = new Intl.DateTimeFormat("vi-VN", {
         year: "numeric",
         month: "2-digit",
@@ -69,7 +77,11 @@ export function formatDateTime(dateString: string): string {
  * Format relative time (e.g., "2 giờ trước")
  */
 export function formatRelativeTime(dateString: string): string {
+    if (!dateString) return "-";
+
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "-";
+
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
 
