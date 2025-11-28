@@ -460,12 +460,6 @@ export default function AdminInvoices() {
                 </Button>
             </div>
 
-            {loading && (
-                <div className="flex justify-center items-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-            )}
-
             <InvoiceModal
                 open={showModal}
                 onClose={() => {
@@ -505,6 +499,7 @@ export default function AdminInvoices() {
                     totalCount={totalCount}
                     onPageChange={handlePageChange}
                     onPageSizeChange={handlePageSizeChange}
+                    height={560}
                 />
             </div>
         </div>

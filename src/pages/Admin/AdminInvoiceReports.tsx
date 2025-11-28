@@ -218,12 +218,6 @@ export default function AdminInvoiceReports() {
                 <h2 className="text-2xl font-bold text-gray-900">Quản lý Báo cáo Hóa đơn</h2>
             </div>
 
-            {loading && (
-                <div className="flex justify-center items-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-            )}
-
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
                 <Table
                     data={reports}
@@ -238,6 +232,7 @@ export default function AdminInvoiceReports() {
                     totalCount={totalCount}
                     onPageChange={handlePageChange}
                     onPageSizeChange={handlePageSizeChange}
+                    height={560}
                 />
             </div>
 

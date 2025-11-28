@@ -240,45 +240,45 @@ export default function AdminUsers() {
             key: 'username',
             label: 'Tên đăng nhập',
             dataKey: 'username',
+            flexGrow: 1,
         },
         {
-            key: 'fullName',
+            key: 'fullname',
             label: 'Họ tên',
-            dataKey: 'fullName',
+            dataKey: 'fullname',
+            flexGrow: 1,
         },
         {
             key: 'email',
             label: 'Email',
             dataKey: 'email',
+            flexGrow: 1,
         },
         {
             key: 'phone',
             label: 'Điện thoại',
             dataKey: 'phone',
+            width: 150,
         },
         {
-            key: 'roles',
+            key: 'roleName',
             label: 'Vai trò',
             render: (row: any) => (
-                <div>
-                    {row.roles?.map((role: any) => (
-                        <span key={role.id} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-1">
-                            {role.name}
-                        </span>
-                    ))}
-                </div>
+                <span  className={`inline-block text-white ${row.roleName==="Admin" ? 'bg-blue-400' : 'bg-green-400'} text-xs px-2 py-1 rounded mr-1`}>
+                    {row.roleName}
+                </span>
             ),
         },
         {
             key: 'status',
             label: 'Trạng thái',
             render: (row: any) => (
-                <span className={`inline-block px-2 py-1 rounded text-xs ${row.status === 'active' ? 'bg-green-100 text-green-800' :
-                    row.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                <span className={`inline-block px-2 py-1 rounded text-xs ${row.status === 1 ? 'bg-green-100 text-green-800' :
+                    row.status === 2 ? 'bg-gray-100 text-gray-800' :
                         'bg-red-100 text-red-800'
                     }`}>
-                    {row.status === 'active' ? 'Hoạt động' :
-                        row.status === 'inactive' ? 'Không hoạt động' : 'Tạm khóa'}
+                    {row.status === 1 ? 'Hoạt động' :
+                        row.status === 2 ? 'Không hoạt động' : 'Tạm khóa'}
                 </span>
             ),
         },
@@ -356,6 +356,7 @@ export default function AdminUsers() {
                     totalCount={totalCount}
                     onPageChange={handlePageChange}
                     onPageSizeChange={handlePageSizeChange}
+                    height={560}
                 />
             </div>
         </div>

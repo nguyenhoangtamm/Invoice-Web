@@ -355,12 +355,6 @@ export default function AdminInvoiceBatches() {
                 </Button>
             </div>
 
-            {loading && (
-                <div className="flex justify-center items-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-            )}
-
             <InvoiceBatchModal
                 open={showModal}
                 onClose={() => {
@@ -398,6 +392,7 @@ export default function AdminInvoiceBatches() {
                     emptyText="Không có lô hóa đơn nào"
                     showPagination={true}
                     totalCount={batches.length}
+                    height={560}
                 />
             </div>
         </div>
