@@ -3,7 +3,7 @@ export type AdminUserDto = {
     id: string;
     username: string;
     email: string;
-    fullName: string;
+    fullname: string;
     firstName: string;
     lastName: string;
     phone: string | null;
@@ -57,8 +57,7 @@ export type UsersQueryResponse = {
 export type UserPayload = {
     username: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    fullname: string;
     phone?: string | null;
     dateOfBirth?: string | null;
     address?: string | null;

@@ -50,17 +50,11 @@ const UserModal: React.FC<Props> = ({ open, onClose, loading, editingUser, formV
                         </Form.Group>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <Form.Group controlId="firstName">
-                            <Form.ControlLabel>Tên *</Form.ControlLabel>
-                            <Form.Control name="firstName" />
-                        </Form.Group>
+                    <Form.Group controlId="fullname">
+                        <Form.ControlLabel>Tên đầy đủ *</Form.ControlLabel>
+                        <Form.Control name="fullname" />
+                    </Form.Group>
 
-                        <Form.Group controlId="lastName">
-                            <Form.ControlLabel>Họ *</Form.ControlLabel>
-                            <Form.Control name="lastName" />
-                        </Form.Group>
-                    </div>
 
                     <Form.Group controlId="phone">
                         <Form.ControlLabel>Số điện thoại</Form.ControlLabel>
@@ -125,8 +119,7 @@ export default function AdminUsers() {
         username: '',
         email: '',
         password: '',
-        firstName: '',
-        lastName: '',
+        fullname: '',
         phone: '',
         address: '',
         roleId: 0,
@@ -208,8 +201,7 @@ export default function AdminUsers() {
                         username: userData.username,
                         email: userData.email,
                         password: '',
-                        firstName: userData.firstName,
-                        lastName: userData.lastName,
+                        fullname: userData.fullname,
                         phone: userData.phone || '',
                         address: userData.address || '',
                         roleId: userData.roleId,
@@ -247,8 +239,7 @@ export default function AdminUsers() {
             username: '',
             email: '',
             password: '',
-            firstName: '',
-            lastName: '',
+            fullname: '',
             phone: '',
             address: '',
             roleId: 0,

@@ -407,28 +407,33 @@ export default function AdminInvoices() {
             key: 'invoiceNumber',
             label: 'Số hóa đơn',
             dataKey: 'invoiceNumber',
+            width: 150,
         },
         {
             key: 'customerName',
             label: 'Khách hàng',
             dataKey: 'customerName',
             render: (row: any) => row.customerName || '-',
+            flexGrow: 1,
         },
         {
             key: 'totalAmount',
             label: 'Tổng tiền',
             render: (row: any) => row.totalAmount ?
                 `${Number(row.totalAmount).toLocaleString('vi-VN')} ${row.currency || 'VND'}` : '-',
+            width: 150,
         },
         {
             key: 'status',
             label: 'Trạng thái',
             render: (row: any) => getStatusBadge(row.status),
+            width: 120,
         },
         {
             key: 'issuedDate',
             label: 'Ngày phát hành',
             render: (row: any) => row.issuedDate ? new Date(row.issuedDate).toLocaleDateString('vi-VN') : '-',
+            width: 150,
         },
         {
             key: 'actions',
@@ -437,7 +442,6 @@ export default function AdminInvoices() {
             flexGrow: 1,
             render: (row: any) => (
                 <div>
-                    <Button appearance="link" size="sm" className="mr-3" onClick={() => handleEdit(row)}>Sửa</Button>
                     <Button appearance="link" size="sm" color="red" onClick={() => setDeleteTargetId(row.id)}>Xóa</Button>
                 </div>
             ),

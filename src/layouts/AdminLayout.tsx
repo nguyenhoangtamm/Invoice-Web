@@ -1,25 +1,41 @@
 import React from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Building2, 
-  Shield, 
-  FileText, 
-  List, 
-  Package, 
-  Key, 
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  Shield,
+  FileText,
+  List,
+  Package,
+  Key,
   BarChart3,
   Search,
   Bell,
   Github,
   Sun,
   User,
-  Menu
+  Menu,
+  LogOut
 } from "lucide-react";
+import { Dropdown } from "rsuite";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function AdminLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Still navigate to login even if logout API fails
+      navigate('/login');
+    }
+  };
 
   const navItems = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -40,11 +56,12 @@ export default function AdminLayout() {
         {/* Logo */}
         <div className="px-6 py-5 border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">S</span>
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <FileText className="text-white" size={20} />
             </div>
-            <span className="text-xl font-semibold text-gray-800">sneat</span>
+            <span className="font-bold text-xl">TrustInvoice</span>
           </div>
+
         </div>
 
         {/* Navigation */}
@@ -53,11 +70,10 @@ export default function AdminLayout() {
           <div className="mb-1">
             <Link
               to="/admin/dashboard"
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/admin/dashboard')
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/admin/dashboard')
                   ? 'bg-indigo-50 text-indigo-600'
                   : 'text-gray-600 hover:bg-gray-50'
-              }`}
+                }`}
             >
               <LayoutDashboard className="w-5 h-5" />
               <span className="text-sm font-medium">Dashboard</span>
@@ -77,11 +93,10 @@ export default function AdminLayout() {
               <div key={item.path} className="mb-1">
                 <Link
                   to={item.path}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                    isActive(item.path)
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive(item.path)
                       ? 'bg-indigo-50 text-indigo-600'
                       : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="text-sm font-medium">{item.label}</span>
@@ -93,7 +108,7 @@ export default function AdminLayout() {
           {/* User Interface Section */}
           <div className="mt-6 mb-2 px-3">
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                Quản lý hóa đơn
+              Quản lý hóa đơn
             </span>
           </div>
 
@@ -103,11 +118,10 @@ export default function AdminLayout() {
               <div key={item.path} className="mb-1">
                 <Link
                   to={item.path}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                    isActive(item.path)
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive(item.path)
                       ? 'bg-indigo-50 text-indigo-600'
                       : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="text-sm font-medium">{item.label}</span>
@@ -139,18 +153,27 @@ export default function AdminLayout() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-4">
-              <button className="text-gray-600 hover:text-gray-800 transition-colors">
-                <Github className="w-5 h-5" />
-              </button>
-              <button className="text-gray-600 hover:text-gray-800 transition-colors">
-                <Bell className="w-5 h-5" />
-              </button>
-              <button className="text-gray-600 hover:text-gray-800 transition-colors">
-                <Sun className="w-5 h-5" />
-              </button>
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-                <User className="w-5 h-5 text-white" />
-              </div>
+              
+              <Dropdown
+                renderToggle={(props, ref) => (
+                  <div
+                    {...props}
+                    ref={ref}
+                    className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+                  >
+                    <User className="w-5 h-5 text-white" />
+                  </div>
+                )}
+                placement="leftStart"
+              >
+                <Dropdown.Item panel style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
+                  <p className="text-sm font-medium text-gray-900">{user?.fullName || user?.email || 'User'}</p>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
+                </Dropdown.Item>
+                <Dropdown.Item onClick={handleLogout} icon={<LogOut className="w-4 h-4" />}>
+                  Đăng xuất
+                </Dropdown.Item>
+              </Dropdown>
             </div>
           </div>
         </header>

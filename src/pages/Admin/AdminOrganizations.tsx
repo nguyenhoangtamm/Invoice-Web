@@ -33,42 +33,40 @@ const OrganizationModal: FC<Props> = ({ open, onClose, loading, editingOrganizat
                     formValue={formValue}
                     onChange={(val: any) => onChange(val)}
                 >
-                    <Form.Group controlId="name">
+                    <Form.Group controlId="organizationName">
                         <Form.ControlLabel>Tên tổ chức *</Form.ControlLabel>
-                        <Form.Control name="name" />
+                        <Form.Control name="organizationName" />
                     </Form.Group>
 
-                    <Form.Group controlId="description">
-                        <Form.ControlLabel>Mô tả</Form.ControlLabel>
+                    <Form.Group controlId="organizationBankAccount">
+                        <Form.ControlLabel>Số tài khoản</Form.ControlLabel>
                         <Form.Control
-                            name="description"
-                            componentClass="textarea"
-                            rows={3}
+                            name="organizationBankAccount"
                         />
                     </Form.Group>
 
-                    <Form.Group controlId="taxCode">
+                    <Form.Group controlId="organizationTaxId">
                         <Form.ControlLabel>Mã số thuế</Form.ControlLabel>
-                        <Form.Control name="taxCode" />
+                        <Form.Control name="organizationTaxId" />
                     </Form.Group>
 
-                    <Form.Group controlId="address">
+                    <Form.Group controlId="organizationAddress">
                         <Form.ControlLabel>Địa chỉ</Form.ControlLabel>
                         <Form.Control
-                            name="address"
+                            name="organizationAddress"
                             componentClass="textarea"
                             rows={3}
                         />
                     </Form.Group>
 
-                    <Form.Group controlId="phone">
+                    <Form.Group controlId="organizationPhone">
                         <Form.ControlLabel>Số điện thoại</Form.ControlLabel>
-                        <Form.Control name="phone" />
+                        <Form.Control name="organizationPhone" />
                     </Form.Group>
 
-                    <Form.Group controlId="email">
+                    <Form.Group controlId="organizationEmail">
                         <Form.ControlLabel>Email</Form.ControlLabel>
-                        <Form.Control name="email" type="email" />
+                        <Form.Control name="organizationEmail" type="email" />
                     </Form.Group>
                 </Form>
             </Modal.Body>
@@ -97,15 +95,14 @@ export default function AdminOrganizations() {
     const [showModal, setShowModal] = useState(false);
     const [editingOrganization, setEditingOrganization] = useState<Organization | null>(null);
     const [formData, setFormData] = useState<CreateOrganizationRequest>({
-        name: '',
-        description: '',
-        address: '',
-        phone: '',
-        email: '',
-        taxCode: '',
-        isActive: true,
+        organizationName: '',
+        organizationTaxId: '',
+        organizationAddress: '',
+        organizationPhone: '',
+        organizationEmail: '',
+        organizationBankAccount: '',
     });
-    const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+    const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
     // Pagination states
@@ -166,13 +163,12 @@ export default function AdminOrganizations() {
     const handleEdit = (organization: Organization) => {
         setEditingOrganization(organization);
         setFormData({
-            name: organization.organizationName || '',
-            description: organization.description || '',
-            address: organization.address || '',
-            phone: organization.phone || '',
-            email: organization.email || '',
-            taxCode: organization.taxCode || '',
-            isActive: organization.isActive,
+            organizationName: organization.organizationName || '',
+            organizationTaxId: organization.organizationTaxId || '',
+            organizationAddress: organization.organizationAddress || '',
+            organizationPhone: organization.organizationPhone || '',
+            organizationEmail: organization.organizationEmail || '',
+            organizationBankAccount: organization.organizationBankAccount || '',
         });
         setShowModal(true);
     };
@@ -197,13 +193,12 @@ export default function AdminOrganizations() {
 
     const resetForm = () => {
         setFormData({
-            name: '',
-            description: '',
-            address: '',
-            phone: '',
-            email: '',
-            taxCode: '',
-            isActive: true,
+            organizationName: '',
+            organizationTaxId: '',
+            organizationAddress: '',
+            organizationPhone: '',
+            organizationEmail: '',
+            organizationBankAccount: '',
         });
         setEditingOrganization(null);
     };
@@ -227,41 +222,41 @@ export default function AdminOrganizations() {
 
     const columns: TableColumn[] = [
         {
-            key: 'name',
+            key: 'organizationName',
             label: 'Tên tổ chức',
-            dataKey: 'name',
+            dataKey: 'organizationName',
+            flexGrow: 1,
         },
         {
-            key: 'taxCode',
+            key: 'organizationTaxId',
             label: 'Mã số thuế',
-            dataKey: 'taxCode',
-            render: (row: any) => row.taxCode || '-',
+            dataKey: 'organizationTaxId',
+            render: (row: any) => row.organizationTaxId || '-',
+            width: 150,
         },
         {
-            key: 'phone',
+            key: 'organizationPhone',
             label: 'Số điện thoại',
-            dataKey: 'phone',
-            render: (row: any) => row.phone || '-',
+            dataKey: 'organizationPhone',
+            render: (row: any) => row.organizationPhone || '-',
+            width: 150,
         },
         {
-            key: 'email',
+            key: 'organizationEmail',
             label: 'Email',
-            dataKey: 'email',
-            render: (row: any) => row.email || '-',
+            dataKey: 'organizationEmail',
+            render: (row: any) => row.organizationEmail || '-',
+            width: 200,
         },
         {
-            key: 'address',
+            key: 'organizationAddress',
             label: 'Địa chỉ',
             render: (row: any) => (
-                <div className="truncate max-w-xs" title={row.address}>
-                    {row.address || '-'}
+                <div className="truncate max-w-xs" title={row.organizationAddress}>
+                    {row.organizationAddress || '-'}
                 </div>
             ),
-        },
-        {
-            key: 'createdAt',
-            label: 'Ngày tạo',
-            render: (row: any) => row.createdAt ? new Date(row.createdAt).toLocaleDateString('vi-VN') : '-',
+            flexGrow: 1,
         },
         {
             key: 'actions',
@@ -271,7 +266,7 @@ export default function AdminOrganizations() {
             render: (row: any) => (
                 <div>
                     <Button appearance="link" size="sm" className="mr-3" onClick={() => handleEdit(row)}>Sửa</Button>
-                    <Button appearance="link" size="sm" color="red" onClick={() => setDeleteTargetId(String(row.id))}>Xóa</Button>
+                    <Button appearance="link" size="sm" color="red" onClick={() => setDeleteTargetId(row.id)}>Xóa</Button>
                 </div>
             ),
         },

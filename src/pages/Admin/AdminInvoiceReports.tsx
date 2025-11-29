@@ -158,38 +158,43 @@ export default function AdminInvoiceReports() {
             key: 'invoiceId',
             label: 'Mã hóa đơn',
             dataKey: 'invoiceId',
+            width: 120,
         },
         {
             key: 'reason',
             label: 'Lý do',
             render: (row: any) => getReasonText(row.reason),
+            flexGrow: 1,
         },
         {
             key: 'status',
             label: 'Trạng thái',
             render: (row: any) => getStatusBadge(row.status),
+            width: 140,
         },
         {
             key: 'createdAt',
             label: 'Ngày báo cáo',
             render: (row: any) => row.createdAt ? new Date(row.createdAt).toLocaleDateString('vi-VN') : '-',
+            width: 180,
         },
         {
             key: 'description',
             label: 'Mô tả',
             render: (row: any) => row.description ? row.description.substring(0, 50) + (row.description.length > 50 ? '...' : '') : '-',
+            flexGrow: 1,
         },
         {
             key: 'actions',
             label: 'Thao tác',
             isAction: true,
-            flexGrow: 1,
+            width: 300,
             render: (row: any) => (
                 <div className="flex gap-2">
                     <Button appearance="link" size="sm" onClick={() => handleViewDetail(row)}>
-                        Xem chi tiết
+                        Xem xét
                     </Button>
-                    <Button
+                    {/* <Button
                         appearance="link"
                         size="sm"
                         color="blue"
@@ -206,7 +211,7 @@ export default function AdminInvoiceReports() {
                         >
                             Giải quyết
                         </Button>
-                    )}
+                    )} */}
                 </div>
             ),
         },
