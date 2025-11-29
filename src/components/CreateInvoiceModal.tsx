@@ -426,6 +426,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             open={isOpen}
             onClose={onClose}
             size={1200}
+            backdrop="static"
         >
             <Modal.Header>
                 <Modal.Title style={{

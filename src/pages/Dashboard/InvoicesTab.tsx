@@ -305,7 +305,6 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
             key: 'customerName',
             label: 'Khách hàng',
             dataKey: 'customerName',
-            width: 200,
             render: (rowData: Invoice) => (
                 <span className="text-gray-600">{rowData.customerName || '-'}</span>
             ),
@@ -315,7 +314,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
             key: 'issuedDate',
             label: 'Ngày phát hành',
             dataKey: 'issuedDate',
-            width: 220,
+            width: 150,
             render: (rowData: Invoice) => (
                 <span className="text-gray-600">{formatDateTime(rowData.issuedDate) || '-'}</span>
             )
@@ -326,7 +325,6 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
             label: 'Số tiền',
             dataKey: 'totalAmount',
             width: 150,
-            align: 'right',
             render: (rowData: Invoice) => (
                 <span className="font-semibold text-gray-900">
                     {rowData.totalAmount?.toLocaleString('vi-VN')} {rowData.currency || 'VND'}
@@ -337,7 +335,7 @@ const InvoicesTab: React.FC<InvoicesTabProps> = ({
             key: 'status',
             label: 'Trạng thái',
             dataKey: 'status',
-            width: 210,
+            width: 150,
             render: (rowData: Invoice) => (
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(rowData.status)}`}>
                     {getStatusLabel(rowData.status)}
