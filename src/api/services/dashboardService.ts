@@ -8,6 +8,8 @@ export type DashboardStatsDto = {
     totalRevenue: number;
     totalCustomers: number;
     avgInvoiceValue: number;
+    pendingInvoices: number;
+    totalOrganizations: number;
     monthlyGrowth: number;
     createdAt: string;
     updatedAt: string | null;
