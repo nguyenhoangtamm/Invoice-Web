@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Building2, Key, Settings, BarChart3, Menu, X, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { Image } from 'rsuite';
 
 const DashboardLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -36,11 +37,11 @@ const DashboardLayout = () => {
                 <div className="p-4">
                     <div className="flex items-center justify-between mb-8">
                         {sidebarOpen && (
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                    <FileText className="text-white" size={20} />
-                                </div>
-                                <span className="font-bold text-xl">TrustInvoice</span>
+                            <div className="flex flex-col items-center justify-center mb-4">
+                                <Image width={100} src="/logo.png" alt="Logo" className="rounded-lg" />
+                                <span className="ml-3 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                    TrustInvoice
+                                </span>
                             </div>
                         )}
                         <button

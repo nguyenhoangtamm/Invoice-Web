@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Github, Chrome, Wallet, FileText } from 'lucide-react';
+import { Eye, EyeOff, Github, Chrome, Wallet } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { Image } from 'rsuite';
 
 const Login = () => {
     const [usernameOrEmail, setUsernameOrEmail] = useState('');
@@ -81,10 +82,8 @@ const Login = () => {
             <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 w-full max-w-md border border-white/20">
                 {/* Logo and title */}
                 <div className="text-center mb-8">
-                    <div className="flex items-center justify-center mb-4">
-                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                            <FileText className="text-white" size={20} />
-                        </div>
+                    <div className="flex flex-col items-center justify-center mb-4">
+                        <Image width={150} src="/logo.png" alt="Logo" className="rounded-lg" />
                         <span className="ml-3 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                             TrustInvoice
                         </span>

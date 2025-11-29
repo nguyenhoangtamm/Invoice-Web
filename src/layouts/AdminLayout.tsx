@@ -56,9 +56,7 @@ export default function AdminLayout() {
         {/* Logo */}
         <div className="px-6 py-5 border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <FileText className="text-white" size={20} />
-            </div>
+            <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-lg" />
             <span className="font-bold text-xl">TrustInvoice</span>
           </div>
 
@@ -71,8 +69,8 @@ export default function AdminLayout() {
             <Link
               to="/admin/dashboard"
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/admin/dashboard')
-                  ? 'bg-indigo-50 text-indigo-600'
-                  : 'text-gray-600 hover:bg-gray-50'
+                ? 'bg-indigo-50 text-indigo-600'
+                : 'text-gray-600 hover:bg-gray-50'
                 }`}
             >
               <LayoutDashboard className="w-5 h-5" />
@@ -94,8 +92,8 @@ export default function AdminLayout() {
                 <Link
                   to={item.path}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive(item.path)
-                      ? 'bg-indigo-50 text-indigo-600'
-                      : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-indigo-50 text-indigo-600'
+                    : 'text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -119,8 +117,8 @@ export default function AdminLayout() {
                 <Link
                   to={item.path}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive(item.path)
-                      ? 'bg-indigo-50 text-indigo-600'
-                      : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-indigo-50 text-indigo-600'
+                    : 'text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -153,7 +151,7 @@ export default function AdminLayout() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-4">
-              
+
               <Dropdown
                 renderToggle={(props, ref) => (
                   <div
