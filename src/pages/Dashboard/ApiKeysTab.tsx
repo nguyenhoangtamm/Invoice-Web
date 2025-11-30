@@ -426,21 +426,47 @@ const ApiKeysTab: React.FC = () => {
                 <div className="space-y-4">
                     <div>
                         <h4 className="font-medium text-gray-900 mb-2">1. Authentication</h4>
-                        <div className="bg-gray-900 rounded-lg p-4">
-                            <code className="text-green-400 text-sm">
-                                curl -H "Authorization: Bearer YOUR_API_KEY" \<br />
-                                &nbsp;&nbsp;https://api.invoicestorage.vn/v1/invoices
+                        <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                            <code className="text-green-400 text-sm whitespace-pre-wrap break-words block">
+                                {`curl -H "Authorization: Bearer YOUR_API_KEY_HERE" 
+  https://api.invoicestorage.vn/v1/invoices`}
                             </code>
                         </div>
                     </div>
                     <div>
                         <h4 className="font-medium text-gray-900 mb-2">2. Upload Invoice</h4>
-                        <div className="bg-gray-900 rounded-lg p-4">
-                            <code className="text-green-400 text-sm">
-                                curl -X POST \<br />
-                                &nbsp;&nbsp;-H "Authorization: Bearer YOUR_API_KEY" \<br />
-                                &nbsp;&nbsp;-F "file=@invoice.pdf" \<br />
-                                &nbsp;&nbsp;https://api.invoicestorage.vn/v1/upload
+                        <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                            <code className="text-green-400 text-sm whitespace-pre-wrap break-words block">
+                                {`curl -X POST http://localhost:5000/api/v1/invoices/upload 
+  -H "X-API-Key: YOUR_API_KEY_HERE" 
+  -H "Accept: text/plain" 
+  -H "Content-Type: multipart/form-data" 
+  -F "OrganizationId=YOUR_ORGANIZATION_ID" 
+  -F "InvoiceNumber=YOUR_INVOICE_NUMBER" 
+  -F "FormNumber=YOUR_FORM_NUMBER" 
+  -F "Serial=YOUR_SERIAL" 
+  -F "IssuedDate=2025-11-30T02:45:23.233Z" 
+  -F "IssuedByUserId=YOUR_USER_ID" 
+  -F "SellerName=YOUR_SELLER_NAME" 
+  -F "SellerTaxId=YOUR_SELLER_TAX_ID" 
+  -F "SellerEmail=YOUR_SELLER_EMAIL" 
+  -F "SellerPhone=YOUR_SELLER_PHONE" 
+  -F "SellerAddress=YOUR_SELLER_ADDRESS" 
+  -F "CustomerName=YOUR_CUSTOMER_NAME" 
+  -F "CustomerTaxId=YOUR_CUSTOMER_TAX_ID" 
+  -F "CustomerEmail=YOUR_CUSTOMER_EMAIL" 
+  -F "CustomerPhone=YOUR_CUSTOMER_PHONE" 
+  -F "CustomerAddress=YOUR_CUSTOMER_ADDRESS" 
+  -F "Currency=YOUR_CURRENCY" 
+  -F "SubTotal=YOUR_SUBTOTAL" 
+  -F "DiscountAmount=YOUR_DISCOUNT_AMOUNT" 
+  -F "TaxAmount=YOUR_TAX_AMOUNT" 
+  -F "TotalAmount=YOUR_TOTAL_AMOUNT" 
+  -F "Status=YOUR_STATUS" 
+  -F "Note=YOUR_NOTE" 
+  -F "AttachmentFileIds=YOUR_ATTACHMENT_FILE_IDS" 
+  -F "Lines=[{\"lineNumber\":0,\"name\":\"YOUR_LINE_NAME\",\"quantity\":1,\"unit\":\"YOUR_UNIT\",\"unitPrice\":1000,\"discount\":0,\"taxRate\":10,\"taxAmount\":100,\"lineTotal\":1100}]" 
+  -F "files=@YOUR_FILE_PATH.pdf"`}
                             </code>
                         </div>
                     </div>
