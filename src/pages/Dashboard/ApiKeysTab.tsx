@@ -3,7 +3,7 @@ import { Plus, Key, Trash2, Eye, EyeOff, Copy, AlertCircle } from 'lucide-react'
 import { Modal, Form, Input, Button, Checkbox, SelectPicker, Message, useToaster, DatePicker } from 'rsuite';
 import type { ApiKey } from '../../types/apiKey';
 import { createApiKey, deleteApiKey, getApiKeysPaginated } from '../../api/services/apiKeyService';
-import { getAllOrganizations } from '../../api/services/organizationService';
+import { getOrganizationByMe } from '../../api/services/organizationService';
 
 const ApiKeysTab: React.FC = () => {
     const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
@@ -33,7 +33,7 @@ const ApiKeysTab: React.FC = () => {
     console.log('Organizations:', organizations);
     const fetchOrganizations = async () => {
         try {
-            const response = await getAllOrganizations();
+            const response = await getOrganizationByMe();
             if (response.succeeded && response.data && Array.isArray(response.data)) {
                 console.log('Fetched organizations:', response.data);
                 setOrganizations(response.data

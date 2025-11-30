@@ -27,3 +27,21 @@ export const uploadInvoiceFile = async (
     );
     return response.data;
 };
+
+export const uploadGoogleDriveFile = async (
+    file: File
+): Promise<FileUploadResponse> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await apiClient.post<FileUploadResponse>(
+        "/Invoices/upload-to-google-drive",
+        formData,
+        {
+            headers: {
+                "Content-Type": undefined,
+            },
+        }
+    );
+    return response.data;
+};
