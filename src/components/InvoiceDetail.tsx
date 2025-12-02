@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import type { Invoice } from "../types/invoice";
 import { Button, Table, Panel, Grid, Row, Col, Modal, Divider, FlexboxGrid, Message, toaster, Input, SelectPicker } from "rsuite";
-import { CheckCircle, Clock, AlertCircle, Download as DownloadIcon, Flag } from 'lucide-react';
+import { CheckCircle, Clock, AlertCircle, Download as DownloadIcon, Flag, Edit as EditIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { blockchainService, type BlockchainVerificationResponse } from '../api/services/blockchainService';
 import { downloadInvoiceFile, getInvoiceById } from '../api/services/invoiceService';
@@ -9,6 +9,7 @@ import { createInvoiceReport } from '../api/services/invoiceReportService';
 import { InvoiceReportReason, InvoiceStatus } from '../enums/invoiceEnum';
 import 'rsuite/dist/rsuite.min.css';
 import { formatDateTime } from "../utils/helpers";
+import EditInvoiceModal from "./EditInvoiceModal";
 
 interface Props {
   data: Invoice | Invoice[] | null;
@@ -70,6 +71,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
   const [reportReason, setReportReason] = useState<InvoiceReportReason | undefined>(undefined);
   const [reportDescription, setReportDescription] = useState('');
   const [submittingReport, setSubmittingReport] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   // Fetch invoice data when modal opens
   useEffect(() => {
@@ -171,6 +173,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
     setReportModalOpen(false);
     setReportReason(undefined);
     setReportDescription('');
+    setEditModalOpen(false);
     onClose();
   };
 
@@ -271,6 +274,24 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
       );
     } finally {
       setSubmittingReport(false);
+    }
+  };
+
+  const handleEditSuccess = (updatedInvoice: Invoice) => {
+    setInvoice(updatedInvoice);
+    setEditModalOpen(false);
+    // Refresh parent data by calling the original data fetch
+    if (data) {
+      const invoiceData = Array.isArray(data) ? data[0] : data;
+      if (invoiceData?.id) {
+        getInvoiceById(invoiceData.id)
+          .then(response => {
+            if (response.succeeded && response.data) {
+              setInvoice(response.data);
+            }
+          })
+          .catch(error => console.error('Error refreshing invoice:', error));
+      }
     }
   };
 
@@ -770,38 +791,48 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
         </Modal.Body>
         <Modal.Footer style={{ padding: '1rem', borderTop: '2px solid #f0f0f0', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div className="flex space-x-3">
-            {blockchainStatus === null ? (
-              <Button onClick={verifyBlockchain} appearance="primary">
-                <CheckCircle size={16} className="mr-2" />
-                Xác thực Blockchain
-              </Button>
-            ) : blockchainStatus === 'pending' ? (
-              <Button appearance="primary" disabled>
-                <Clock size={16} className="mr-2 animate-spin" />
-                Đang xác thực...
-              </Button>
-            ) : blockchainStatus === 'verified' ? (
-              <Button appearance="primary" color="green" disabled>
-                <CheckCircle size={16} className="mr-2" />
-                Đã xác thực
-              </Button>
-            ) : (
-              <Button onClick={verifyBlockchain} appearance="primary" color="red">
-                <AlertCircle size={16} className="mr-2" />
-                Xác thực lại
+            {invoice?.status === InvoiceStatus.Draft && (
+              <Button onClick={() => setEditModalOpen(true)} appearance="primary" color="blue">
+                <EditIcon size={16} className="mr-2" />
+                Chỉnh sửa
               </Button>
             )}
-            <Button onClick={handleBlockchainVerification} appearance="primary" color="cyan" disabled={blockchainStatus !== 'verified'}>
-              Xem chi tiết xác thực
-            </Button>
-            <Button onClick={handleCompare} appearance="ghost" loading={loadingComparison}>
-              <AlertCircle size={16} className="mr-2" />
-              {loadingComparison ? 'Đang tải...' : 'Đối sánh'}
-            </Button>
-            <Button onClick={() => setReportModalOpen(true)} appearance="ghost" color="orange">
-              <Flag size={16} className="mr-2" />
-              Báo cáo
-            </Button>
+            {invoice?.status !== InvoiceStatus.Draft && (
+              <>
+                {blockchainStatus === null ? (
+                  <Button onClick={verifyBlockchain} appearance="primary">
+                    <CheckCircle size={16} className="mr-2" />
+                    Xác thực Blockchain
+                  </Button>
+                ) : blockchainStatus === 'pending' ? (
+                  <Button appearance="primary" disabled>
+                    <Clock size={16} className="mr-2 animate-spin" />
+                    Đang xác thực...
+                  </Button>
+                ) : blockchainStatus === 'verified' ? (
+                  <Button appearance="primary" color="green" disabled>
+                    <CheckCircle size={16} className="mr-2" />
+                    Đã xác thực
+                  </Button>
+                ) : (
+                  <Button onClick={verifyBlockchain} appearance="primary" color="red">
+                    <AlertCircle size={16} className="mr-2" />
+                    Xác thực lại
+                  </Button>
+                )}
+                <Button onClick={handleBlockchainVerification} appearance="primary" color="cyan" disabled={blockchainStatus !== 'verified'}>
+                  Xem chi tiết xác thực
+                </Button>
+                <Button onClick={handleCompare} appearance="ghost" loading={loadingComparison}>
+                  <AlertCircle size={16} className="mr-2" />
+                  {loadingComparison ? 'Đang tải...' : 'Đối sánh'}
+                </Button>
+                <Button onClick={() => setReportModalOpen(true)} appearance="ghost" color="orange">
+                  <Flag size={16} className="mr-2" />
+                  Báo cáo
+                </Button>
+              </>
+            )}
           </div>
           <div className="flex space-x-3">
             <Button
@@ -994,6 +1025,14 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Edit Invoice Modal */}
+      <EditInvoiceModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onSuccess={handleEditSuccess}
+        invoice={invoice}
+      />
     </>
   );
 }
