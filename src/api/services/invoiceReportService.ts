@@ -49,12 +49,16 @@ export const getInvoiceReportsPaginated = async (
     pageSize: number = 10,
     status?: number,
     keyword?: string,
-    reason?: number
+    reason?: number,
+    startDate?: Date,
+    endDate?: Date
 ): Promise<PaginatedResult<InvoiceReport>> => {
     const params: Record<string, string | number> = { pageNumber, pageSize };
     if (status !== undefined) params.status = status;
     if (keyword) params.keyword = keyword;
     if (reason !== undefined) params.reason = reason;
+    if (startDate) params.startDate = startDate.toISOString();
+    if (endDate) params.endDate = endDate.toISOString();
     const response = await apiClient.get<PaginatedResult<InvoiceReport>>(
         "/InvoiceReports/get-pagination",
         {

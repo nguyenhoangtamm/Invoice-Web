@@ -36,14 +36,23 @@ export default function AdminInvoiceReports() {
     const loadReports = async () => {
         setLoading(true);
         try {
+            // Extract startDate and endDate from dateRange if available
+            let startDate: Date | undefined;
+            let endDate: Date | undefined;
+            if (searchParams.dateRange && Array.isArray(searchParams.dateRange)) {
+                [startDate, endDate] = searchParams.dateRange as [Date, Date];
+            }
+
             const response = await getInvoiceReportsPaginated(
-                pageIndex + 1, 
+                pageIndex + 1,
                 pageSize,
                 searchParams.status as number,
                 searchParams.quickSearch,
-                searchParams.reason as number
+                searchParams.reason as number,
+                startDate,
+                endDate
             );
-            
+
             if (response.succeeded && response.data) {
                 setReports(response.data || []);
                 setTotalCount(response.totalCount || 0);
