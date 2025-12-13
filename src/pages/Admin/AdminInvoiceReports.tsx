@@ -15,7 +15,7 @@ import InvoiceReportDetail from '../../components/InvoiceReportDetail';
 export default function AdminInvoiceReports() {
     const [reports, setReports] = useState<InvoiceReport[]>([]);
     const [loading, setLoading] = useState(false);
-    const [selectedReport, setSelectedReport] = useState<InvoiceReport | null>(null);
+    const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
     const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [statusChangeTarget, setStatusChangeTarget] = useState<{ reportId: number; status: string } | null>(null);
     const [statusChangeLoading, setStatusChangeLoading] = useState(false);
@@ -50,7 +50,7 @@ export default function AdminInvoiceReports() {
     };
 
     const handleViewDetail = (report: InvoiceReport) => {
-        setSelectedReport(report);
+        setSelectedReportId(report.id);
         setDetailModalOpen(true);
     };
 
@@ -255,13 +255,13 @@ export default function AdminInvoiceReports() {
             />
 
             {/* Detail Modal */}
-            {selectedReport && (
+            {selectedReportId && (
                 <InvoiceReportDetail
-                    report={selectedReport}
+                    reportId={selectedReportId}
                     open={detailModalOpen}
                     onClose={() => {
                         setDetailModalOpen(false);
-                        setSelectedReport(null);
+                        setSelectedReportId(null);
                     }}
                     onStatusChange={async () => {
                         await loadReports();

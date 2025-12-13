@@ -39,7 +39,7 @@ export const getInvoiceReportById = async (
     id: number
 ): Promise<Result<InvoiceReport>> => {
     const response = await apiClient.get<Result<InvoiceReport>>(
-        `/InvoiceReports/${id}`
+        `/InvoiceReports/get-by-id/${id}`
     );
     return response.data;
 };
@@ -70,6 +70,23 @@ export const updateInvoiceReportStatus = async (
     const response = await apiClient.post<Result<InvoiceReport>>(
         `/InvoiceReports/update-status/${id}`,
         { status }
+    );
+    return response.data;
+};
+
+export const updateInvoiceReport = async (
+    id: number,
+    status: number,
+    reason?: number,
+    description?: string
+): Promise<Result<InvoiceReport>> => {
+    const response = await apiClient.post<Result<InvoiceReport>>(
+        `/InvoiceReports/update/${id}`,
+        {
+            status,
+            reason,
+            description,
+        }
     );
     return response.data;
 };
