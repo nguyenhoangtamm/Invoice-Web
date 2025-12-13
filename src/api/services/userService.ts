@@ -43,7 +43,9 @@ export const fetchUsers = async (
 };
 
 export const getUser = async (id: string): Promise<Result<AdminUserDto>> => {
-    const response = await apiClient.get<Result<AdminUserDto>>(`/users/get-by-id/${id}`);
+    const response = await apiClient.get<Result<AdminUserDto>>(
+        `/users/get-by-id/${id}`
+    );
     return response.data;
 };
 
@@ -138,9 +140,16 @@ const cleanPaginationParams = (page: number = 1, pageSize: number = 10) => {
 
 export const getUsersPaginated = async (
     page: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
+    searchTerm?: string,
+    status?: number,
+    roleId?: number
 ): Promise<PaginatedResult<AdminUserDto>> => {
-    const params = cleanPaginationParams(page, pageSize);
+    const params: Record<string, string | number> = { page, pageSize };
+    if (searchTerm) params.searchTerm = searchTerm;
+    if (status !== undefined) params.status = status;
+    if (roleId !== undefined) params.roleId = roleId;
+
     const response = await apiClient.get<PaginatedResult<AdminUserDto>>(
         "/users/get-pagination",
         {

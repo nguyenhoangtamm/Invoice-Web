@@ -10,6 +10,7 @@ import type { AdminUserDto, UserPayload } from '../../types/user';
 import { Button, Form, Modal, InputPicker } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
+import AdminSearchBar, { SearchFilter, SearchParams } from '../../components/common/AdminSearchBar';
 import type { TableColumn } from '../../components/common/table';
 import { getAllRoles } from '../../api/services/roleService';
 
@@ -133,18 +134,28 @@ export default function AdminUsers() {
     const [pageSize, setPageSize] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
+    // Search states
+    const [searchParams, setSearchParams] = useState<SearchParams>({});
+
     useEffect(() => {
         loadUsers();
         loadRoles();
-    }, [pageIndex, pageSize]);
+    }, [pageIndex, pageSize, searchParams]);
 
     const loadUsers = async () => {
         setLoading(true);
         try {
-            const response = await getUsersPaginated(pageIndex + 1, pageSize);
+            const response = await getUsersPaginated(
+                pageIndex + 1, 
+                pageSize,
+                searchParams.quickSearch,
+                searchParams.status as number,
+                searchParams.roleId as number
+            );
+            
             if (response.succeeded && response.data) {
                 setUsers(response.data || []);
-                setTotalCount(response.totalPages || 0);
+                setTotalCount(response.totalCount || 0);
             }
         } catch (error) {
             console.error('Error loading users:', error);
@@ -327,6 +338,28 @@ export default function AdminUsers() {
         },
     ];
 
+    // Search handlers
+    const handleSearch = (params: SearchParams) => {
+        setSearchParams(params);
+        setPageIndex(0);
+    };
+
+    // Search filters configuration
+    const searchFilters: SearchFilter[] = [
+        {
+            field: 'status',
+            type: 'select',
+            label: 'Trạng thái',
+            options: STATUS_OPTIONS
+        },
+        {
+            field: 'roleId',
+            type: 'select',
+            label: 'Vai trò',
+            options: roles
+        }
+    ];
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -342,6 +375,13 @@ export default function AdminUsers() {
                     Tạo Người dùng mới
                 </Button>
             </div>
+
+            <AdminSearchBar
+                filters={searchFilters}
+                onSearch={handleSearch}
+                loading={loading}
+                placeholder="Tìm kiếm theo tên đăng nhập, email, tên đầy đủ, số điện thoại..."
+            />
 
             <UserModal
                 open={showModal}

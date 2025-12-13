@@ -4,6 +4,7 @@ import type { PaginatedResult } from '../../types/common';
 import { Button, Form, Modal, Checkbox } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
+import AdminSearchBar, { SearchFilter, SearchParams } from '../../components/common/AdminSearchBar';
 import type { TableColumn } from '../../components/common/table';
 import {
     getRolesPaginated,
@@ -90,17 +91,25 @@ export default function AdminRoles() {
     const [pageSize, setPageSize] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
+    // Search states
+    const [searchParams, setSearchParams] = useState<SearchParams>({});
+
     useEffect(() => {
         loadRoles();
-    }, [pageIndex, pageSize]);
+    }, [pageIndex, pageSize, searchParams]);
 
     const loadRoles = async () => {
         setLoading(true);
         try {
-            const response = await getRolesPaginated(pageIndex + 1, pageSize);
+            const response = await getRolesPaginated(
+                pageIndex + 1, 
+                pageSize,
+                searchParams.quickSearch
+            );
+            
             if (response.succeeded && response.data) {
                 setRoles(response.data || []);
-                setTotalCount(response.totalPages || 0);
+                setTotalCount(response.totalCount || 0);
             }
         } catch (error) {
             console.error('Error loading roles:', error);
@@ -222,6 +231,15 @@ export default function AdminRoles() {
         },
     ];
 
+    // Search handlers
+    const handleSearch = (params: SearchParams) => {
+        setSearchParams(params);
+        setPageIndex(0);
+    };
+
+    // Search filters configuration
+    const searchFilters: SearchFilter[] = [];
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -237,6 +255,13 @@ export default function AdminRoles() {
                     Tạo Vai trò mới
                 </Button>
             </div>
+
+            <AdminSearchBar
+                filters={searchFilters}
+                onSearch={handleSearch}
+                loading={loading}
+                placeholder="Tìm kiếm theo tên vai trò, mô tả..."
+            />
 
             <RoleModal
                 open={showModal}

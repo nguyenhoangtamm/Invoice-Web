@@ -48,7 +48,9 @@ export const getOrganizationById = async (
     return response.data;
 };
 
-export const getAllOrganizations = async (): Promise<Result<Organization[]>> => {
+export const getAllOrganizations = async (): Promise<
+    Result<Organization[]>
+> => {
     const response = await apiClient.get<Result<Organization[]>>(
         "/Organizations/get-all"
     );
@@ -61,9 +63,12 @@ const cleanPaginationParams = (page: number = 1, pageSize: number = 10) => {
 
 export const getOrganizationsPaginated = async (
     page: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
+    searchTerm?: string
 ): Promise<PaginatedResult<Organization>> => {
-    const params = cleanPaginationParams(page, pageSize);
+    const params: Record<string, string | number> = { page, pageSize };
+    if (searchTerm) params.searchTerm = searchTerm;
+
     const response = await apiClient.get<PaginatedResult<Organization>>(
         "/Organizations/get-pagination",
         {
@@ -104,7 +109,9 @@ export const getOrganizationByUserId = async (
     return response.data;
 };
 
-export const getOrganizationByMe = async (): Promise<Result<GetByUserResponse[]>> => {
+export const getOrganizationByMe = async (): Promise<
+    Result<GetByUserResponse[]>
+> => {
     const response = await apiClient.get<Result<GetByUserResponse[]>>(
         "/Organizations/me"
     );

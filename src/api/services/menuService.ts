@@ -56,9 +56,17 @@ const cleanPaginationParams = (page: number = 1, pageSize: number = 10) => {
 
 export const getMenusPaginated = async (
     page: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
+    searchTerm?: string,
+    status?: boolean
 ): Promise<PaginatedResult<Menu>> => {
-    const params = cleanPaginationParams(page, pageSize);
+    const params: Record<string, string | number | boolean> = {
+        page,
+        pageSize,
+    };
+    if (searchTerm) params.searchTerm = searchTerm;
+    if (status !== undefined) params.isActive = status;
+
     const response = await apiClient.get<PaginatedResult<Menu>>(
         "/Menus/get-pagination",
         {

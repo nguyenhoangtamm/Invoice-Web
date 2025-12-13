@@ -62,9 +62,12 @@ const cleanPaginationParams = (page: number = 1, pageSize: number = 10) => {
 
 export const getInvoiceBatchesPaginated = async (
     page: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
+    searchTerm?: string
 ): Promise<PaginatedResult<InvoiceBatch>> => {
-    const params = cleanPaginationParams(page, pageSize);
+    const params: Record<string, string | number> = { page, pageSize };
+    if (searchTerm) params.searchTerm = searchTerm;
+
     const response = await apiClient.get<PaginatedResult<InvoiceBatch>>(
         "/InvoiceBatches/get-pagination",
         {

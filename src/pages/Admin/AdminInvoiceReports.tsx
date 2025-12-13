@@ -4,6 +4,7 @@ import type { PaginatedResult } from '../../types/common';
 import { Button, Message, toaster } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
+import AdminSearchBar, { SearchFilter, SearchParams } from '../../components/common/AdminSearchBar';
 import type { TableColumn } from '../../components/common/table';
 import {
     getInvoiceReportsPaginated,
@@ -25,14 +26,24 @@ export default function AdminInvoiceReports() {
     const [pageSize, setPageSize] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
+    // Search states
+    const [searchParams, setSearchParams] = useState<SearchParams>({});
+
     useEffect(() => {
         loadReports();
-    }, [pageIndex, pageSize]);
+    }, [pageIndex, pageSize, searchParams]);
 
     const loadReports = async () => {
         setLoading(true);
         try {
-            const response = await getInvoiceReportsPaginated(pageIndex + 1, pageSize);
+            const response = await getInvoiceReportsPaginated(
+                pageIndex + 1, 
+                pageSize,
+                searchParams.status as number,
+                searchParams.quickSearch,
+                searchParams.reason as number
+            );
+            
             if (response.succeeded && response.data) {
                 setReports(response.data || []);
                 setTotalCount(response.totalCount || 0);
@@ -153,6 +164,44 @@ export default function AdminInvoiceReports() {
         }
     };
 
+    // Search handlers
+    const handleSearch = (params: SearchParams) => {
+        setSearchParams(params);
+        setPageIndex(0);
+    };
+
+    // Search filters configuration
+    const searchFilters: SearchFilter[] = [
+        {
+            field: 'status',
+            type: 'select',
+            label: 'Trạng thái',
+            options: [
+                { label: 'Đang chờ', value: InvoiceReportStatus.Pending },
+                { label: 'Đang xem xét', value: InvoiceReportStatus.Reviewing },
+                { label: 'Đã giải quyết', value: InvoiceReportStatus.Resolved },
+                { label: 'Bị từ chối', value: InvoiceReportStatus.Rejected },
+                { label: 'Đã đóng', value: InvoiceReportStatus.Closed },
+            ]
+        },
+        {
+            field: 'reason',
+            type: 'select',
+            label: 'Lý do',
+            options: [
+                { label: 'Thông tin sai lệch', value: InvoiceReportReason.IncorrectDetails },
+                { label: 'Thiếu thông tin', value: InvoiceReportReason.MissingInformation },
+                { label: 'Hoạt động gian lận', value: InvoiceReportReason.FraudulentActivity },
+                { label: 'Khác', value: InvoiceReportReason.Other },
+            ]
+        },
+        {
+            field: 'dateRange',
+            type: 'dateRange',
+            label: 'Thời gian báo cáo'
+        }
+    ];
+
     const columns: TableColumn[] = [
         {
             key: 'invoiceId',
@@ -222,6 +271,13 @@ export default function AdminInvoiceReports() {
             <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Quản lý Báo cáo Hóa đơn</h2>
             </div>
+
+            <AdminSearchBar
+                filters={searchFilters}
+                onSearch={handleSearch}
+                loading={loading}
+                placeholder="Tìm kiếm theo mã hóa đơn, tên người báo cáo, mô tả..."
+            />
 
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
                 <Table

@@ -4,6 +4,8 @@ import type { PaginatedResult } from '../../types/common';
 import { Button, Form, Modal, InputPicker, DatePicker } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
+import AdminSearchBar, { SearchFilter, SearchParams } from '../../components/common/AdminSearchBar';
+import InvoiceDetail from '../../components/InvoiceDetail';
 import type { TableColumn } from '../../components/common/table';
 import {
     getInvoicesPaginated,
@@ -230,20 +232,31 @@ export default function AdminInvoices() {
     });
     const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
 
     // Pagination states
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
+    // Search states
+    const [searchParams, setSearchParams] = useState<SearchParams>({});
+
     useEffect(() => {
         loadInvoices();
-    }, [pageIndex, pageSize]);
+    }, [pageIndex, pageSize, searchParams]);
 
     const loadInvoices = async () => {
         setLoading(true);
         try {
-            const response = await getInvoicesPaginated(pageIndex + 1, pageSize);
+            const response = await getInvoicesPaginated(
+                pageIndex + 1,
+                pageSize,
+                searchParams.status as string,
+                searchParams.quickSearch
+            );
+
             if (response.succeeded && response.data) {
                 setInvoices(response.data || []);
                 setTotalCount(response.totalCount || 0);
@@ -284,6 +297,11 @@ export default function AdminInvoices() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleViewDetail = (invoice: Invoice) => {
+        setSelectedInvoiceId(invoice.id);
+        setDetailModalOpen(true);
     };
 
     const handleEdit = (invoice: Invoice) => {
@@ -410,8 +428,32 @@ export default function AdminInvoices() {
             width: 150,
         },
         {
+            label: 'Số biểu mẫu',
+            dataKey: 'formNumber',
+            key: 'formNumber',
+            width: 150,
+        },
+        {
+            key: 'serial',
+            label: 'Số seri',
+            dataKey: 'serial',
+            width: 150,
+        },
+        {
+            label: 'Mã tra cứu',
+            dataKey: 'lookupCode',
+            key: 'lookupCode',
+            width: 200,
+        },
+        {
+            key: "sellerName",
+            label: 'Người bán',
+            dataKey: "sellerName",
+            flexGrow: 1,
+        },
+        {
             key: 'customerName',
-            label: 'Khách hàng',
+            label: 'Người mua',
             dataKey: 'customerName',
             render: (row: any) => row.customerName || '-',
             flexGrow: 1,
@@ -439,13 +481,42 @@ export default function AdminInvoices() {
             key: 'actions',
             label: 'Thao tác',
             isAction: true,
-            flexGrow: 1,
+            width: 280,
             render: (row: any) => (
-                <div>
+                <div className="flex gap-2">
+                    <Button appearance="link" size="sm" onClick={() => handleViewDetail(row)}>Xem chi tiết</Button>
+                    <Button appearance="link" size="sm" color="blue" onClick={() => handleEdit(row)}>Sửa</Button>
                     <Button appearance="link" size="sm" color="red" onClick={() => setDeleteTargetId(row.id)}>Xóa</Button>
                 </div>
             ),
         },
+    ];
+
+    // Search handlers
+    const handleSearch = (params: SearchParams) => {
+        setSearchParams(params);
+        setPageIndex(0);
+    };
+
+    // Search filters configuration
+    const searchFilters: SearchFilter[] = [
+        {
+            field: 'status',
+            type: 'select',
+            label: 'Trạng thái',
+            options: [
+                { label: 'Nháp', value: 0 },
+                { label: 'Đã phát hành', value: 1 },
+                { label: 'Đã hủy', value: 2 },
+                { label: 'Đã xác thực', value: 101 },
+                { label: 'Lỗi xác thực', value: 102 },
+            ]
+        },
+        {
+            field: 'dateRange',
+            type: 'dateRange',
+            label: 'Ngày tạo'
+        }
     ];
 
     return (
@@ -463,6 +534,13 @@ export default function AdminInvoices() {
                     Tạo Hóa đơn mới
                 </Button>
             </div>
+
+            <AdminSearchBar
+                filters={searchFilters}
+                onSearch={handleSearch}
+                loading={loading}
+                placeholder="Tìm kiếm theo số hóa đơn, tên khách hàng, tên người bán, mã số thuế..."
+            />
 
             <InvoiceModal
                 open={showModal}
@@ -488,6 +566,17 @@ export default function AdminInvoices() {
                 cancelText="Hủy"
                 loading={deleteLoading}
             />
+
+            {selectedInvoiceId && (
+                <InvoiceDetail
+                    data={}
+                    open={detailModalOpen}
+                    onClose={() => {
+                        setDetailModalOpen(false);
+                        setSelectedInvoiceId(null);
+                    }}
+                />
+            )}
 
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
                 <Table

@@ -3,6 +3,7 @@ import type { PaginatedResult } from '../../types/common';
 import { Button, Form, Modal, InputPicker, InputNumber } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
+import AdminSearchBar, { SearchFilter, SearchParams } from '../../components/common/AdminSearchBar';
 import type { TableColumn } from '../../components/common/table';
 import { CreateInvoiceLineRequest, InvoiceLine, UpdateInvoiceLineRequest } from '../../types/invoiceLine';
 import {
@@ -133,16 +134,30 @@ export default function AdminInvoiceLines() {
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
+    // Pagination states
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+
+    // Search states
+    const [searchParams, setSearchParams] = useState<SearchParams>({});
+
     useEffect(() => {
         loadInvoiceLines();
-    }, []);
+    }, [pageIndex, pageSize, searchParams]);
 
     const loadInvoiceLines = async () => {
         setLoading(true);
         try {
-            const response = await getInvoiceLinesPaginated();
+            const response = await getInvoiceLinesPaginated(
+                pageIndex + 1,
+                pageSize,
+                searchParams.quickSearch
+            );
+            
             if (response.succeeded && response.data) {
-                setInvoiceLines(response.data);
+                setInvoiceLines(response.data || []);
+                setTotalCount(response.totalCount || 0);
             }
         } catch (error) {
             console.error('Error loading invoice lines:', error);
@@ -232,6 +247,31 @@ export default function AdminInvoiceLines() {
         setEditingLine(null);
     };
 
+    // Pagination handlers
+    const handlePageChange = (newPageIndex: number) => {
+        setPageIndex(newPageIndex);
+    };
+
+    const handlePageSizeChange = (newPageSize: number) => {
+        setPageSize(newPageSize);
+        setPageIndex(0);
+    };
+
+    // Search handlers
+    const handleSearch = (params: SearchParams) => {
+        setSearchParams(params);
+        setPageIndex(0);
+    };
+
+    // Search filters configuration
+    const searchFilters: SearchFilter[] = [
+        {
+            field: 'invoiceId',
+            type: 'text',
+            label: 'Mã hóa đơn'
+        }
+    ];
+
     const handleFormChange = (value: Partial<CreateInvoiceLineRequest>) => {
         setFormData(prev => {
             const newData = { ...prev, ...value };
@@ -315,6 +355,13 @@ export default function AdminInvoiceLines() {
                 </Button>
             </div>
 
+            <AdminSearchBar
+                filters={searchFilters}
+                onSearch={handleSearch}
+                loading={loading}
+                placeholder="Tìm kiếm theo mã hóa đơn, tên sản phẩm..."
+            />
+
             <InvoiceLineModal
                 open={showModal}
                 onClose={() => {
@@ -346,12 +393,14 @@ export default function AdminInvoiceLines() {
                     columns={columns}
                     loading={loading}
                     className="w-full"
-                    showRowNumbers={false}
-                    pageIndex={0}
-                    pageSize={10}
+                    showRowNumbers={true}
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
                     emptyText="Không có chi tiết hóa đơn nào"
                     showPagination={true}
-                    totalCount={invoiceLines.length}
+                    totalCount={totalCount}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
                     height={560}
                 />
             </div>

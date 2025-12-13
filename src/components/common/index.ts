@@ -17,6 +17,7 @@ export { default as Pagination } from "./Pagination";
 export { default as ToastProvider } from "./ToastProvider";
 export { default as AdminModal } from "./AdminModal";
 export { default as AdminTable } from "./AdminTable";
+export { default as AdminSearchBar } from "./AdminSearchBar";
 
 // Re-export table component
 export * from "./table";

@@ -3,6 +3,7 @@ import type { InvoiceBatch, CreateInvoiceBatchRequest, UpdateInvoiceBatchRequest
 import { Button, Form, Modal, InputPicker, DatePicker } from 'rsuite';
 import Table from '../../components/common/table';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
+import AdminSearchBar, { SearchFilter, SearchParams } from '../../components/common/AdminSearchBar';
 import type { TableColumn } from '../../components/common/table';
 import { createInvoiceBatch, deleteInvoiceBatch, getInvoiceBatchesPaginated, updateInvoiceBatch } from '../../api/services/invoiceBatchService';
 
@@ -122,16 +123,30 @@ export default function AdminInvoiceBatches() {
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
+    // Pagination states
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+
+    // Search states
+    const [searchParams, setSearchParams] = useState<SearchParams>({});
+
     useEffect(() => {
         loadBatches();
-    }, []);
+    }, [pageIndex, pageSize, searchParams]);
 
     const loadBatches = async () => {
         setLoading(true);
         try {
-            const response = await getInvoiceBatchesPaginated();
+            const response = await getInvoiceBatchesPaginated(
+                pageIndex + 1,
+                pageSize,
+                searchParams.quickSearch
+            );
+            
             if (response.succeeded && response.data) {
-                setBatches(response.data);
+                setBatches(response.data || []);
+                setTotalCount(response.totalCount || 0);
             }
         } catch (error) {
             console.error('Error loading batches:', error);
@@ -228,6 +243,36 @@ export default function AdminInvoiceBatches() {
         });
         setEditingBatch(null);
     };
+
+    // Pagination handlers
+    const handlePageChange = (newPageIndex: number) => {
+        setPageIndex(newPageIndex);
+    };
+
+    const handlePageSizeChange = (newPageSize: number) => {
+        setPageSize(newPageSize);
+        setPageIndex(0);
+    };
+
+    // Search handlers
+    const handleSearch = (params: SearchParams) => {
+        setSearchParams(params);
+        setPageIndex(0);
+    };
+
+    // Search filters configuration
+    const searchFilters: SearchFilter[] = [
+        {
+            field: 'status',
+            type: 'select',
+            label: 'Trạng thái',
+            options: [
+                { label: 'Khởi tạo', value: 0 },
+                { label: 'Đã xác nhận', value: 1 },
+                { label: 'Đã hoàn thành', value: 2 },
+            ]
+        }
+    ];
 
     // RSuite Form will provide the entire form value object on change
     const handleFormChange = (value: Partial<CreateInvoiceBatchRequest>) => {
@@ -362,6 +407,13 @@ export default function AdminInvoiceBatches() {
                 </Button>
             </div>
 
+            <AdminSearchBar
+                filters={searchFilters}
+                onSearch={handleSearch}
+                loading={loading}
+                placeholder="Tìm kiếm theo mã lô, trạng thái..."
+            />
+
             <InvoiceBatchModal
                 open={showModal}
                 onClose={() => {
@@ -393,12 +445,14 @@ export default function AdminInvoiceBatches() {
                     columns={columns}
                     loading={loading}
                     className="w-full"
-                    showRowNumbers={false}
-                    pageIndex={0}
-                    pageSize={10}
+                    showRowNumbers={true}
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
                     emptyText="Không có lô hóa đơn nào"
                     showPagination={true}
-                    totalCount={batches.length}
+                    totalCount={totalCount}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
                     height={560}
                 />
             </div>

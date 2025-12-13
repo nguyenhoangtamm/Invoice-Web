@@ -2,6 +2,7 @@ import React, { useState, useEffect, FC } from 'react';
 import type { Menu, CreateMenuRequest, UpdateMenuRequest } from '../../types/menu';
 import type { PaginatedResult } from '../../types/common';
 import { Button, Form, Modal, InputPicker, InputNumber } from 'rsuite';
+import AdminSearchBar, { SearchFilter, SearchParams } from '../../components/common/AdminSearchBar';
 import {
     getMenusPaginated,
     createMenu,
@@ -104,16 +105,25 @@ export default function AdminMenus() {
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
+    // Search states
+    const [searchParams, setSearchParams] = useState<SearchParams>({});
+
     useEffect(() => {
         loadMenus();
-    }, []);
+    }, [searchParams]);
 
     const loadMenus = async () => {
         setLoading(true);
         try {
-            const response = await getMenusPaginated();
+            const response = await getMenusPaginated(
+                1, // For menus, we usually don't paginate due to tree structure
+                1000, // Large page size to get all menus
+                searchParams.quickSearch,
+                searchParams.status as boolean
+            );
+            
             if (response.succeeded && response.data) {
-                setMenus(response.data);
+                setMenus(response.data || []);
             }
         } catch (error) {
             console.error('Error loading menus:', error);
@@ -293,6 +303,24 @@ export default function AdminMenus() {
 
     const parentMenuOptions = flatMenus.filter(menu => !menu.parentId);
 
+    // Search handlers
+    const handleSearch = (params: SearchParams) => {
+        setSearchParams(params);
+    };
+
+    // Search filters configuration
+    const searchFilters: SearchFilter[] = [
+        {
+            field: 'status',
+            type: 'select',
+            label: 'Trạng thái',
+            options: [
+                { label: 'Hoạt động', value: true },
+                { label: 'Không hoạt động', value: false },
+            ]
+        }
+    ];
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -307,6 +335,13 @@ export default function AdminMenus() {
                     Thêm Menu
                 </button>
             </div>
+
+            <AdminSearchBar
+                filters={searchFilters}
+                onSearch={handleSearch}
+                loading={loading}
+                placeholder="Tìm kiếm theo tiêu đề menu, URL, icon..."
+            />
 
             {loading && (
                 <div className="flex justify-center items-center py-8">
