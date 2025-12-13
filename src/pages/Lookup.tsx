@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import InvoiceDetail from "../components/InvoiceDetail";
-import type { Invoice, InvoiceLookUp } from "../types/invoice";
+import type { InvoiceLookUp } from "../types/invoice";
 import { downloadInvoiceFile, getInvoicesPaginatedLookUp } from "../api/services/invoiceService";
 import { Search, Eye, Download, FileText, Loader, CheckCircle, AlertCircle, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +10,7 @@ import Table, { TableColumn } from "../components/common/table";
 
 export default function Lookup() {
   const navigate = useNavigate();
-  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceLookUp | null>(null);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<InvoiceLookUp[]>([]);
@@ -142,7 +142,7 @@ export default function Lookup() {
         <div className="flex gap-1">
           <button
             onClick={() => {
-              setSelectedInvoice(rowData);
+              setSelectedInvoiceId(rowData.id);
               setIsModalOpen(true);
             }}
             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
@@ -354,11 +354,11 @@ export default function Lookup() {
 
       {/* Modal */}
       <InvoiceDetail
-        data={selectedInvoice as Invoice}
+        invoiceId={selectedInvoiceId!}
         open={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setSelectedInvoice(null);
+          setSelectedInvoiceId(null);
         }}
       />
     </div>

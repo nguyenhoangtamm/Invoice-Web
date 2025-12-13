@@ -250,11 +250,20 @@ export default function AdminInvoices() {
     const loadInvoices = async () => {
         setLoading(true);
         try {
+            // Extract startDate and endDate from dateRange if available
+            let startDate: Date | undefined;
+            let endDate: Date | undefined;
+            if (searchParams.dateRange && Array.isArray(searchParams.dateRange)) {
+                [startDate, endDate] = searchParams.dateRange as [Date, Date];
+            }
+
             const response = await getInvoicesPaginated(
                 pageIndex + 1,
                 pageSize,
                 searchParams.status as string,
-                searchParams.quickSearch
+                searchParams.quickSearch,
+                startDate,
+                endDate
             );
 
             if (response.succeeded && response.data) {
@@ -485,7 +494,6 @@ export default function AdminInvoices() {
             render: (row: any) => (
                 <div className="flex gap-2">
                     <Button appearance="link" size="sm" onClick={() => handleViewDetail(row)}>Xem chi tiết</Button>
-                    <Button appearance="link" size="sm" color="blue" onClick={() => handleEdit(row)}>Sửa</Button>
                     <Button appearance="link" size="sm" color="red" onClick={() => setDeleteTargetId(row.id)}>Xóa</Button>
                 </div>
             ),
@@ -569,7 +577,7 @@ export default function AdminInvoices() {
 
             {selectedInvoiceId && (
                 <InvoiceDetail
-                    data={}
+                    invoiceId={selectedInvoiceId}
                     open={detailModalOpen}
                     onClose={() => {
                         setDetailModalOpen(false);

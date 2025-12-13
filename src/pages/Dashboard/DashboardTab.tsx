@@ -17,7 +17,7 @@ const DashboardTab: React.FC = () => {
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+    const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
 
 
     const { user } = useAuth();
@@ -168,7 +168,7 @@ const DashboardTab: React.FC = () => {
                                     <p className="font-medium text-gray-900">{inv.invoiceNumber || inv.formNumber || 'Hóa đơn'}</p>
                                     <p className="text-sm text-gray-500">Ngày phát hành: {formatDateTime(inv.issuedDate) || '-'}</p>
                                 </div>
-                                <button className="text-blue-600 hover:text-blue-700" onClick={() => setSelectedInvoice(inv)}
+                                <button className="text-blue-600 hover:text-blue-700" onClick={() => setSelectedInvoiceId(inv.id)}
                                 >
                                     <Eye size={20} />
                                 </button>
@@ -204,7 +204,7 @@ const DashboardTab: React.FC = () => {
                 onClose={() => setShowCreateModal(false)}
                 onSuccess={handleCreateSuccess}
             />
-            <InvoiceDetail data={selectedInvoice} open={!!selectedInvoice} onClose={() => setSelectedInvoice(null)} />
+            {selectedInvoiceId && <InvoiceDetail invoiceId={selectedInvoiceId} open={!!selectedInvoiceId} onClose={() => setSelectedInvoiceId(null)} />}
         </div>
     );
 };

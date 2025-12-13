@@ -20,7 +20,7 @@ const cleanUserParams = (params: UsersQueryParams) => {
         page: params.page,
         pageSize: params.pageSize,
     };
-    if (params.searchTerm) queryParams.searchTerm = params.searchTerm;
+    if (params.keyWord) queryParams.keyWord = params.keyWord;
     if (params.status) queryParams.status = params.status;
     if (params.organizationId)
         queryParams.organizationId = params.organizationId;
@@ -141,12 +141,12 @@ const cleanPaginationParams = (page: number = 1, pageSize: number = 10) => {
 export const getUsersPaginated = async (
     page: number = 1,
     pageSize: number = 10,
-    searchTerm?: string,
+    Keyword?: string,
     status?: number,
     roleId?: number
 ): Promise<PaginatedResult<AdminUserDto>> => {
     const params: Record<string, string | number> = { page, pageSize };
-    if (searchTerm) params.searchTerm = searchTerm;
+    if (Keyword) params.Keyword = Keyword;
     if (status !== undefined) params.status = status;
     if (roleId !== undefined) params.roleId = roleId;
 

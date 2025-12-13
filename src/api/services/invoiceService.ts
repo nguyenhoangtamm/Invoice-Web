@@ -58,7 +58,9 @@ export const getInvoiceById = async (id: number): Promise<Result<Invoice>> => {
     );
     return response.data;
 };
-export const getInvoiceByLookupCode = async (code: string): Promise<Result<Invoice>> => {
+export const getInvoiceByLookupCode = async (
+    code: string
+): Promise<Result<Invoice>> => {
     const response = await apiClient.get<Result<Invoice>>(
         `/Invoices/get-by-lookup-code/${code}`
     );
@@ -76,9 +78,16 @@ export const getInvoicesPaginated = async (
     pageNumber: number = 1,
     pageSize: number = 10,
     status?: string,
-    Keyword?: string
+    Keyword?: string,
+    startDate?: Date,
+    endDate?: Date
 ): Promise<PaginatedResult<Invoice>> => {
-    const params = cleanInvoiceParams(pageNumber, pageSize, status, Keyword);
+    const params: Record<string, any> = { pageNumber, pageSize };
+    if (status) params.status = status;
+    if (Keyword) params.Keyword = Keyword;
+    if (startDate) params.startDate = startDate.toISOString();
+    if (endDate) params.endDate = endDate.toISOString();
+
     const response = await apiClient.get<PaginatedResult<Invoice>>(
         "/Invoices/get-pagination",
         {

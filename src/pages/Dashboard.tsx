@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Home, FileText, Building2, Key, Settings, BarChart3, Menu, X, LogOut } from 'lucide-react';
-import type { Invoice } from '../types/invoice';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardTab from './Dashboard/DashboardTab';
 import InvoicesTab from './Dashboard/InvoicesTab';
@@ -14,7 +13,7 @@ import { Image } from 'rsuite';
 const InvoiceDashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+    const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
 
     const { logout } = useAuth();
 
@@ -28,8 +27,8 @@ const InvoiceDashboard = () => {
     ];
 
     const renderInvoiceDetail = () => {
-        if (!selectedInvoice) return null;
-        return <InvoiceDetail data={selectedInvoice} open={!!selectedInvoice} onClose={() => setSelectedInvoice(null)} />;
+        if (!selectedInvoiceId) return null;
+        return <InvoiceDetail invoiceId={selectedInvoiceId} open={!!selectedInvoiceId} onClose={() => setSelectedInvoiceId(null)} />;
     };
 
     const renderContent = () => {
@@ -37,7 +36,7 @@ const InvoiceDashboard = () => {
             case 'dashboard': return <DashboardTab />;
             case 'organizations': return <OrganizationsTab />;
             case 'apikeys': return <ApiKeysTab />;
-            case 'invoices': return <InvoicesTab onSelectInvoice={setSelectedInvoice} />;
+            case 'invoices': return <InvoicesTab onSelectInvoice={(invoice) => setSelectedInvoiceId(invoice.id)} />;
             case 'analytics': return <AnalyticsTab />;
             case 'settings': return <SettingsTab />;
             default: return <DashboardTab />;

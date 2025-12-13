@@ -36,7 +36,7 @@ export type RoleInfoDto = {
 export type UsersQueryParams = {
     page: number;
     pageSize: number;
-    searchTerm?: string;
+    keyWord?: string;
     status?: "active" | "inactive" | "suspended";
     organizationId?: string;
     roleId?: string;

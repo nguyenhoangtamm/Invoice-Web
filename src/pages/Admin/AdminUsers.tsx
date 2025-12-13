@@ -351,12 +351,6 @@ export default function AdminUsers() {
             type: 'select',
             label: 'Trạng thái',
             options: STATUS_OPTIONS
-        },
-        {
-            field: 'roleId',
-            type: 'select',
-            label: 'Vai trò',
-            options: roles
         }
     ];
 

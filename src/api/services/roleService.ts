@@ -52,10 +52,10 @@ const cleanPaginationParams = (page: number = 1, pageSize: number = 10) => {
 export const getRolesPaginated = async (
     page: number = 1,
     pageSize: number = 10,
-    searchTerm?: string
+    keyWord?: string
 ): Promise<PaginatedResult<Role>> => {
     const params: Record<string, string | number> = { page, pageSize };
-    if (searchTerm) params.searchTerm = searchTerm;
+    if (keyWord) params.keyWord = keyWord;
 
     const response = await apiClient.get<PaginatedResult<Role>>(
         "/Roles/get-pagination",

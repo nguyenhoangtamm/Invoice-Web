@@ -120,7 +120,7 @@ export default function InvoiceLookupDetail() {
                 {/* Invoice Detail */}
                 <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                     <InvoiceDetail
-                        data={invoice}
+                        invoiceId={invoice.id}
                         open={true}
                         onClose={() => {
                             navigate("/lookup");

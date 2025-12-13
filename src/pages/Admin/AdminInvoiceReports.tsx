@@ -222,9 +222,9 @@ export default function AdminInvoiceReports() {
             width: 140,
         },
         {
-            key: 'createdAt',
+            key: 'createdDate',
             label: 'Ngày báo cáo',
-            render: (row: any) => row.createdAt ? new Date(row.createdAt).toLocaleDateString('vi-VN') : '-',
+            render: (row: any) => row.createdDate ? new Date(row.createdDate).toLocaleDateString('vi-VN') : '-',
             width: 180,
         },
         {

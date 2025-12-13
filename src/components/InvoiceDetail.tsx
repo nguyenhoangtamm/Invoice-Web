@@ -12,7 +12,7 @@ import { formatDateTime } from "../utils/helpers";
 import EditInvoiceModal from "./EditInvoiceModal";
 
 interface Props {
-  data: Invoice | Invoice[] | null;
+  invoiceId: number;
   open: boolean;
   onClose: () => void;
 }
@@ -52,7 +52,7 @@ function getInvoiceStatusColor(status: number): string {
   }
 }
 
-export default function InvoiceDetail({ data, open, onClose }: Props) {
+export default function InvoiceDetail({ invoiceId, open, onClose }: Props) {
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loadingInvoice, setLoadingInvoice] = useState(false);
@@ -75,32 +75,29 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
 
   // Fetch invoice data when modal opens
   useEffect(() => {
-    if (open && data) {
-      const invoiceData = Array.isArray(data) ? data[0] : data;
-      if (invoiceData?.id) {
-        setLoadingInvoice(true);
-        getInvoiceById(invoiceData.id)
-          .then(response => {
-            if (response.succeeded && response.data) {
-              setInvoice(response.data);
-            } else {
-              toaster.push(
-                <Message type="error" showIcon>
-                  Lỗi tải thông tin hóa đơn: {response.message || 'Unknown error'}
-                </Message>
-              );
-            }
-          })
-          .catch(error => {
-            console.error('Error fetching invoice:', error);
+    if (open && invoiceId) {
+      setLoadingInvoice(true);
+      getInvoiceById(invoiceId)
+        .then(response => {
+          if (response.succeeded && response.data) {
+            setInvoice(response.data);
+          } else {
             toaster.push(
               <Message type="error" showIcon>
-                Có lỗi xảy ra khi tải thông tin hóa đơn
+                Lỗi tải thông tin hóa đơn: {response.message || 'Unknown error'}
               </Message>
             );
-          })
-          .finally(() => setLoadingInvoice(false));
-      }
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching invoice:', error);
+          toaster.push(
+            <Message type="error" showIcon>
+              Có lỗi xảy ra khi tải thông tin hóa đơn
+            </Message>
+          );
+        })
+        .finally(() => setLoadingInvoice(false));
     } else if (!open) {
       // Reset state when modal closes
       setInvoice(null);
@@ -109,7 +106,7 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
       setComparisonData(null);
       setCompareModalOpen(false);
     }
-  }, [open, data]);
+  }, [open, invoiceId]);
 
   const verifyBlockchain = async () => {
     // Simulate blockchain verification
@@ -281,17 +278,14 @@ export default function InvoiceDetail({ data, open, onClose }: Props) {
     setInvoice(updatedInvoice);
     setEditModalOpen(false);
     // Refresh parent data by calling the original data fetch
-    if (data) {
-      const invoiceData = Array.isArray(data) ? data[0] : data;
-      if (invoiceData?.id) {
-        getInvoiceById(invoiceData.id)
-          .then(response => {
-            if (response.succeeded && response.data) {
-              setInvoice(response.data);
-            }
-          })
-          .catch(error => console.error('Error refreshing invoice:', error));
-      }
+    if (invoiceId) {
+      getInvoiceById(invoiceId)
+        .then(response => {
+          if (response.succeeded && response.data) {
+            setInvoice(response.data);
+          }
+        })
+        .catch(error => console.error('Error refreshing invoice:', error));
     }
   };
 
