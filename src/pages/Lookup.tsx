@@ -2,12 +2,14 @@ import React, { useState, useCallback } from "react";
 import InvoiceDetail from "../components/InvoiceDetail";
 import type { Invoice, InvoiceLookUp } from "../types/invoice";
 import { downloadInvoiceFile, getInvoicesPaginatedLookUp } from "../api/services/invoiceService";
-import { Search, Eye, Download, FileText, Loader, CheckCircle, AlertCircle } from "lucide-react";
+import { Search, Eye, Download, FileText, Loader, CheckCircle, AlertCircle, Share2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { getSimplifiedInvoiceStatusText, getSimplifiedInvoiceStatusColor, debounce, formatDateTime } from "../utils/helpers";
 import { Input, InputGroup, Message, toaster } from "rsuite";
 import Table, { TableColumn } from "../components/common/table";
 
 export default function Lookup() {
+  const navigate = useNavigate();
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceLookUp | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -135,7 +137,7 @@ export default function Lookup() {
       key: 'actions',
       label: 'Hành động',
       isAction: true,
-      width: 120,
+      width: 150,
       render: (rowData: InvoiceLookUp) => (
         <div className="flex gap-1">
           <button
@@ -147,6 +149,13 @@ export default function Lookup() {
             title="Xem chi tiết"
           >
             <Eye size={16} />
+          </button>
+          <button
+            onClick={() => navigate(`/lookup/${rowData.lookupCode}`)}
+            className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition"
+            title="Chia sẻ link"
+          >
+            <Share2 size={16} />
           </button>
           <button
             onClick={() => handleDownload(rowData.id)}

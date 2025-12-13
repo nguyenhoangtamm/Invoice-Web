@@ -27,6 +27,7 @@ import AuthGuard from '../components/common/AuthGuard';
 import UserGuard from '../components/common/UserGuard';
 import PermissionMiddleware, { createPermission } from '../components/common/PermissionMiddleware';
 import BlockchainVerificationPage from '../pages/BlockchainVerification';
+import InvoiceLookupDetail from '../pages/InvoiceLookupDetail';
 import {
     DashboardPage,
     InvoicesPage,
@@ -52,6 +53,7 @@ export const routes: RouteObject[] = [
 
     // Direct access to lookup page
     { path: '/lookup', element: <Lookup /> },
+    { path: '/lookup/:invoiceId', element: <InvoiceLookupDetail /> },
     // Dashboard routes - Chỉ cho User thường (không phải Admin)
     {
         path: '/dashboard',

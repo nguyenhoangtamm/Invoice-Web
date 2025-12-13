@@ -58,6 +58,12 @@ export const getInvoiceById = async (id: number): Promise<Result<Invoice>> => {
     );
     return response.data;
 };
+export const getInvoiceByLookupCode = async (code: string): Promise<Result<Invoice>> => {
+    const response = await apiClient.get<Result<Invoice>>(
+        `/Invoices/get-by-lookup-code/${code}`
+    );
+    return response.data;
+};
 
 export const getAllInvoices = async (): Promise<Result<Invoice[]>> => {
     const response = await apiClient.get<Result<Invoice[]>>(
