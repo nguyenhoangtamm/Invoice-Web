@@ -1,21 +1,138 @@
 import type { RouteObject } from 'react-router-dom';
-import { Home, About, Contact } from '../pages';
+import { Navigate } from 'react-router-dom';
+import App from '../App';
+import Home from '../pages/Home';
+import NotFound from '../pages/NotFound';
+import Lookup from '../pages/Lookup';
+import Login from '../pages/Login';
+import Register from '../pages/Register';
+import Terms from '../pages/Terms';
+import Privacy from '../pages/Privacy';
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
+import AdminLayout from '../layouts/AdminLayout';
+import DashboardLayout from '../layouts/DashboardLayout';
+import AdminDashboard from '../pages/Admin/AdminDashboard';
+import AdminUsers from '../pages/Admin/AdminUsers';
+import AdminInvoices from '../pages/Admin/AdminInvoices';
+import AdminInvoiceReports from '../pages/Admin/AdminInvoiceReports';
+import AdminApiKeys from '../pages/Admin/AdminApiKeys';
+import AdminOrganizations from '../pages/Admin/AdminOrganizations';
+import AdminRoles from '../pages/Admin/AdminRoles';
+import AdminMenus from '../pages/Admin/AdminMenus';
+import AdminInvoiceBatches from '../pages/Admin/AdminInvoiceBatches';
+import AdminInvoiceLines from '../pages/Admin/AdminInvoiceLines';
+import AdminGuard from '../components/common/AdminGuard';
+import AuthGuard from '../components/common/AuthGuard';
+import UserGuard from '../components/common/UserGuard';
+import PermissionMiddleware, { createPermission } from '../components/common/PermissionMiddleware';
+import BlockchainVerificationPage from '../pages/BlockchainVerification';
+import InvoiceLookupDetail from '../pages/InvoiceLookupDetail';
+import {
+    DashboardPage,
+    InvoicesPage,
+    OrganizationsPage,
+    ApiKeysPage,
+    AnalyticsPage,
+    SettingsPage
+} from '../pages/DashboardPages';
 
 export const routes: RouteObject[] = [
+    // Home page - Public
+    { path: '/', element: <Home /> },
+
+    // Main app routes
     {
-        path: '/',
-        element: <Home />,
+        path: '/app',
+        element: <App />,
+        children: [
+            { index: true, element: <Navigate to="/lookup" replace /> },
+            { path: 'lookup', element: <Lookup /> },
+        ]
+    },
+
+    // Direct access to lookup page
+    { path: '/lookup', element: <Lookup /> },
+    { path: '/lookup/:invoiceId', element: <InvoiceLookupDetail /> },
+    // Dashboard routes - Chỉ cho User thường (không phải Admin)
+    {
+        path: '/dashboard',
+        element: (
+            <PermissionMiddleware permission={createPermission.authenticated()}>
+                <UserGuard>
+                    <DashboardLayout />
+                </UserGuard>
+            </PermissionMiddleware>
+        ),
+        children: [
+            { index: true, element: <DashboardPage /> },
+            { path: 'invoices', element: <InvoicesPage /> },
+            { path: 'organizations', element: <OrganizationsPage /> },
+            { path: 'api-keys', element: <ApiKeysPage /> },
+            { path: 'analytics', element: <AnalyticsPage /> },
+            { path: 'settings', element: <SettingsPage /> }
+        ]
+    },
+    // Admin routes - Chỉ cho Admin
+    {
+        path: '/admin',
+        element: (
+            <AdminGuard>
+                <AdminLayout />
+            </AdminGuard>
+        ),
+        children: [
+            { index: true, element: <Navigate to="/admin/dashboard" replace /> },
+            { path: 'dashboard', element: <AdminDashboard /> },
+            { path: 'users', element: <AdminUsers /> },
+            { path: 'organizations', element: <AdminOrganizations /> },
+            { path: 'roles', element: <AdminRoles /> },
+            { path: 'menus', element: <AdminMenus /> },
+            { path: 'invoices', element: <AdminInvoices /> },
+            { path: 'invoice-reports', element: <AdminInvoiceReports /> },
+            { path: 'invoice-lines', element: <AdminInvoiceLines /> },
+            { path: 'invoice-batches', element: <AdminInvoiceBatches /> },
+            { path: 'api-keys', element: <AdminApiKeys /> },
+        ]
+    },
+    // Auth routes - Public (nhưng redirect nếu đã đăng nhập)
+    {
+        path: '/login',
+        element: (
+            <PermissionMiddleware permission={createPermission.public()}>
+                <Login />
+            </PermissionMiddleware>
+        )
     },
     {
-        path: '/about',
-        element: <About />,
+        path: '/register',
+        element: (
+            <PermissionMiddleware permission={createPermission.public()}>
+                <Register />
+            </PermissionMiddleware>
+        )
     },
     {
-        path: '/contact',
-        element: <Contact />,
+        path: '/forgot-password',
+        element: (
+            <PermissionMiddleware permission={createPermission.public()}>
+                <ForgotPassword />
+            </PermissionMiddleware>
+        )
     },
     {
-        path: '*',
-        element: <Home />,
-    }
+        path: '/reset-password',
+        element: (
+            <PermissionMiddleware permission={createPermission.public()}>
+                <ResetPassword />
+            </PermissionMiddleware>
+        )
+    },
+    // Static pages - Public
+    { path: '/terms', element: <Terms /> },
+    { path: '/privacy', element: <Privacy /> },
+    // Blockchain verification route - Public
+    { path: '/blockchain-verify/:id', element: <BlockchainVerificationPage /> },
+    // 404 Not Found - Catch all unmatched routes
+    { path: '*', element: <NotFound /> }
 ];
