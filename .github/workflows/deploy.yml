@@ -32,8 +32,8 @@ jobs:
                   password: ${{ secrets.VPS_PASSWORD }}
                   port: 22
                   script: |
-                      # Remove old dist folder
-                      rm -rf ${{ secrets.VPS_DEPLOY_PATH }}/dist
+                      # Remove old dist folder with force
+                      sudo rm -rf ${{ secrets.VPS_DEPLOY_PATH }}/dist
                       echo "✅ Old dist folder removed"
 
             - name: Upload dist files to VPS
@@ -45,7 +45,22 @@ jobs:
                   password: ${{ secrets.VPS_PASSWORD }}
                   port: 22
                   source: "dist"
-                  target: ${{ secrets.VPS_DEPLOY_PATH }}/
+                  target: ${{ secrets.VPS_DEPLOY_PATH }}
+                  strip_file_prefix: true
+
+            - name: Fix permissions on VPS
+              if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+              uses: appleboy/ssh-action@master
+              with:
+                  host: ${{ secrets.VPS_HOST }}
+                  username: ${{ secrets.VPS_USER }}
+                  password: ${{ secrets.VPS_PASSWORD }}
+                  port: 22
+                  script: |
+                      # Fix permissions on uploaded files
+                      sudo chown -R www-data:www-data ${{ secrets.VPS_DEPLOY_PATH }}/dist
+                      sudo chmod -R 755 ${{ secrets.VPS_DEPLOY_PATH }}/dist
+                      echo "✅ Permissions fixed"
 
             - name: Reload Nginx
               if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
