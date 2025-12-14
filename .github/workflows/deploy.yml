@@ -23,7 +23,7 @@ jobs:
             - name: Build project
               run: npm run build
 
-            - name: Deploy dist to VPS
+            - name: Clean and upload dist to VPS
               if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
               uses: appleboy/ssh-action@master
               with:
@@ -32,10 +32,9 @@ jobs:
                   password: ${{ secrets.VPS_PASSWORD }}
                   port: 22
                   script: |
-                      # Remove old dist folder and upload new dist
+                      # Remove old dist folder
                       rm -rf ${{ secrets.VPS_DEPLOY_PATH }}/dist
-                      mkdir -p ${{ secrets.VPS_DEPLOY_PATH }}/dist
-                      echo "✅ Dist folder cleaned"
+                      echo "✅ Old dist folder removed"
 
             - name: Upload dist files to VPS
               if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
@@ -45,8 +44,8 @@ jobs:
                   username: ${{ secrets.VPS_USER }}
                   password: ${{ secrets.VPS_PASSWORD }}
                   port: 22
-                  source: "dist/*"
-                  target: ${{ secrets.VPS_DEPLOY_PATH }}
+                  source: "dist"
+                  target: ${{ secrets.VPS_DEPLOY_PATH }}/
 
             - name: Reload Nginx
               if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
